@@ -565,11 +565,6 @@ function signup(){
   let pass = document.getElementById("password").value;
   let msg = document.getElementById("msg");
 
-  // ✅ validation
-  if(!email || !pass){
-    msg.innerText = "Enter email & password";
-    return;
-  }
 
   auth.createUserWithEmailAndPassword(email, pass)
   .then(()=>{
@@ -586,19 +581,14 @@ function login(){
   let pass = document.getElementById("password").value;
   let msg = document.getElementById("msg");
 
-  // ✅ validation
   if(!email || !pass){
     msg.innerText = "Enter email & password";
     return;
   }
 
   auth.signInWithEmailAndPassword(email, pass)
-  .then(()=>{
-    msg.innerText="Login Success";
-  })
-  .catch(e=>{
-    msg.innerText=e.message;
-  });
+  .then(()=> msg.innerText="Login Success")
+  .catch(e=> msg.innerText=e.message);
 }
 
 auth.onAuthStateChanged(user=>{
