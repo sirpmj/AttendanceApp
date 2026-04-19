@@ -1,0 +1,1538 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family: system-ui, -apple-system, Arial;
+}
+
+body{
+  background:#f6f8fc;
+  padding:10px;
+}
+
+/* TOP BAR */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 5000;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border-radius: 0 0 12px 12px;
+}
+
+/* TITLE */
+.app-title{
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  color: #111;
+}
+
+.month-subtitle{
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* center block */
+.title-area{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+/* keep nav buttons small */
+.nav-btn{
+  width:34px;
+  height:34px;
+}
+
+/* HEADER */
+h2{
+  text-align:center;
+  font-size:18px;
+  margin-bottom:10px;
+}
+
+h2 button{
+  padding:6px 10px;
+  border-radius:6px;
+}
+
+/* BUTTON */
+button{
+  padding:8px 12px;
+  border:none;
+  border-radius:8px;
+  background:#2563eb;
+  color:white;
+  cursor:pointer;
+  transition:.2s;
+}
+button:hover{opacity:.85}
+
+/* SUMMARY */
+#summaryBox{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(90px,1fr));
+  gap:6px;
+margin-top:10px;
+  margin-bottom:10px;
+}
+
+#summaryBox p{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  font-size:14px;   /* 🔥 text bigger */
+  padding:10px 6px; /* 🔥 box bigger */
+}
+
+/* ICON BIG */
+.icon{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:6px;
+}
+
+/* Colors */
+.present-icon{background:#22c55e;}
+.late-icon{background:#eab308;}
+.early-icon{background:#3b82f6;}
+.absent-icon{background:#ef4444;}
+.leave-icon{background:#0ea5e9;}
+.half-icon{background:#f97316;}
+.sunday-icon{background:#6b7280;}
+.holiday-icon{background:#8b5cf6;}
+.percent-icon{background:#8b5cf6;}
+.weekoff-icon{ background:#6366f1; }
+
+/* NUMBER BIG */
+#summaryBox p{
+  background:white;
+  border-radius:10px;
+  padding:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+/* CALENDAR */
+.calendar{
+  display:grid;
+  grid-template-columns: repeat(7,1fr);
+  gap:6px;
+}
+
+.day{
+  background:white;
+  border-radius:10px;
+  padding:6px;
+  text-align:center;
+  cursor:pointer;
+  font-size:18px;
+  min-height:65px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+  transition:.15s;
+}
+
+.day:hover{
+  transform:scale(1.05);
+}
+
+/* STATUS COLORS */
+.present{background:#dcfce7;}
+.late{background:#fef9c3;}
+.absent{background:#fee2e2;}
+.leave{background:#e0f2fe;}
+.half{background:#ffedd5;}
+.sunday{background:#e5e7eb;}
+.holiday{background:#ede9fe;}
+.weekoff{ background:#cbd5f5; }
+
+/* WEEKDAYS */
+#weekdays{
+  display:grid;
+  grid-template-columns: repeat(7,1fr);
+  margin-bottom:4px;
+}
+
+#weekdays div{
+  text-align:center;
+  font-size:16px;
+  font-weight:600;
+  color:#666;
+  padding:2px 0;
+}
+
+/* CONTEXT MENU */
+.context-menu{
+  position:fixed;
+  background:white;
+  border-radius:10px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.15);
+  display:none;
+  z-index:1000;
+  overflow:hidden;
+}
+
+.context-menu div{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  padding:2px 12px;
+  font-size:14px;
+}
+
+.context-menu div:hover{
+  background:#f3f4f6;
+}
+
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:8px;
+}
+
+/* colors */
+.green{background:#22c55e;}
+.red{background:#ef4444;}
+.yellow{background:#eab308;}
+.blue{background:#3b82f6;}
+.orange{background:#f97316;}
+.gray{background:#6b7280;}
+.black{background:#000;}
+.purple{background:#8b5cf6;}
+
+/* MODAL BACKDROP */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:3000;
+  backdrop-filter: blur(3px);
+}
+
+/* MODAL BOX */
+.modal-box{
+  background:#fff;
+  padding:18px;
+  border-radius:16px;
+  width:92%;
+  max-width:320px;
+  text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,0.25);
+  animation:popup .2s ease;
+}
+
+/* TITLE */
+#noteTitle{
+  font-size:16px;
+  font-weight:600;
+  margin-bottom:12px;
+}
+
+/* INPUTS */
+.note-select,
+.note-input{
+  width:100%;
+  padding:10px 12px;
+  margin-top:8px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+  background:#f9fafb;
+  outline:none;
+}
+
+.note-select:focus,
+.note-input:focus{
+  border-color:#2563eb;
+  background:#fff;
+}
+
+/* BUTTONS */
+.modal-actions{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+
+.modal-actions button{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  font-size:14px;
+}
+
+.modal-actions button:first-child{
+  background:#e5e7eb;
+  color:#111;
+}
+
+.modal-actions button:last-child{
+  background:#2563eb;
+  color:#fff;
+}
+
+/* POPUP ANIMATION */
+@keyframes popup{
+  from{transform:scale(0.85);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+/* MOBILE */
+@media(max-width:600px){
+
+  body{
+    padding:6px;
+  }
+
+  .calendar{
+    gap:4px;
+  }
+
+  .day{
+    font-size:10px;
+    padding:4px;
+  }
+
+  .time{
+    font-size:8px;
+  }
+
+  .status{
+    font-size:9px;
+  }
+
+  .note{
+    font-size:8px;
+  }
+
+  #weekdays div{
+    font-size:11px;
+  }
+
+}
+
+.nav-btn{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:#2563eb;
+  position:relative;
+}
+
+.nav-btn::before{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:8px;
+  height:8px;
+  border-top:2px solid white;
+  border-right:2px solid white;
+  transform:translate(-50%,-50%) rotate(45deg);
+}
+
+.prev::before{
+  transform:translate(-50%,-50%) rotate(-135deg);
+}
+
+.next::before{
+  transform:translate(-50%,-50%) rotate(45deg);
+}
+
+
+@keyframes popup{
+  from{
+    transform:scale(0.8);
+    opacity:0;
+  }
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+}
+
+
+.time{
+  font-size:10px;
+  line-height:1.0;
+}
+
+.in{
+  color:#16a34a;
+}
+
+.out{
+  color:#dc2626;
+}
+
+.progress-bar{
+  height:8px;
+  background:#e5e7eb;
+  border-radius:10px;
+  overflow:hidden;
+  margin:8px 0;
+}
+
+#progressFill{
+  height:100%;
+  background:#22c55e;
+  width:0%;
+  transition:0.3s;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="loginBox" style="max-width:300px;margin:40px auto;text-align:center;">
+  <h2>Login</h2>
+
+  <input type="email" id="email" placeholder="Email" style="width:100%;padding:10px;margin:5px;">
+  <input type="password" id="password" placeholder="Password" style="width:100%;padding:10px;margin:5px;">
+
+  <button onclick="login()">Login</button>
+  <button onclick="signup()">Sign Up</button>
+
+  <p id="msg"></p>
+</div>
+
+<div id="app" style="display:none;">
+
+<div id="timeModal" class="modal">
+  <div class="modal-box">
+    <h3 id="modalTitle">Select Time</h3>
+    
+    <input type="time" id="modalTime">
+
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button onclick="confirmTime()">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="noteModal" class="modal">
+  <div class="modal-box">
+
+    <h3 id="noteTitle">Add Note</h3>
+
+<select id="noteInput" class="note-select">
+  <option value="">Select Reason</option>
+  <option>Sick Leave</option>
+  <option>Personal</option>
+  <option>Festival</option>
+  <option>Office Work</option>
+  <option value="custom">➕ Other</option>
+</select>
+
+<input type="text" id="customNote" class="note-input">
+
+    <div class="modal-actions">
+      <button onclick="closeNoteModal()">Cancel</button>
+      <button onclick="confirmNote()">Save</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="topbar">
+  <button onclick="changeMonth(-1)" class="nav-btn prev"></button>
+
+  <div class="title-area">
+    <div class="app-title">Self Attendance</div>
+    <div id="monthTitle" class="month-subtitle"></div>
+  </div>
+
+  <button onclick="changeMonth(1)" class="nav-btn next"></button>
+</div>
+
+<div class="card" id="summaryBox">
+<p><span class="icon present-icon"></span><span>Present</span><b id="sumPresent">0</b></p>
+<p><span class="icon late-icon"></span><span>Late</span><b id="lateBox">0 (0/3)</b>
+</p><p><span class="icon early-icon"></span><span>Early</span><b id="earlyUsed">0/1</b></p>
+<p><span class="icon half-icon"></span><span>Half Day</span><b id="sumHalf">0</b></p>
+<p><span class="icon leave-icon"></span><span>Leave</span><b id="leaveBox">0 (0/2)</b></p>
+<p><span class="icon absent-icon"></span><span>Absent</span><b id="sumAbsent">0</b></p>
+<p><span class="icon weekoff-icon"></span><span>Week Off</span><b id="sumWeekoff">0</b></p>
+<p><span class="icon holiday-icon"></span><span>Holiday</span><b id="holidayBox">0 (0)</b>
+</p><p><span class="icon percent-icon"></span><span>%</span><b id="sumPercent">0%</b></p>
+
+
+</div>
+
+<div class="progress-bar">
+  <div id="progressFill"></div>
+</div>
+
+<div class="calendar" id="weekdays">
+  <div>Sun</div><div>Mon</div><div>Tue</div>
+  <div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+</div>
+
+<div id="calendar" class="calendar"></div>
+
+<!-- 🔥 Menu -->
+<div id="menu" class="context-menu">
+
+<div onclick="menuAction(()=>setWithNote('Absent'))"><span class="dot red"></span> Absent</div>
+<div onclick="menuAction(()=>setWithNote('Leave'))"><span class="dot blue"></span> Leave</div>
+<div onclick="menuAction(()=>setWithNote('Half'))"><span class="dot orange"></span> Half Day</div>
+<div onclick="menuAction(()=>quickSet('Weekoff'))"> <span class="dot purple"></span> Weekly Off</div>
+<div onclick="menuAction(()=>setWithNote('Holiday'))"><span class="dot purple"></span> Holiday</div>
+<div onclick="menuAction(()=>clearDay())"><span class="dot black"></span> Clear</div>
+
+</div>
+
+
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCKlXV7if_WypGKK-uLHHbwhsFlzjQ3yic",
+  authDomain: "attendanceapp-ea69c.firebaseapp.com",
+  projectId: "attendanceapp-ea69c",
+  storageBucket: "attendanceapp-ea69c.firebasestorage.app",
+  messagingSenderId: "1047786210011",
+  appId: "1:1047786210011:web:076bfb0c85fd489cecc2fe",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+</script>
+
+<script>
+let clickTimer = null;
+
+const holidays = {
+ "2026-01-14": "Makar Sankranti",
+ "2026-01-26": "Republic Day",
+ "2026-03-14": "Holi",
+ "2026-08-15": "Independence Day",
+ "2026-08-19": "Raksha Bandhan",
+ "2026-08-26": "Janmashtami",
+ "2026-09-17": "Ganesh Chaturthi",
+ "2026-10-20": "Dussehra",
+ "2026-11-08": "Diwali",
+ "2026-11-10": "Bhai Dooj",
+
+};
+
+// 🔥 NEW SETTINGS
+const officeIn="09:00";
+const officeOut="18:00";
+const graceTime="09:15";
+const lateLimit=3;
+const earlyLimit=1;
+const leaveMonthlyLimit = 2;
+const leaveYearlyLimit = 25;
+
+
+
+const auth = firebase.auth();
+
+// SIGNUP
+function signup(){
+  let email = document.getElementById("email").value;
+  let pass = document.getElementById("password").value;
+
+  auth.createUserWithEmailAndPassword(email, pass)
+  .then(()=>{
+    document.getElementById("msg").innerText="Account Created";
+  })
+  .catch(e=>{
+    document.getElementById("msg").innerText=e.message;
+  });
+}
+
+// LOGIN
+function login(){
+  let email = document.getElementById("email").value;
+  let pass = document.getElementById("password").value;
+
+  auth.signInWithEmailAndPassword(email, pass)
+  .then(()=>{
+    document.getElementById("msg").innerText="Login Success";
+  })
+  .catch(e=>{
+    document.getElementById("msg").innerText=e.message;
+  });
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("app").style.display="block";
+
+    // 🔥 Firestore listener (FIXED)
+    db.collection("users")
+      .doc(user.uid)
+      .collection("attendance")
+      .onSnapshot(snapshot => {
+
+        let all = {};
+
+        snapshot.forEach(doc => {
+          all[doc.id] = doc.data();
+        });
+
+        localStorage.setItem("att2", JSON.stringify(all));
+
+        loadCalendar();
+        loadSummary();
+      });
+
+  } else {
+    document.getElementById("loginBox").style.display="block";
+    document.getElementById("app").style.display="none";
+  }
+});
+
+
+
+let current = new Date(
+  new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+);
+
+let selected = today();
+let pressTimer;
+
+// helpers
+function today(){
+  let now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+  );
+
+  return now.getFullYear() + "-" +
+         String(now.getMonth()+1).padStart(2,'0') + "-" +
+         String(now.getDate()).padStart(2,'0');
+}
+
+function getCurrentYearData(){
+  let all = getAll();
+  let y = current.getFullYear();
+
+  return Object.values(all).filter(d=>{
+    if(!d.date) return false;
+    let dt = new Date(d.date);
+    return dt.getFullYear() === y;
+  });
+}
+
+function getTime(){
+  return new Date().toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Kolkata"
+  });
+}
+
+function setSelected(date){
+  selected = date.toString();
+}
+
+// 🔥 MONTH FILTER
+function getCurrentMonthData(){
+  let all = getAll();
+  let y = current.getFullYear();
+  let m = String(current.getMonth()+1).padStart(2,'0');
+
+  return Object.values(all).filter(d=>{
+    if(!d.date) return false;
+    return d.date.startsWith(y + "-" + m);
+  });
+}
+
+function menuAction(fn){
+  fn(); // original function run
+  document.getElementById("menu").style.display = "none"; // close menu
+}
+
+// storage
+function getAll(){
+  return JSON.parse(localStorage.getItem("att2")||"{}");
+}
+
+document.getElementById("noteInput").addEventListener("change", function(){
+  let custom = document.getElementById("customNote");
+  if(this.value === "custom"){
+    custom.style.display = "block";
+    custom.focus();
+  } else {
+    custom.style.display = "none";
+  }
+});
+
+
+function confirmNote(){
+  let select = document.getElementById("noteInput").value;
+  let custom = document.getElementById("customNote").value;
+
+  let note = (select === "custom") ? custom : select;
+
+  let cb = noteCallback;
+  noteCallback = null;
+
+  closeNoteModal();
+
+  if(cb){
+    cb(note);
+  }
+}
+
+
+
+
+function save(d){
+  d.date = selected;
+
+  // 🔥 Local save
+  let all = getAll();
+ all[d.date] = d; 
+  localStorage.setItem("att2", JSON.stringify(all));
+
+  // 🔥 Firebase save
+  let user = auth.currentUser;
+
+db.collection("users")
+  .doc(user.uid)
+  .collection("attendance")
+  .doc(selected)
+  .set(d);
+}
+
+function getData(){
+  return getAll()[selected]||{date:selected};
+}
+
+
+let noteCallback = null;
+
+function openNoteModal(title, callback){
+  document.getElementById("noteTitle").innerText = title;
+
+  let input = document.getElementById("noteInput");
+  input.value = "";
+
+  noteCallback = callback;
+
+  document.getElementById("noteModal").style.display = "flex";
+
+  setTimeout(()=>{
+    input.focus();
+  },100);
+}
+
+function closeNoteModal(){
+  document.getElementById("noteModal").style.display = "none";
+}
+
+
+function setWithNote(type){
+
+  openNoteModal("Enter " + type + " reason", (note)=>{
+
+    let d = getData();
+
+    d.status = type;
+    d.note = note;
+    d.in = "";
+    d.out = "";
+    d.manual = true; // 🔥 important
+
+    save(d); // 🔥 main fix
+
+    loadCalendar();
+    loadSummary();
+  });
+
+}
+
+// calendar
+function loadCalendar(){
+  let cal=document.getElementById("calendar");
+  cal.innerHTML="";
+
+  let year = current.getFullYear();
+  let month = current.getMonth();
+
+  document.getElementById("monthTitle").innerText =
+    current.toLocaleString('default',{month:'long',year:'numeric'});
+
+  let firstDay = new Date(year, month, 1).getDay();
+  let days = new Date(year, month+1,0).getDate();
+
+  for(let i=0;i<firstDay;i++){
+    cal.appendChild(document.createElement("div"));
+  }
+
+  for(let i=1;i<=days;i++){
+    let date=new Date(year, month, i);
+    let d = date.getFullYear() + "-" + 
+        String(date.getMonth()+1).padStart(2,'0') + "-" + 
+        String(date.getDate()).padStart(2,'0');
+
+   let all = getAll();
+let old = all[d] || {};
+
+
+let isSunday = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  timeZone: "Asia/Kolkata"
+}).format(date) === "Sun";
+
+let data = {
+  date: d,
+  in: old.in || "",
+  out: old.out || "",
+  status: old.status || "",
+  note: old.note || ""
+};
+
+// 🔥 DEFAULT SUNDAY = OFF (auto save)
+if(isSunday && !data.status){
+  data.status = "Sunday"; // only UI
+}
+
+// ✅ Only apply holiday if NO manual data exists
+if(!old.manual && holidays[d]){
+  data.status = "Holiday";
+  data.note = holidays[d];
+}
+    let cls=data.status?data.status.toLowerCase():"";
+
+    let div=document.createElement("div");
+    div.className="day "+cls;
+let inT = data.in 
+  ? `<div class="time in">in ${data.in}</div>` 
+  : "";
+
+let outT = data.out 
+  ? `<div class="time out">out ${data.out}</div>` 
+  : "";
+let st = data.status ? `<div style="font-size:10px;">${data.status}</div>` : "";
+let note = data.note 
+  ? `<div style="font-size:9px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.note}</div>` 
+  : "";
+
+div.innerHTML = `
+  <b>${i}</b>
+  ${inT}
+  ${outT}
+  ${st}
+  ${note}
+`;
+
+    // right click
+    div.oncontextmenu=(e)=>{
+      e.preventDefault();
+  selected = d; 
+      showMenu(e.pageX,e.pageY,d);
+    };
+
+    // long press
+   div.ontouchstart=(e)=>{
+  pressTimer=setTimeout(()=>{
+    selected = d; // 🔥 add this
+    showMenu(e.touches[0].pageX,e.touches[0].pageY,d);
+  },500);
+};
+
+    div.ontouchend=()=>clearTimeout(pressTimer);
+
+    // click
+
+div.onclick = (e)=>{
+  selected = d;
+
+  if(clickTimer){
+    clearTimeout(clickTimer);
+    clickTimer = null;
+
+    let all = getAll();
+    let data = all[d] || {date:d};
+
+    // IN
+    if(!data.in){
+      openTimeModal("Select IN Time",(inTime)=>{
+        data.in = inTime;
+        data.date = d;
+
+        let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
+
+        if(toMinutes(inTime) <= toMinutes(graceTime)){
+          data.status="Present";
+        }
+        else if(toMinutes(inTime) <= toMinutes("10:00")){
+          data.status = (lateCount < lateLimit) ? "Late" : "Half";
+        }
+        else{
+          data.status="Half";
+        }
+
+        save(data);
+        loadCalendar(); loadSummary();
+      });
+    }
+
+    // OUT
+    else if(!data.out){
+      openTimeModal("Select OUT Time",(outTime)=>{
+        data.out = outTime;
+        data.date = d;
+
+        if(data.in && data.out){
+          let hrs=(new Date("1970-01-01T"+data.out)-new Date("1970-01-01T"+data.in))/3600000;
+          if(hrs < 4) data.status="Half";
+        }
+
+        save(data);
+        loadCalendar(); loadSummary();
+      });
+    }
+
+    // EDIT
+    else{
+      openTimeModal("Edit IN Time",(inTime)=>{
+        data.in = inTime;
+        data.date = d;
+        save(data);
+        loadCalendar(); loadSummary();
+      });
+    }
+
+  } else {
+    clickTimer = setTimeout(()=>{
+      showMenu(e.pageX, e.pageY, d);
+      clickTimer = null;
+    },300);
+  }
+};
+
+
+let startX = 0;
+
+document.getElementById("calendar").addEventListener("touchstart",(e)=>{
+  startX = e.touches[0].clientX;
+});
+
+document.getElementById("calendar").addEventListener("touchend",(e)=>{
+  let endX = e.changedTouches[0].clientX;
+
+  if(startX - endX > 50){
+    changeMonth(1); // next
+  }
+  else if(endX - startX > 50){
+    changeMonth(-1); // prev
+  }
+});
+
+
+function toMinutes(t){
+  let [h,m] = t.split(":").map(Number);
+  return h*60 + m;
+}
+    // 🔥 DOUBLE CLICK = IN + OUT
+    cal.appendChild(div);
+  }
+}
+
+
+let lastTap = 0;
+
+function handleDoubleTap(callback){
+  let now = new Date().getTime();
+  let diff = now - lastTap;
+
+  if(diff < 300){
+    callback(); // double tap
+  }
+
+  lastTap = now;
+}
+
+
+// month change
+function changeMonth(step){
+  current.setMonth(current.getMonth()+step);
+  loadCalendar();
+  loadSummary();
+}
+
+function punchTime(type){
+
+  let all = getAll();
+  let key = selected.toString();
+  let data = all[key] || {date:key, in:"", out:"", status:"", note:""};
+
+  if(type === "in"){
+
+    openTimeModal("Select IN Time", (time)=>{
+      data.in = time;
+
+      data = updateStatus(data);
+
+      all[key] = data;
+      localStorage.setItem("att2", JSON.stringify(all));
+
+      loadCalendar();
+      loadSummary();
+      document.getElementById("menu").style.display = "none";
+    });
+
+  }
+
+  else if(type === "out"){
+
+    openTimeModal("Select OUT Time", (time)=>{
+      data.out = time;
+
+      data = updateStatus(data);
+
+      all[key] = data;
+      localStorage.setItem("att2", JSON.stringify(all));
+
+      loadCalendar();
+      loadSummary();
+      document.getElementById("menu").style.display = "none";
+    });
+  }
+}
+
+function editTime(type){
+  let data = getData();
+
+  if(type === "in"){
+    openTimeModal("Edit IN Time", (time)=>{
+
+      data.in = time;
+
+      updateStatus(data);   // 🔥 full logic
+
+      save(data);
+      loadCalendar();
+      loadSummary();
+    });
+  }
+
+  if(type === "out"){
+    openTimeModal("Edit OUT Time", (time)=>{
+
+      data.out = time;
+
+      updateStatus(data);   // 🔥 full logic
+
+      save(data);
+      loadCalendar();
+      loadSummary();
+    });
+  }
+}
+
+// summary
+function loadSummary(){
+  let monthData = getCurrentMonthData();
+
+let p=0,l=0,a=0,lv=0,h=0,o=0,holiday=0,weekoff=0;
+
+  monthData.forEach(d=>{
+    switch(d.status){
+      case "Present":p++;break;
+      case "Late":l++;break;
+      case "Absent":a++;break;
+      case "Leave":lv++;break;
+      case "Half":h++;break;
+case "Holiday": holiday++; break;
+      case "Sunday":o++;break;
+case "Weekoff": weekoff++; break;
+    }
+  });
+
+let lateUsed = monthData.filter(x=>x.status==="Late").length;
+let lateWarning = lateUsed >= lateLimit;
+
+let earlyUsed = monthData.filter(x=>x.early).length;
+let earlyWarning = earlyUsed >= earlyLimit;
+
+let leaveMonthlyUsed = monthData.filter(x=>x.status==="Leave").length;
+let leaveYearlyUsed = getCurrentYearData().filter(x=>x.status==="Leave").length;
+let leaveWarning = leaveMonthlyUsed >= leaveMonthlyLimit;
+
+// ✅ Holiday count (auto + manual)
+let holidayMonth = 0;
+let holidayTillNow = 0;
+let holidayYear = 0;
+
+let selectedYear = current.getFullYear();
+let selectedMonth = current.getMonth();
+
+// last date of selected month
+let tillDate = new Date(selectedYear, selectedMonth + 1, 0);
+
+let tillDateStr = tillDate.getFullYear() + "-" +
+  String(tillDate.getMonth()+1).padStart(2,'0') + "-" +
+  String(tillDate.getDate()).padStart(2,'0');
+
+
+// ✅ MONTH (auto + manual)
+monthData.forEach(d=>{
+  if(d.status === "Holiday" || holidays[d.date]){
+    holidayMonth++;
+  }
+});
+
+
+// ✅ YEAR + TILL NOW (sirf holidays object se — BEST)
+Object.keys(holidays).forEach(d=>{
+
+  if(d.startsWith(selectedYear)){
+
+    holidayYear++; // total year
+
+    if(d <= tillDateStr){
+      holidayTillNow++; // till selected month
+    }
+
+  }
+
+});
+
+// ✅ Leave limit logic
+lv = Math.min(leaveMonthlyUsed, leaveMonthlyLimit);
+
+if(leaveMonthlyUsed > leaveMonthlyLimit){
+  a += (leaveMonthlyUsed - leaveMonthlyLimit);
+}
+
+let total = p + l + a + lv + h + o + holidayMonth;
+
+  let working=p+l+h;
+
+  document.getElementById("sumPresent").innerText=p;
+  document.getElementById("sumAbsent").innerText=a;
+  document.getElementById("sumHalf").innerText=h;
+document.getElementById("sumWeekoff").innerText = weekoff;
+document.getElementById("holidayBox").innerText = 
+  holidayMonth + " (" + holidayTillNow + "/" + holidayYear + ")";
+document.getElementById("sumPercent").innerText=
+    total?((working/total)*100).toFixed(1)+"%":"0%";
+document.getElementById("progressFill").style.width =
+  total ? ((working/total)*100) + "%" : "0%";
+
+document.getElementById("lateBox").innerText = 
+  l + " (" + lateUsed + "/" + lateLimit + ")" + (lateWarning ? " ⚠️" : "");
+
+document.getElementById("leaveBox").innerText = 
+  lv + " (" + leaveMonthlyUsed + "/" + leaveMonthlyLimit + ")" + (leaveWarning ? " ⚠️" : "");
+
+document.getElementById("earlyUsed").innerText = 
+  earlyUsed + "/" + earlyLimit + (earlyWarning ? " ⚠️" : "");
+}
+
+
+window.onload = () => {
+  document.title = "Self Attendance"; // browser tab
+  document.getElementById("pageTitle").innerText = "Self Attendance";
+  
+};
+
+// menu
+function showMenu(x,y,date){
+  selected = date;
+
+  let m=document.getElementById("menu");
+
+  let maxX = window.innerWidth - 150;
+  let maxY = window.innerHeight - 200;
+
+  m.style.left = Math.min(x, maxX) + "px";
+  m.style.top = Math.min(y, maxY) + "px";
+
+  m.style.display="block";
+}
+
+
+
+// actions
+function quickSet(status){
+  let all = getAll();
+  let d = all[selected] || {date:selected};
+
+  if(status === "Present"){
+    let now = getTime();
+
+    d.in = now;
+    d.out = officeOut;
+
+    updateStatus(d);
+  } 
+  else if(status === "Half"){
+    d.status = "Half";
+    d.in = "";
+    d.out = "";
+  }
+  else{
+    d.status = status;
+    d.in = "";
+    d.out = "";
+  }
+
+ d.manual = true;
+save(d);
+
+  loadCalendar();   // 🔥 order important
+  loadSummary();
+
+  document.getElementById("menu").style.display = "none";
+}
+
+// 🔥 ADVANCED MARK IN
+function markIn(){
+  let d = getData();
+  let picker = document.getElementById("timePicker");
+
+  picker.style.display = "block";
+  picker.value = getTime();
+
+  picker.onchange = () => {
+    let time = picker.value;
+
+    // 🔥 अगर IN नहीं है → IN set करो
+    if(!d.in){
+      d.in = time;
+
+      let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
+
+      if(toMinutes(time) <= toMinutes(graceTime)){
+        d.status = "Present";
+      }
+      else if(toMinutes(time) <= toMinutes("10:00")){
+        d.status = (lateCount < lateLimit) ? "Late" : "Half";
+      }
+      else{
+        d.status = "Half";
+      }
+
+      // 👉 अब OUT पूछो
+      picker.value = officeOut;
+
+      picker.onchange = () => {
+        d.out = picker.value;
+
+        // working hours check
+        if(d.in && d.out){
+          let hrs=(new Date("1970-01-01T"+d.out)-new Date("1970-01-01T"+d.in))/3600000;
+
+          if(hrs < 4){
+            d.status = "Half";
+          }
+        }
+
+        picker.style.display = "none";
+
+        save(d);
+        loadCalendar();
+        loadSummary();
+      };
+
+    } 
+    else {
+      // 🔥 अगर IN already है → सिर्फ OUT
+      d.out = time;
+
+      if(d.in && d.out){
+        let hrs=(new Date("1970-01-01T"+d.out)-new Date("1970-01-01T"+d.in))/3600000;
+
+        if(hrs < 4){
+          d.status = "Half";
+        }
+      }
+
+      picker.style.display = "none";
+
+      save(d);
+      loadCalendar();
+      loadSummary();
+    }
+  };
+
+}
+
+
+function askTimeFlow(){
+  let picker = document.getElementById("timePicker");
+
+  // STEP 1: IN time
+  picker.style.display = "block";
+  picker.value = getTime();
+
+  picker.onchange = () => {
+    let d = getData();
+    d.in = picker.value;
+
+    // status logic
+    let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
+
+    if(toMinutes(d.in) <= toMinutes(graceTime)){
+      d.status = "Present";
+    }
+    else if(toMinutes(d.in) <= toMinutes("10:00")){
+      d.status = (lateCount < lateLimit) ? "Late" : "Half";
+    }
+    else{
+      d.status = "Half";
+    }
+
+    // STEP 2: OUT time
+    picker.value = officeOut;
+
+    picker.onchange = () => {
+      d.out = picker.value;
+
+      // working hours check
+      if(d.in && d.out){
+        let hrs=(new Date("1970-01-01T"+d.out)-new Date("1970-01-01T"+d.in))/3600000;
+
+        if(hrs < 4){
+          d.status = "Half";
+        }
+      }
+
+      picker.style.display = "none";
+
+      save(d);
+      loadCalendar();
+      loadSummary();
+    };
+  };
+
+}
+// 🔥 ADVANCED MARK OUT
+function markOut(){
+  let d=getData();
+  d.out=getTime();
+
+  let monthData=getCurrentMonthData();
+  let earlyCount=monthData.filter(x=>x.early).length;
+
+  if(d.out < officeOut){
+    if(d.out >= "17:00" && earlyCount < earlyLimit){
+      d.early=true; // allowed once
+    } else {
+      d.status="Half";
+    }
+  }
+
+  if(d.in && d.out){
+    let hrs=(new Date("1970-01-01T"+d.out)-new Date("1970-01-01T"+d.in))/3600000;
+    if(hrs<4){
+      d.status="Half";
+    }
+  }
+
+  save(d); loadCalendar(); loadSummary();
+}
+
+function clearDay(){
+  let all = getAll();
+
+  if(!selected) return;
+
+  delete all[selected];
+
+  localStorage.setItem("att2", JSON.stringify(all));
+
+  // 🔥 Firebase भी clear करो
+  let user = auth.currentUser;
+
+db.collection("users")
+  .doc(user.uid)
+  .collection("attendance")
+  .doc(selected)
+  .delete();
+
+  loadCalendar();
+  loadSummary();
+
+  document.getElementById("menu").style.display = "none";
+}
+
+// manual time
+function setCustomTime(type){
+  let picker = document.getElementById("timePicker");
+
+  picker.style.display = "block";
+  picker.value = getTime();
+
+  picker.onchange = () => {
+    let d = getData();
+
+    if(type==="in") d.in = picker.value;
+    else d.out = picker.value;
+
+    picker.style.display = "none";
+
+    save(d);
+    loadCalendar();
+    loadSummary();
+  };
+
+}
+
+function setStatus(s){
+  let d=getData();
+  d.status=s;
+  save(d); loadCalendar(); loadSummary();
+}
+
+function openInOutFlow(){
+  let data = getData();
+
+  // 🔥 IN popup
+  openTimeModal("Select IN Time", (inTime)=>{
+    data.in = inTime;
+
+    let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
+
+    if(toMinutes(inTime) <= toMinutes(graceTime)){
+      data.status = "Present";
+    }
+    else if(toMinutes(inTime) <= toMinutes("10:00")){
+      data.status = (lateCount < lateLimit) ? "Late" : "Half";
+    }
+    else{
+      data.status = "Half";
+    }
+
+    // 🔥 OUT popup
+    openTimeModal("Select OUT Time", (outTime)=>{
+      data.out = outTime;
+
+      if(data.in && data.out){
+        let hrs=(new Date("1970-01-01T"+data.out)-new Date("1970-01-01T"+data.in))/3600000;
+
+        if(hrs < 4){
+          data.status = "Half";
+        }
+      }
+
+      save(data);
+      loadCalendar();
+      loadSummary();
+    });
+
+  });
+}
+
+
+function updateStatus(data){
+
+  if(!data.in && !data.out) return data;
+
+  let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
+
+  if(data.in){
+    if(toMinutes(data.in) <= toMinutes(graceTime)){
+      data.status = "Present";
+    }
+    else if(toMinutes(data.in) <= toMinutes("10:00")){
+      data.status = (lateCount < lateLimit) ? "Late" : "Half";
+    }
+    else{
+      data.status = "Half";
+    }
+  }
+
+  if(data.in && data.out){
+    let hrs = (new Date("1970-01-01T"+data.out) - new Date("1970-01-01T"+data.in)) / 3600000;
+    if(hrs < 4){
+      data.status = "Half";
+    }
+  }
+
+  return data;
+}
+
+let modalCallback = null;
+
+function openTimeModal(title, callback){
+  document.getElementById("modalTitle").innerText = title;
+
+  let input = document.getElementById("modalTime");
+  input.value = getTime();
+
+  modalCallback = callback;
+
+  document.getElementById("timeModal").style.display = "flex";
+
+  setTimeout(()=>{
+    input.focus();
+    input.click();
+  },100);
+}
+
+function closeModal(){
+  document.getElementById("timeModal").style.display = "none";
+}
+
+document.addEventListener("click", (e)=>{
+  let menu = document.getElementById("menu");
+
+  // agar click menu ke bahar hai → close
+  if(!menu.contains(e.target)){
+    menu.style.display = "none";
+  }
+});
+
+
+function confirmTime(){
+  let input = document.getElementById("modalTime");
+  let time = input.value || getTime(); // 🔥 safety
+
+  let cb = modalCallback;
+  modalCallback = null;
+
+  closeModal();
+
+  if(cb){
+    cb(time);
+  }
+}
+
+// init
+</div>
+
+</script>
+</body>
+
+</html>
+
