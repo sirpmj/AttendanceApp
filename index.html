@@ -1151,21 +1151,31 @@ div.onclick = (e)=>{
 };
 
 
-let startX = 0;
+let isSwiping = false;
 
 document.getElementById("calendar").addEventListener("touchstart",(e)=>{
   startX = e.touches[0].clientX;
 });
 
 document.getElementById("calendar").addEventListener("touchend",(e)=>{
+
+  if(isSwiping) return;
+
   let endX = e.changedTouches[0].clientX;
 
+  isSwiping = true; // 🔥 lock
+
   if(startX - endX > 50){
-    changeMonth(1); // next
+    changeMonth(1);
   }
   else if(endX - startX > 50){
-    changeMonth(-1); // prev
+    changeMonth(-1);
   }
+
+  setTimeout(()=>{
+    isSwiping = false; // unlock after 400ms
+  }, 400);
+
 });
 
 
