@@ -405,6 +405,17 @@ margin-top:10px;
   transition:0.3s;
 }
 
+.user-info{
+  font-size:12px;
+  color:#555;
+  margin-top:2px;
+}
+
+.logout-btn{
+  background:#ef4444;
+  padding:6px 10px;
+  font-size:12px;
+}
 </style>
 </head>
 
@@ -412,7 +423,7 @@ margin-top:10px;
 
 <div id="loginBox" style="max-width:300px;margin:40px auto;text-align:center;">
   <h2>Login</h2>
-
+<input type="text" id="name" placeholder="Full Name" style="width:100%;padding:10px;margin:5px;">
   <input type="email" id="email" placeholder="Email" style="width:100%;padding:10px;margin:5px;">
   <input type="password" id="password" placeholder="Password" style="width:100%;padding:10px;margin:5px;">
 
@@ -469,8 +480,13 @@ margin-top:10px;
     <div id="monthTitle" class="month-subtitle"></div>
   </div>
 
-  <button onclick="changeMonth(1)" class="nav-btn next"></button>
+  <div style="display:flex;gap:6px;">
+    <button onclick="logout()" class="logout-btn">Logout</button>
+    <button onclick="changeMonth(1)" class="nav-btn next"></button>
+  </div>
 </div>
+
+<h3 id="userWelcome" style="text-align:center;margin:10px 0;"></h3>
 
 <div class="card" id="summaryBox">
 <p><span class="icon present-icon"></span><span>Present</span><b id="sumPresent">0</b></p>
@@ -561,14 +577,34 @@ const auth = firebase.auth();
 
 // SIGNUP
 function signup(){
+  let name = document.getElementById("name").value;
   let email = document.getElementById("email").value;
   let pass = document.getElementById("password").value;
   let msg = document.getElementById("msg");
 
+  if(!name || !email || !pass){
+    msg.innerText = "Enter all details";
+    return;
+  }
 
   auth.createUserWithEmailAndPassword(email, pass)
-  .then(()=>{
+  .then(userCredential => {
+
+    let user = userCredential.user;
+
+    // 👇 Firebase Auth me name save
+    user.updateProfile({
+      displayName: name
+    });
+
+    // 👇 Firestore me bhi save (best practice)
+    db.collection("users").doc(user.uid).set({
+      name: name,
+      email: email
+    });
+
     msg.innerText="Account Created";
+
   })
   .catch(e=>{
     msg.innerText=e.message;
@@ -591,19 +627,49 @@ function login(){
   .catch(e=> msg.innerText=e.message);
 }
 
+
+function logout(){
+  firebase.auth().signOut().then(()=>{
+    document.getElementById("email").value = "";
+    document.getElementById("password").value = "";
+    document.getElementById("msg").innerText = "Logged out";
+  });
+}
+
 auth.onAuthStateChanged(user=>{
   if(user){
     document.getElementById("loginBox").style.display="none";
     document.getElementById("app").style.display="block";
 
-    // 🔥 Firestore listener (FIXED)
+    // ✅ SAFE NAME LOGIC
+    let name = "User";
+
+    if(user.displayName && user.displayName.trim() !== ""){
+      name = user.displayName;
+    } else if(user.email){
+      name = user.email.split("@")[0];
+    }
+
+    // ✅ Capitalize
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+
+    // 👇 Greeting logic
+    let hour = new Date().getHours();
+    let greet = "Welcome";
+
+    if(hour < 12) greet = "Good Morning";
+    else if(hour < 18) greet = "Good Afternoon";
+    else greet = "Good Evening";
+
+    document.getElementById("userWelcome").innerText = `${greet}, ${name}`;
+
+    // 🔥 Firestore listener
     db.collection("users")
       .doc(user.uid)
       .collection("attendance")
       .onSnapshot(snapshot => {
 
         let all = {};
-
         snapshot.forEach(doc => {
           all[doc.id] = doc.data();
         });
@@ -617,9 +683,10 @@ auth.onAuthStateChanged(user=>{
   } else {
     document.getElementById("loginBox").style.display="block";
     document.getElementById("app").style.display="none";
+
+    document.getElementById("userWelcome").innerText = "";
   }
 });
-
 
 
 let current = new Date(
