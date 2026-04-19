@@ -14,10 +14,7 @@
   font-family: system-ui, -apple-system, Arial;
 }
 
-body{
-  background:#f6f8fc;
-  padding:10px;
-}
+
 
 /* TOP BAR */
 .topbar{
@@ -306,7 +303,7 @@ margin-top:10px;
 @media(max-width:600px){
 
   body{
-    padding:6px;
+    padding:0;
   }
 
   .calendar{
@@ -416,21 +413,144 @@ margin-top:10px;
   padding:6px 10px;
   font-size:12px;
 }
+
+
+
+/* LOGIN PAGE */
+html, body{
+  height:100%;
+  margin:0;
+}
+
+/* LOGIN PAGE FIX */
+.login-container{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  width:100%;        /* 🔥 add this */
+}
+
+body{
+  background:#f6f8fc;
+  margin:0;
+}
+/* CARD */
+.login-card{
+  width:90%;
+  max-width:350px;
+  background:white;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+  text-align:center;
+}
+
+/* APP NAME */
+.app-name{
+  font-size:24px;
+  font-weight:700;
+  color:#2563eb;
+  margin-bottom:5px;
+}
+
+.app-sub{
+  font-size:13px;
+  color:#666;
+  margin-bottom:15px;
+}
+
+/* INPUT */
+.input{
+  width:100%;
+  padding:12px;
+  margin:6px 0;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+  outline:none;
+}
+
+.input:focus{
+  border-color:#2563eb;
+}
+
+/* BUTTON */
+.btn{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:10px;
+  border:none;
+  font-size:14px;
+  cursor:pointer;
+}
+/* 🔥 MAIN FIX */
+#loginBox{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#f6f8fc;
+}
+.login-btn{
+  background:#2563eb;
+  color:white;
+}
+
+.signup-btn{
+  background:#10b981;
+  color:white;
+}
+
+/* MESSAGE */
+.msg{
+  margin-top:10px;
+  font-size:13px;
+  color:#ef4444;
+}
+
+
 </style>
 </head>
 
 <body>
 
-<div id="loginBox" style="max-width:300px;margin:40px auto;text-align:center;">
-  <h2>Login</h2>
-<input type="text" id="name" placeholder="Full Name" style="width:100%;padding:10px;margin:5px;">
-  <input type="email" id="email" placeholder="Email" style="width:100%;padding:10px;margin:5px;">
-  <input type="password" id="password" placeholder="Password" style="width:100%;padding:10px;margin:5px;">
+<div id="loginBox" class="login-container">
 
-  <button onclick="login()">Login</button>
-  <button onclick="signup()">Sign Up</button>
+  <div class="login-card">
+    
+    <h1 class="app-name">Self Attendance</h1>
+    <p class="app-sub">Smart Attendance Tracker</p>
 
-  <p id="msg"></p>
+    <!-- 👇 NAME (hidden by default) -->
+    <input type="text" id="name" placeholder="Full Name" class="input" style="display:none;">
+
+    <!-- 👇 EMAIL / PASSWORD -->
+    <input type="email" id="email" placeholder="Email" class="input">
+    <input type="password" id="password" placeholder="Password" class="input">
+
+    <!-- 👇 BUTTONS -->
+  <button onclick="handleAuth()" class="btn login-btn" id="loginBtn">Login</button>
+<button onclick="handleAuth()" class="btn signup-btn" id="signupBtn" style="display:none;">Sign Up</button>
+
+    <!-- 👇 TOGGLE -->
+<p style="margin-top:10px;font-size:13px;">
+<a href="javascript:void(0)" onclick="toggleMode()" id="toggleText">
+    Don't have an account? Sign Up
+  </a>
+</p>
+
+    <p id="msg" class="msg"></p>
+
+  </div>
+
 </div>
 
 <div id="app" style="display:none;">
@@ -575,57 +695,7 @@ const leaveYearlyLimit = 25;
 
 const auth = firebase.auth();
 
-// SIGNUP
-function signup(){
-  let name = document.getElementById("name").value;
-  let email = document.getElementById("email").value;
-  let pass = document.getElementById("password").value;
-  let msg = document.getElementById("msg");
 
-  if(!name || !email || !pass){
-    msg.innerText = "Enter all details";
-    return;
-  }
-
-  auth.createUserWithEmailAndPassword(email, pass)
-  .then(userCredential => {
-
-    let user = userCredential.user;
-
-    // 👇 Firebase Auth me name save
-    user.updateProfile({
-      displayName: name
-    });
-
-    // 👇 Firestore me bhi save (best practice)
-    db.collection("users").doc(user.uid).set({
-      name: name,
-      email: email
-    });
-
-    msg.innerText="Account Created";
-
-  })
-  .catch(e=>{
-    msg.innerText=e.message;
-  });
-}
-
-// LOGIN
-function login(){
-  let email = document.getElementById("email").value;
-  let pass = document.getElementById("password").value;
-  let msg = document.getElementById("msg");
-
-  if(!email || !pass){
-    msg.innerText = "Enter email & password";
-    return;
-  }
-
-  auth.signInWithEmailAndPassword(email, pass)
-  .then(()=> msg.innerText="Login Success")
-  .catch(e=> msg.innerText=e.message);
-}
 
 
 function logout(){
@@ -634,6 +704,77 @@ function logout(){
     document.getElementById("password").value = "";
     document.getElementById("msg").innerText = "Logged out";
   });
+}
+
+
+let isSignup = false;
+
+function toggleMode(){
+  isSignup = !isSignup;
+
+  document.getElementById("name").style.display = isSignup ? "block" : "none";
+  document.getElementById("signupBtn").style.display = isSignup ? "block" : "none";
+  document.getElementById("loginBtn").style.display = isSignup ? "none" : "block";
+
+  document.getElementById("toggleText").innerText = 
+    isSignup ? "Already have an account? Login" : "Don't have an account? Sign Up";
+
+  // 👇 clear fields (अब सही जगह)
+  document.getElementById("name").value = "";
+  document.getElementById("email").value = "";
+  document.getElementById("password").value = "";
+}
+
+function handleAuth(){
+
+  let name = document.getElementById("name").value.trim();
+  let email = document.getElementById("email").value.trim();
+  let pass = document.getElementById("password").value.trim();
+  let msg = document.getElementById("msg");
+
+  if(!email || !pass || (isSignup && !name)){
+    msg.innerText = "Please fill all fields";
+    return;
+  }
+
+  // SIGNUP
+  if(isSignup){
+
+    auth.createUserWithEmailAndPassword(email, pass)
+    .then(async (userCredential)=>{
+
+      let user = userCredential.user;
+
+      await user.updateProfile({
+        displayName: name
+      });
+
+      await db.collection("users").doc(user.uid).set({
+        name: name,
+        email: email
+      });
+
+      msg.innerText = "Account Created";
+
+    })
+    .catch(e=>{
+      msg.innerText = e.message;
+    });
+
+  }
+
+  // LOGIN
+  else{
+
+    auth.signInWithEmailAndPassword(email, pass)
+    .then(()=>{
+      msg.innerText = "Login Success";
+    })
+    .catch(e=>{
+      msg.innerText = e.message;
+    });
+
+  }
 }
 
 auth.onAuthStateChanged(user=>{
@@ -681,7 +822,7 @@ auth.onAuthStateChanged(user=>{
       });
 
   } else {
-    document.getElementById("loginBox").style.display="block";
+    document.getElementById("loginBox").style.display="flex";
     document.getElementById("app").style.display="none";
 
     document.getElementById("userWelcome").innerText = "";
