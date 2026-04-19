@@ -563,13 +563,20 @@ const auth = firebase.auth();
 function signup(){
   let email = document.getElementById("email").value;
   let pass = document.getElementById("password").value;
+  let msg = document.getElementById("msg");
+
+  // ✅ validation
+  if(!email || !pass){
+    msg.innerText = "Enter email & password";
+    return;
+  }
 
   auth.createUserWithEmailAndPassword(email, pass)
   .then(()=>{
-    document.getElementById("msg").innerText="Account Created";
+    msg.innerText="Account Created";
   })
   .catch(e=>{
-    document.getElementById("msg").innerText=e.message;
+    msg.innerText=e.message;
   });
 }
 
@@ -577,13 +584,20 @@ function signup(){
 function login(){
   let email = document.getElementById("email").value;
   let pass = document.getElementById("password").value;
+  let msg = document.getElementById("msg");
+
+  // ✅ validation
+  if(!email || !pass){
+    msg.innerText = "Enter email & password";
+    return;
+  }
 
   auth.signInWithEmailAndPassword(email, pass)
   .then(()=>{
-    document.getElementById("msg").innerText="Login Success";
+    msg.innerText="Login Success";
   })
   .catch(e=>{
-    document.getElementById("msg").innerText=e.message;
+    msg.innerText=e.message;
   });
 }
 
