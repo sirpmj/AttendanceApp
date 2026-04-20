@@ -522,6 +522,12 @@ body{
   border-radius:6px;
 }
 
+
+#leaveBox {
+  text-align: center;
+  font-weight: 600;
+}
+
 </style>
 </head>
 
@@ -1084,75 +1090,58 @@ div.innerHTML = `
 `;
 
     // right click
-  div.oncontextmenu=(e)=>{
+div.oncontextmenu = (e) => {
   e.preventDefault();
-  selected = d; 
-
-  let data = getAll()[d] || {};
-
-  if(!data.in){
-    punchTime("in");   // first click → IN
-  } 
-  else if(!data.out){
-    punchTime("out");  // second → OUT
-  } 
-  else {
-    showMenu(e.pageX,e.pageY,d); // already full → show menu
-  }
+  selected = d;
+  showMenu(e.pageX, e.pageY, d);
 };
 
-    div.ontouchend=()=>clearTimeout(pressTimer);
+div.addEventListener("click", (e) => {
+if(isTouch) return; // 🔥 important fix
+  if (e.detail > 1) return;
 
-    // click
-div.onclick = (e) => {
   selected = d;
 
   let all = getAll();
   let data = all[d] || { date: d };
 
-  // 🔥 FIRST TAP = IN
+  let now = getTime();
+
+  // 🔥 FIRST TAP = AUTO IN
   if (!data.in) {
 
-    openTimeModal("Select IN Time", (inTime) => {
-      data.in = inTime;
-      data.date = d;
+    data.in = now;
 
-      if (toMinutes(inTime) <= toMinutes(graceTime)) {
-        data.status = "Present";
-      } else if (toMinutes(inTime) <= toMinutes("10:00")) {
-        data.status = "Late";
-      } else {
-        data.status = "Half";
-      }
+    if (toMinutes(now) <= toMinutes(graceTime)) {
+      data.status = "Present";
+    } else if (toMinutes(now) <= toMinutes("10:00")) {
+      data.status = "Late";
+    } else {
+      data.status = "Half";
+    }
 
-      save(data);
-      loadCalendar();
-      loadSummary();
-    });
-
+    save(data);
+    loadCalendar();
+    loadSummary();
   }
 
-  // 🔥 SECOND TAP = OUT
+  // 🔥 SECOND TAP = AUTO OUT
   else if (!data.out) {
 
-    openTimeModal("Select OUT Time", (outTime) => {
-      data.out = outTime;
-      data.date = d;
+    data.out = now;
 
-      let hrs =
-        (new Date("1970-01-01T" + data.out) -
-         new Date("1970-01-01T" + data.in)) / 3600000;
+    let hrs =
+      (new Date("1970-01-01T" + data.out) -
+       new Date("1970-01-01T" + data.in)) / 3600000;
 
-      if (hrs < 4) data.status = "Half";
+    if (hrs < 4) data.status = "Half";
 
-      save(data);
-      loadCalendar();
-      loadSummary();
-    });
-
+    save(data);
+    loadCalendar();
+    loadSummary();
   }
 
-  // 🔥 THIRD TAP = EDIT BOTH
+  // 🔥 THIRD TAP = EDIT (CORRECT FIX)
   else {
 
     openTimeModal("Edit IN Time", (inTime) => {
@@ -1161,11 +1150,20 @@ div.onclick = (e) => {
       openTimeModal("Edit OUT Time", (outTime) => {
         data.out = outTime;
 
+        // 🔥 STATUS RECALCULATE
         let hrs =
           (new Date("1970-01-01T" + data.out) -
            new Date("1970-01-01T" + data.in)) / 3600000;
 
-        if (hrs < 4) data.status = "Half";
+        if (hrs < 4) {
+          data.status = "Half";
+        } else if (toMinutes(data.in) <= toMinutes(graceTime)) {
+          data.status = "Present";
+        } else if (toMinutes(data.in) <= toMinutes("10:00")) {
+          data.status = "Late";
+        } else {
+          data.status = "Half";
+        }
 
         save(data);
         loadCalendar();
@@ -1173,56 +1171,22 @@ div.onclick = (e) => {
       });
     });
   }
-};
-
-
-let startX = 0;
-let startY = 0;
-let startTime = 0;
-
-const calendar = document.getElementById("calendar");
-
-calendar.addEventListener("touchstart",(e)=>{
-  startX = e.touches[0].clientX;
-  startY = e.touches[0].clientY;
-  startTime = new Date().getTime(); // ⏱️ time capture
-});
-
-calendar.addEventListener("touchend",(e)=>{
-
-  let endX = e.changedTouches[0].clientX;
-  let endY = e.changedTouches[0].clientY;
-  let endTime = new Date().getTime();
-
-  let diffX = endX - startX;
-  let diffY = endY - startY;
-  let timeDiff = endTime - startTime;
-
-  // 🔥 ignore vertical scroll
-  if(Math.abs(diffY) > Math.abs(diffX)) return;
-
-  // 🔥 minimum swipe distance
-  if(Math.abs(diffX) < 50) return;
-
-  // 🔥 fast swipe only (avoid accidental)
-  if(timeDiff > 500) return;
-
-  // 🔥 prevent multiple triggers
-  if(calendar.classList.contains("swiping")) return;
-  calendar.classList.add("swiping");
-
-  if(diffX < 0){
-    changeMonth(1);   // 👉 next
-  } else {
-    changeMonth(-1);  // 👉 prev
-  }
-
-  // 🔥 reset after animation
-  setTimeout(()=>{
-    calendar.classList.remove("swiping");
-  },300);
 
 });
+
+let isTouch = false;
+
+// 🔥 detect touch
+div.addEventListener("touchstart", () => {
+  isTouch = true;
+});
+
+// 🔥 reset after small delay
+div.addEventListener("touchend", () => {
+  setTimeout(() => isTouch = false, 300);
+});
+
+
 
 
 function toMinutes(t){
@@ -1380,50 +1344,61 @@ monthData.forEach(d=>{
 });
 
 
-function getLeaveBank(){
-  let yearData = getCurrentYearData();
+function getLeaveSummary(){
 
-  let used = yearData.filter(x => x.status === "Leave").length;
-
-  let totalAllowed = leaveMonthlyLimit * 12;
-
-  let remaining = totalAllowed - used;
-
-  return {
-    used,
-    remaining
-  };
-}
-
-
-function getMonthlyLeaveData(){
   let all = getAll();
+  let year = current.getFullYear();
+  let month = current.getMonth();
 
-  let y = current.getFullYear();
-  let m = current.getMonth();
+  let monthUsed = 0;
+  let yearUsed = 0;
 
-  let monthKey = y + "-" + String(m+1).padStart(2,'0');
+  Object.values(all).forEach(d => {
+    if(!d.date) return;
 
-  let prevMonthLeaves = 0;
+    let dt = new Date(d.date);
+    if(dt.getFullYear() !== year) return;
 
-  if(m > 0){
-    let prevKey = y + "-" + String(m).padStart(2,'0');
+    // 🔥 FULL LEAVE
+    if(d.status === "Leave"){
+      yearUsed += 1;
 
-    prevMonthLeaves = Object.values(all)
-      .filter(d => d.date && d.date.startsWith(prevKey) && d.status === "Leave")
-      .length;
-  }
+      if(dt.getMonth() === month){
+        monthUsed += 1;
+      }
+    }
 
-  let currentMonthUsed = Object.values(all)
-    .filter(d => d.date && d.date.startsWith(monthKey) && d.status === "Leave")
-    .length;
+    // 🔥 HALF DAY
+    if(d.status === "Half"){
+      yearUsed += 0.5;
+
+      if(dt.getMonth() === month){
+        monthUsed += 0.5;
+      }
+    }
+  });
+
+  let monthlyLimit = leaveMonthlyLimit; // e.g. 2
+  let yearlyLimit = leaveYearlyLimit;   // e.g. 25
+
+let currentMonth = current.getMonth() + 1;
+
+let allowedTillNow = currentMonth * monthlyLimit;
+
+let carryForward = allowedTillNow - yearUsed;
+
+let balance = yearlyLimit - yearUsed;
 
   return {
-    used: currentMonthUsed,
-    carry: Math.max(0, leaveMonthlyLimit - prevMonthLeaves),
-    totalAvailable: leaveMonthlyLimit + Math.max(0, leaveMonthlyLimit - prevMonthLeaves)
+    usedMonth: monthUsed,
+    monthlyLimit: monthlyLimit,
+    carryForward: carryForward,
+    balance: balance,
+    usedYear: yearUsed,
+    yearlyLimit: yearlyLimit
   };
 }
+
 
 // ✅ YEAR + TILL NOW (sirf holidays object se — BEST)
 Object.keys(holidays).forEach(d=>{
@@ -1465,12 +1440,10 @@ document.getElementById("progressFill").style.width =
 document.getElementById("lateBox").innerText = 
   l + " (" + lateUsed + "/" + lateLimit + ")" + (lateWarning ? " ⚠️" : "");
 
-let leave = getMonthlyLeaveData();
+let leave = getLeaveSummary();
 
 document.getElementById("leaveBox").innerText =
-  leave.used + " used / " +
-  leave.totalAvailable + " available" +
-  (leave.used >= leave.totalAvailable ? " ⚠️" : "");
+`M:${leave.usedMonth}/${leave.monthlyLimit} | CF:${leave.carryForward} | Bal:${leave.balance} | Y:${leave.usedYear}/${leave.yearlyLimit}`;
 
 document.getElementById("earlyUsed").innerText = 
   earlyUsed + "/" + earlyLimit + (earlyWarning ? " ⚠️" : "");
@@ -1680,22 +1653,20 @@ function markOut(){
 }
 
 function clearDay(){
-  let all = getAll();
-
   if(!selected) return;
 
-  delete all[selected];
-
-  localStorage.setItem("att2", JSON.stringify(all));
-
-  // 🔥 Firebase भी clear करो
   let user = auth.currentUser;
 
-db.collection("users")
-  .doc(user.uid)
-  .collection("attendance")
-  .doc(selected)
-  .delete();
+  db.collection("users")
+    .doc(user.uid)
+    .collection("attendance")
+    .doc(selected)
+    .delete();
+
+  // 🔥 cache bhi update karo
+  let all = getAll();
+  delete all[selected];
+  window.firebaseCache = all;
 
   loadCalendar();
   loadSummary();
@@ -1853,6 +1824,55 @@ function confirmTime(){
     cb(time);
   }
 }
+
+
+let startX = 0;
+let startY = 0;
+let startTime = 0;
+
+const calendar = document.getElementById("calendar");
+
+calendar.addEventListener("touchstart",(e)=>{
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+  startTime = new Date().getTime(); // ⏱️ time capture
+});
+
+calendar.addEventListener("touchend",(e)=>{
+
+  let endX = e.changedTouches[0].clientX;
+  let endY = e.changedTouches[0].clientY;
+  let endTime = new Date().getTime();
+
+  let diffX = endX - startX;
+  let diffY = endY - startY;
+  let timeDiff = endTime - startTime;
+
+  // 🔥 ignore vertical scroll
+  if(Math.abs(diffY) > Math.abs(diffX)) return;
+
+  // 🔥 minimum swipe distance
+  if(Math.abs(diffX) < 50) return;
+
+  // 🔥 fast swipe only (avoid accidental)
+  if(timeDiff > 500) return;
+
+  // 🔥 prevent multiple triggers
+  if(calendar.classList.contains("swiping")) return;
+  calendar.classList.add("swiping");
+
+  if(diffX < 0){
+    changeMonth(1);   // 👉 next
+  } else {
+    changeMonth(-1);  // 👉 prev
+  }
+
+  // 🔥 reset after animation
+  setTimeout(()=>{
+    calendar.classList.remove("swiping");
+  },300);
+
+});
 
 // init
 
