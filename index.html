@@ -1340,9 +1340,10 @@ let lateWarning = lateUsed >= lateLimit;
 let earlyUsed = monthData.filter(x=>x.early).length;
 let earlyWarning = earlyUsed >= earlyLimit;
 
-let leaveMonthlyUsed = monthData.filter(x=>x.status==="Leave").length;
-let leaveYearlyUsed = getCurrentYearData().filter(x=>x.status==="Leave").length;
-let leaveWarning = leaveMonthlyUsed >= leaveMonthlyLimit;
+let leaveMonthlyUsed = monthData.filter(x => x.status === "Leave").length;
+let leaveYearlyUsed = getCurrentYearData().filter(x => x.status === "Leave").length;
+let leaveMonthlyWarning = leaveMonthlyUsed >= leaveMonthlyLimit;
+let leaveYearlyWarning = leaveYearlyUsed >= leaveYearlyLimit;
 
 // ✅ Holiday count (auto + manual)
 let holidayMonth = 0;
@@ -1378,6 +1379,51 @@ monthData.forEach(d=>{
   }
 });
 
+
+function getLeaveBank(){
+  let yearData = getCurrentYearData();
+
+  let used = yearData.filter(x => x.status === "Leave").length;
+
+  let totalAllowed = leaveMonthlyLimit * 12;
+
+  let remaining = totalAllowed - used;
+
+  return {
+    used,
+    remaining
+  };
+}
+
+
+function getMonthlyLeaveData(){
+  let all = getAll();
+
+  let y = current.getFullYear();
+  let m = current.getMonth();
+
+  let monthKey = y + "-" + String(m+1).padStart(2,'0');
+
+  let prevMonthLeaves = 0;
+
+  if(m > 0){
+    let prevKey = y + "-" + String(m).padStart(2,'0');
+
+    prevMonthLeaves = Object.values(all)
+      .filter(d => d.date && d.date.startsWith(prevKey) && d.status === "Leave")
+      .length;
+  }
+
+  let currentMonthUsed = Object.values(all)
+    .filter(d => d.date && d.date.startsWith(monthKey) && d.status === "Leave")
+    .length;
+
+  return {
+    used: currentMonthUsed,
+    carry: Math.max(0, leaveMonthlyLimit - prevMonthLeaves),
+    totalAvailable: leaveMonthlyLimit + Math.max(0, leaveMonthlyLimit - prevMonthLeaves)
+  };
+}
 
 // ✅ YEAR + TILL NOW (sirf holidays object se — BEST)
 Object.keys(holidays).forEach(d=>{
@@ -1419,8 +1465,12 @@ document.getElementById("progressFill").style.width =
 document.getElementById("lateBox").innerText = 
   l + " (" + lateUsed + "/" + lateLimit + ")" + (lateWarning ? " ⚠️" : "");
 
-document.getElementById("leaveBox").innerText = 
-  lv + " (" + leaveMonthlyUsed + "/" + leaveMonthlyLimit + ")" + (leaveWarning ? " ⚠️" : "");
+let leave = getMonthlyLeaveData();
+
+document.getElementById("leaveBox").innerText =
+  leave.used + " used / " +
+  leave.totalAvailable + " available" +
+  (leave.used >= leave.totalAvailable ? " ⚠️" : "");
 
 document.getElementById("earlyUsed").innerText = 
   earlyUsed + "/" + earlyLimit + (earlyWarning ? " ⚠️" : "");
