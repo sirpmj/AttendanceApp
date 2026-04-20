@@ -294,11 +294,7 @@ margin-top:10px;
   color:#fff;
 }
 
-/* POPUP ANIMATION */
-@keyframes popup{
-  from{transform:scale(0.85);opacity:0;}
-  to{transform:scale(1);opacity:1;}
-}
+
 @media(max-width:600px){
 
   .day{
@@ -520,9 +516,10 @@ body{
 }
 
 .today{
-  border:2px solid #2563eb;
   background:#eff6ff;
-  font-weight:600;
+  border:2px solid #2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,0.2);
+  border-radius:6px;
 }
 
 </style>
@@ -688,6 +685,7 @@ const holidays = {
  "2026-09-17": "Ganesh Chaturthi",
  "2026-10-20": "Dussehra",
  "2026-11-08": "Diwali",
+ "2026-11-09": "New Year",
  "2026-11-10": "Bhai Dooj",
 
 };
@@ -816,21 +814,22 @@ auth.onAuthStateChanged(user=>{
     document.getElementById("userWelcome").innerText = `${greet}, ${name}`;
 
     // 🔥 Firestore listener
-    db.collection("users")
-      .doc(user.uid)
-      .collection("attendance")
-      .onSnapshot(snapshot => {
+db.collection("users")
+.doc(user.uid)
+.collection("attendance")
+.onSnapshot(snapshot => {
 
-        let all = {};
-        snapshot.forEach(doc => {
-          all[doc.id] = doc.data();
-        });
+  let all = {};
 
-        localStorage.setItem("att2", JSON.stringify(all));
+  snapshot.forEach(doc => {
+    all[doc.id] = doc.data();
+  });
 
-        loadCalendar();
-        loadSummary();
-      });
+  window.firebaseCache = all;
+
+  loadCalendar();
+  loadSummary();
+});
 
   } else {
     document.getElementById("loginBox").style.display="flex";
@@ -902,7 +901,7 @@ function menuAction(fn){
 
 // storage
 function getAll(){
-  return JSON.parse(localStorage.getItem("att2")||"{}");
+  return window.firebaseCache || {};
 }
 
 document.getElementById("noteInput").addEventListener("change", function(){
@@ -935,22 +934,26 @@ function confirmNote(){
 
 
 
-function save(d){
+async function save(d){
   d.date = selected;
 
-  // 🔥 Local save
-  let all = getAll();
- all[d.date] = d; 
-  localStorage.setItem("att2", JSON.stringify(all));
-
-  // 🔥 Firebase save
   let user = auth.currentUser;
+  if(!user) return;
 
-db.collection("users")
-  .doc(user.uid)
-  .collection("attendance")
-  .doc(selected)
-  .set(d);
+  await db.collection("users")
+    .doc(user.uid)
+    .collection("attendance")
+    .doc(selected)
+    .set(d, { merge: true });
+
+  // 🔥 IMPORTANT: update cache AFTER save
+  let all = getAll();
+  all[selected] = d;
+  window.firebaseCache = all;
+
+  // 🔥 FORCE UI refresh AFTER sync
+  loadCalendar();
+  loadSummary();
 }
 
 function getData(){
@@ -1101,61 +1104,73 @@ div.innerHTML = `
     div.ontouchend=()=>clearTimeout(pressTimer);
 
     // click
-div.onclick = ()=>{
+div.onclick = (e)=>{
   selected = d;
 
-  let all = getAll();
-  let data = all[d] || {date:d};
+  if(clickTimer){
+    clearTimeout(clickTimer);
+    clickTimer = null;
 
-  // 🔥 IN (auto current time)
-  if(!data.in){
-    let inTime = getTime();
-    data.in = inTime;
-    data.date = d;
+    let all = getAll();
+    let data = all[d] || {date:d};
 
-    let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
+    // IN
+    if(!data.in){
+      openTimeModal("Select IN Time",(inTime)=>{
+        data.in = inTime;
+        data.date = d;
 
-    if(toMinutes(inTime) <= toMinutes(graceTime)){
-      data.status="Present";
+        let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
+
+        if(toMinutes(inTime) <= toMinutes(graceTime)){
+          data.status="Present";
+        }
+        else if(toMinutes(inTime) <= toMinutes("10:00")){
+          data.status = (lateCount < lateLimit) ? "Late" : "Half";
+        }
+        else{
+          data.status="Half";
+        }
+
+        save(data);
+        loadCalendar(); loadSummary();
+      });
     }
-    else if(toMinutes(inTime) <= toMinutes("10:00")){
-      data.status = (lateCount < lateLimit) ? "Late" : "Half";
+
+    // OUT
+    else if(!data.out){
+      openTimeModal("Select OUT Time",(outTime)=>{
+        data.out = outTime;
+        data.date = d;
+
+        if(data.in && data.out){
+          let hrs=(new Date("1970-01-01T"+data.out)-new Date("1970-01-01T"+data.in))/3600000;
+          if(hrs < 4) data.status="Half";
+        }
+
+        save(data);
+        loadCalendar(); loadSummary();
+      });
     }
+
+    // EDIT
     else{
-      data.status="Half";
+      openTimeModal("Edit IN Time",(inTime)=>{
+        data.in = inTime;
+        data.date = d;
+        save(data);
+        loadCalendar(); loadSummary();
+      });
     }
 
-    save(data);
+  } else {
+    clickTimer = setTimeout(()=>{
+      showMenu(e.pageX, e.pageY, d);
+      clickTimer = null;
+    },300);
   }
-
-  // 🔥 OUT
-  else if(!data.out){
-    let outTime = getTime();
-    data.out = outTime;
-    data.date = d;
-
-    if(data.in && data.out){
-      let hrs = (new Date("1970-01-01T"+data.out) - new Date("1970-01-01T"+data.in)) / 3600000;
-      if(hrs < 4) data.status="Half";
-    }
-
-    save(data);
-  }
-
-  // 🔥 ALREADY DONE → edit
-  else{
-    openTimeModal("Edit IN Time",(t)=>{
-      data.in = t;
-      save(data);
-      loadCalendar();
-      loadSummary();
-    });
-    return;
-  }
-
-  loadCalendar();
-  loadSummary();
 };
+
 
 
 let startX = 0;
@@ -1252,7 +1267,6 @@ function punchTime(type){
       data = updateStatus(data);
 
       all[key] = data;
-      localStorage.setItem("att2", JSON.stringify(all));
 
       loadCalendar();
       loadSummary();
@@ -1281,31 +1295,21 @@ function punchTime(type){
 function editTime(type){
   let data = getData();
 
-  if(type === "in"){
-    openTimeModal("Edit IN Time", (time)=>{
+  openTimeModal(type === "in" ? "Edit IN Time" : "Edit OUT Time", (time)=>{
 
+    if(type === "in"){
       data.in = time;
-
-      updateStatus(data);   // 🔥 full logic
-
-      save(data);
-      loadCalendar();
-      loadSummary();
-    });
-  }
-
-  if(type === "out"){
-    openTimeModal("Edit OUT Time", (time)=>{
-
+    } else {
       data.out = time;
+    }
 
-      updateStatus(data);   // 🔥 full logic
+    updateStatus(data);
+    save(data);
 
-      save(data);
-      loadCalendar();
-      loadSummary();
-    });
-  }
+    // 🔥 IMPORTANT: refresh here
+    loadCalendar();
+    loadSummary();
+  });
 }
 
 // summary
@@ -1421,8 +1425,7 @@ document.getElementById("earlyUsed").innerText =
 
 
 window.onload = () => {
-  document.title = "Self Attendance"; // browser tab
-  document.getElementById("pageTitle").innerText = "Self Attendance";
+  document.title = "Self Attendance";
   
 };
 
