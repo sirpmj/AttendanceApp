@@ -1090,14 +1090,31 @@ div.innerHTML = `
 `;
 
     // right click
+// RIGHT CLICK (desktop)
 div.oncontextmenu = (e) => {
   e.preventDefault();
   selected = d;
   showMenu(e.pageX, e.pageY, d);
 };
 
+// 🔥 MOBILE LONG PRESS (ADD HERE)
+let pressTimer;
+
+div.addEventListener("touchstart", (e) => {
+  pressTimer = setTimeout(() => {
+    selected = d;
+    showMenu(e.touches[0].pageX, e.touches[0].pageY, d);
+  }, 500);
+});
+
+div.addEventListener("touchend", () => {
+  clearTimeout(pressTimer);
+});
+
+// CLICK (IN / OUT)
 div.addEventListener("click", (e) => {
-if(isTouch) return; // 🔥 important fix
+
+
   if (e.detail > 1) return;
 
   selected = d;
@@ -1107,7 +1124,7 @@ if(isTouch) return; // 🔥 important fix
 
   let now = getTime();
 
-  // 🔥 FIRST TAP = AUTO IN
+  // 🔥 FIRST TAP = IN
   if (!data.in) {
 
     data.in = now;
@@ -1121,11 +1138,9 @@ if(isTouch) return; // 🔥 important fix
     }
 
     save(data);
-    loadCalendar();
-    loadSummary();
   }
 
-  // 🔥 SECOND TAP = AUTO OUT
+  // 🔥 SECOND TAP = OUT
   else if (!data.out) {
 
     data.out = now;
@@ -1137,11 +1152,9 @@ if(isTouch) return; // 🔥 important fix
     if (hrs < 4) data.status = "Half";
 
     save(data);
-    loadCalendar();
-    loadSummary();
   }
 
-  // 🔥 THIRD TAP = EDIT (CORRECT FIX)
+  // 🔥 THIRD TAP = EDIT
   else {
 
     openTimeModal("Edit IN Time", (inTime) => {
@@ -1150,7 +1163,6 @@ if(isTouch) return; // 🔥 important fix
       openTimeModal("Edit OUT Time", (outTime) => {
         data.out = outTime;
 
-        // 🔥 STATUS RECALCULATE
         let hrs =
           (new Date("1970-01-01T" + data.out) -
            new Date("1970-01-01T" + data.in)) / 3600000;
@@ -1166,26 +1178,11 @@ if(isTouch) return; // 🔥 important fix
         }
 
         save(data);
-        loadCalendar();
-        loadSummary();
       });
     });
   }
 
 });
-
-let isTouch = false;
-
-// 🔥 detect touch
-div.addEventListener("touchstart", () => {
-  isTouch = true;
-});
-
-// 🔥 reset after small delay
-div.addEventListener("touchend", () => {
-  setTimeout(() => isTouch = false, 300);
-});
-
 
 
 
