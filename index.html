@@ -1114,8 +1114,6 @@ div.addEventListener("touchend", () => {
 // CLICK (IN / OUT)
 div.addEventListener("click", (e) => {
 
-  // 🔥 MOBILE DOUBLE TRIGGER FIX
-  if(e.pointerType === "touch") return;
 
   if (e.detail > 1) return;
 
@@ -1126,8 +1124,9 @@ div.addEventListener("click", (e) => {
 
   let now = getTime();
 
-  // FIRST TAP = IN
+  // 🔥 FIRST TAP = IN
   if (!data.in) {
+
     data.in = now;
 
     if (toMinutes(now) <= toMinutes(graceTime)) {
@@ -1141,8 +1140,9 @@ div.addEventListener("click", (e) => {
     save(data);
   }
 
-  // SECOND TAP = OUT
+  // 🔥 SECOND TAP = OUT
   else if (!data.out) {
+
     data.out = now;
 
     let hrs =
@@ -1154,8 +1154,9 @@ div.addEventListener("click", (e) => {
     save(data);
   }
 
-  // THIRD TAP = EDIT
+  // 🔥 THIRD TAP = EDIT
   else {
+
     openTimeModal("Edit IN Time", (inTime) => {
       data.in = inTime;
 
@@ -1182,6 +1183,7 @@ div.addEventListener("click", (e) => {
   }
 
 });
+
 
 
 function toMinutes(t){
