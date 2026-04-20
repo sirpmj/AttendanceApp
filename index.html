@@ -519,6 +519,12 @@ body{
   transition:0.2s;
 }
 
+.today{
+  border:2px solid #2563eb;
+  background:#eff6ff;
+  font-weight:600;
+}
+
 </style>
 </head>
 
@@ -780,6 +786,7 @@ function handleAuth(){
 
   }
 }
+
 
 auth.onAuthStateChanged(user=>{
   if(user){
@@ -1048,6 +1055,11 @@ if(!old.manual && holidays[d]){
 
     let div=document.createElement("div");
     div.className="day "+cls;
+
+if(d === today()){
+  div.classList.add("today");
+}
+
 let inT = data.in 
   ? `<div class="time in">in ${data.in}</div>` 
   : "";
