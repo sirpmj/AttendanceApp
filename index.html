@@ -398,7 +398,7 @@ margin-top:10px;
 }
 
 .user-info{
-  font-size:10px;
+  font-size:8px;
   color:#555;
   margin-top:2px;
 }
@@ -607,17 +607,9 @@ body{
   </div>
 </div>
 
-<div style="position:relative;margin:10px;">
-
-  <!-- Center User Info -->
-  <h3 id="userWelcome" style="text-align:center;margin:0;"></h3>
-
-  <!-- Right Logout -->
-  <button onclick="logout()" class="logout-btn" 
-    style="position:absolute;right:0;top:50%;transform:translateY(-50%);">
-    Logout
-  </button>
-
+<div style="display:flex;justify-content:space-between;align-items:center;margin:10px;background:white;padding:10px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+  <h3 id="userWelcome" style="margin:0;font-size:14px;"></h3>
+  <button onclick="logout()" class="logout-btn">Logout</button>
 </div>
 
 <div class="card" id="summaryBox">
