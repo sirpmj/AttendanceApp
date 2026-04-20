@@ -517,6 +517,13 @@ body{
 }
 
 
+
+.calendar.swiping{
+  opacity:0.6;
+  transform:scale(0.98);
+  transition:0.2s;
+}
+
 </style>
 </head>
 
@@ -601,12 +608,22 @@ body{
   </div>
 
   <div style="display:flex;gap:6px;">
-    <button onclick="logout()" class="logout-btn">Logout</button>
     <button onclick="changeMonth(1)" class="nav-btn next"></button>
   </div>
 </div>
 
-<h3 id="userWelcome" style="text-align:center;margin:10px 0;"></h3>
+<div style="position:relative;margin:10px;">
+
+  <!-- Center User Info -->
+  <h3 id="userWelcome" style="text-align:center;margin:0;"></h3>
+
+  <!-- Right Logout -->
+  <button onclick="logout()" class="logout-btn" 
+    style="position:absolute;right:0;top:50%;transform:translateY(-50%);">
+    Logout
+  </button>
+
+</div>
 
 <div class="card" id="summaryBox">
 <p><span class="icon present-icon"></span><span>Present</span><b id="sumPresent">0</b></p>
@@ -1065,119 +1082,128 @@ div.innerHTML = `
 `;
 
     // right click
-    div.oncontextmenu=(e)=>{
-      e.preventDefault();
+  div.oncontextmenu=(e)=>{
+  e.preventDefault();
   selected = d; 
-      showMenu(e.pageX,e.pageY,d);
-    };
 
-    // long press
-   div.ontouchstart=(e)=>{
-  pressTimer=setTimeout(()=>{
-    selected = d; // 🔥 add this
-    showMenu(e.touches[0].pageX,e.touches[0].pageY,d);
-  },500);
+  let data = getAll()[d] || {};
+
+  if(!data.in){
+    punchTime("in");   // first click → IN
+  } 
+  else if(!data.out){
+    punchTime("out");  // second → OUT
+  } 
+  else {
+    showMenu(e.pageX,e.pageY,d); // already full → show menu
+  }
 };
 
     div.ontouchend=()=>clearTimeout(pressTimer);
 
     // click
-
-div.onclick = (e)=>{
+div.onclick = ()=>{
   selected = d;
 
-  if(clickTimer){
-    clearTimeout(clickTimer);
-    clickTimer = null;
+  let all = getAll();
+  let data = all[d] || {date:d};
 
-    let all = getAll();
-    let data = all[d] || {date:d};
+  // 🔥 IN (auto current time)
+  if(!data.in){
+    let inTime = getTime();
+    data.in = inTime;
+    data.date = d;
 
-    // IN
-    if(!data.in){
-      openTimeModal("Select IN Time",(inTime)=>{
-        data.in = inTime;
-        data.date = d;
+    let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
 
-        let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
-
-        if(toMinutes(inTime) <= toMinutes(graceTime)){
-          data.status="Present";
-        }
-        else if(toMinutes(inTime) <= toMinutes("10:00")){
-          data.status = (lateCount < lateLimit) ? "Late" : "Half";
-        }
-        else{
-          data.status="Half";
-        }
-
-        save(data);
-        loadCalendar(); loadSummary();
-      });
+    if(toMinutes(inTime) <= toMinutes(graceTime)){
+      data.status="Present";
     }
-
-    // OUT
-    else if(!data.out){
-      openTimeModal("Select OUT Time",(outTime)=>{
-        data.out = outTime;
-        data.date = d;
-
-        if(data.in && data.out){
-          let hrs=(new Date("1970-01-01T"+data.out)-new Date("1970-01-01T"+data.in))/3600000;
-          if(hrs < 4) data.status="Half";
-        }
-
-        save(data);
-        loadCalendar(); loadSummary();
-      });
+    else if(toMinutes(inTime) <= toMinutes("10:00")){
+      data.status = (lateCount < lateLimit) ? "Late" : "Half";
     }
-
-    // EDIT
     else{
-      openTimeModal("Edit IN Time",(inTime)=>{
-        data.in = inTime;
-        data.date = d;
-        save(data);
-        loadCalendar(); loadSummary();
-      });
+      data.status="Half";
     }
 
-  } else {
-    clickTimer = setTimeout(()=>{
-      showMenu(e.pageX, e.pageY, d);
-      clickTimer = null;
-    },300);
+    save(data);
   }
+
+  // 🔥 OUT
+  else if(!data.out){
+    let outTime = getTime();
+    data.out = outTime;
+    data.date = d;
+
+    if(data.in && data.out){
+      let hrs = (new Date("1970-01-01T"+data.out) - new Date("1970-01-01T"+data.in)) / 3600000;
+      if(hrs < 4) data.status="Half";
+    }
+
+    save(data);
+  }
+
+  // 🔥 ALREADY DONE → edit
+  else{
+    openTimeModal("Edit IN Time",(t)=>{
+      data.in = t;
+      save(data);
+      loadCalendar();
+      loadSummary();
+    });
+    return;
+  }
+
+  loadCalendar();
+  loadSummary();
 };
 
 
 let startX = 0;
 let startY = 0;
+let startTime = 0;
 
-document.getElementById("calendar").addEventListener("touchstart",(e)=>{
+const calendar = document.getElementById("calendar");
+
+calendar.addEventListener("touchstart",(e)=>{
   startX = e.touches[0].clientX;
   startY = e.touches[0].clientY;
+  startTime = new Date().getTime(); // ⏱️ time capture
 });
 
-document.getElementById("calendar").addEventListener("touchend",(e)=>{
+calendar.addEventListener("touchend",(e)=>{
 
   let endX = e.changedTouches[0].clientX;
   let endY = e.changedTouches[0].clientY;
+  let endTime = new Date().getTime();
 
   let diffX = endX - startX;
   let diffY = endY - startY;
+  let timeDiff = endTime - startTime;
 
   // 🔥 ignore vertical scroll
   if(Math.abs(diffY) > Math.abs(diffX)) return;
 
   // 🔥 minimum swipe distance
-  if(Math.abs(diffX) < 60) return;
+  if(Math.abs(diffX) < 50) return;
+
+  // 🔥 fast swipe only (avoid accidental)
+  if(timeDiff > 500) return;
+
+  // 🔥 prevent multiple triggers
+  if(calendar.classList.contains("swiping")) return;
+  calendar.classList.add("swiping");
 
   if(diffX < 0){
-    changeMonth(1);   // next
+    changeMonth(1);   // 👉 next
   } else {
-    changeMonth(-1);  // prev
+    changeMonth(-1);  // 👉 prev
   }
+
+  // 🔥 reset after animation
+  setTimeout(()=>{
+    calendar.classList.remove("swiping");
+  },300);
 
 });
 
@@ -1329,8 +1355,19 @@ let tillDateStr = tillDate.getFullYear() + "-" +
 
 
 // ✅ MONTH (auto + manual)
+let year = current.getFullYear();
+let month = String(current.getMonth()+1).padStart(2,'0');
+
+// 🔥 auto + manual holiday count
+Object.keys(holidays).forEach(d=>{
+  if(d.startsWith(year + "-" + month)){
+    holidayMonth++;
+  }
+});
+
+// manual added holidays also
 monthData.forEach(d=>{
-  if(d.status === "Holiday" || holidays[d.date]){
+  if(d.status === "Holiday" && !holidays[d.date]){
     holidayMonth++;
   }
 });
@@ -1681,10 +1718,17 @@ function openInOutFlow(){
 
 function updateStatus(data){
 
-  if(!data.in && !data.out) return data;
+  if(!data.in && !data.out){
+    data.status = "";
+    return data;
+  }
 
-  let lateCount = getCurrentMonthData().filter(x=>x.status==="Late").length;
+  // 🔥 FIX: current date exclude karo
+  let lateCount = getCurrentMonthData()
+    .filter(x => x.status === "Late" && x.date !== data.date)
+    .length;
 
+  // 🔥 IN based logic
   if(data.in){
     if(toMinutes(data.in) <= toMinutes(graceTime)){
       data.status = "Present";
@@ -1697,8 +1741,10 @@ function updateStatus(data){
     }
   }
 
+  // 🔥 OUT based override
   if(data.in && data.out){
     let hrs = (new Date("1970-01-01T"+data.out) - new Date("1970-01-01T"+data.in)) / 3600000;
+
     if(hrs < 4){
       data.status = "Half";
     }
@@ -1760,4 +1806,3 @@ function confirmTime(){
 </body>
 
 </html>
-
