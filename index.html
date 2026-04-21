@@ -1282,21 +1282,30 @@ function loadSummary(){
 
 let p=0,l=0,a=0,lv=0,h=0,o=0,holiday=0,weekoff=0;
 
-  monthData.forEach(d=>{
-    switch(d.status){
-      case "Present":p++;break;
-      case "Late":l++;break;
-      case "Absent":a++;break;
-      case "Leave":lv++;break;
-      case "Half":h++;break;
-case "Holiday": holiday++; break;
-      case "Sunday":o++;break;
-case "Weekoff": weekoff++; break;
-    }
-  });
+monthData.forEach(d=>{
+  switch(d.status){
+    case "Present":p++;break;
+    case "Late":l++;break;
+    case "Absent":a++;break;
+    case "Leave":lv++;break;
+    case "Half":h++;break;
+    case "Holiday": holiday++; break;
+    case "Sunday":o++;break;
+    case "Weekoff": weekoff++; break;
+  }
+});
+
 
 let lateUsed = monthData.filter(x=>x.status==="Late").length;
 let lateWarning = lateUsed >= lateLimit;
+let extraLate = Math.max(0, lateUsed - lateLimit);
+let autoHalf = Math.floor(extraLate / 2);
+
+
+
+let lateHalf = autoHalf;
+let totalHalf = h + lateHalf;
+
 
 let earlyUsed = monthData.filter(x=>x.early).length;
 let earlyWarning = earlyUsed >= earlyLimit;
@@ -1419,13 +1428,12 @@ if(leaveMonthlyUsed > leaveMonthlyLimit){
   a += (leaveMonthlyUsed - leaveMonthlyLimit);
 }
 
-let total = p + l + a + lv + h + o + holidayMonth;
-
-  let working=p+l+h;
+let working = p + l + totalHalf;
+let total = p + l + a + lv + totalHalf + o + holidayMonth;
 
   document.getElementById("sumPresent").innerText=p;
   document.getElementById("sumAbsent").innerText=a;
-  document.getElementById("sumHalf").innerText=h;
+document.getElementById("sumHalf").innerText = totalHalf;
 document.getElementById("sumWeekoff").innerText = weekoff;
 document.getElementById("holidayBox").innerText = 
   holidayMonth + " (" + holidayTillNow + "/" + holidayYear + ")";
