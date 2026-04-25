@@ -1119,7 +1119,6 @@ div.oncontextmenu = (e) => {
 let pressTimer;
 
 div.addEventListener("touchstart", (e) => {
- e.preventDefault(); // 🔥 ADD THIS
   pressTimer = setTimeout(() => {
     selected = d;
     showMenu(e.touches[0].pageX, e.touches[0].pageY, d);
@@ -1131,17 +1130,10 @@ div.addEventListener("touchend", () => {
 });
 
 // CLICK (IN / OUT)
-let lastClickTime = 0;
-
 div.addEventListener("click", (e) => {
 
-  let nowClick = new Date().getTime();
 
-  // 🔥 prevent double tap (mobile fix)
-  if(nowClick - lastClickTime < 400){
-    return;
-  }
-  lastClickTime = nowClick;
+  if (e.detail > 1) return;
 
   selected = d;
 
@@ -1150,35 +1142,47 @@ div.addEventListener("click", (e) => {
 
   let now = getTime();
 
-  // 👉 IN
-  if (!data.in) {
-    data.in = now;
-    data = updateStatus(data);
-    save(data);
-  }
+  // 🔥 FIRST TAP = IN
+if (!data.in) {
+  data.in = now;
 
-  // 👉 OUT
-  else if (!data.out) {
-    data.out = now;
-    data = updateStatus(data);
-    save(data);
-  }
+  data = updateStatus(data); // 🔥 ADD THIS
 
-  // 👉 EDIT
+  save(data);
+}
+
+  // 🔥 SECOND TAP = OUT
+else if (!data.out) {
+
+  data.out = now;
+
+  data = updateStatus(data); // 🔥 ADD THIS
+
+  save(data);
+}
+
+  // 🔥 THIRD TAP = EDIT
   else {
+
     openTimeModal("Edit IN Time", (inTime) => {
       data.in = inTime;
 
       openTimeModal("Edit OUT Time", (outTime) => {
         data.out = outTime;
 
-        data = updateStatus(data);
+        let hrs =
+          (new Date("1970-01-01T" + data.out) -
+           new Date("1970-01-01T" + data.in)) / 3600000;
+
+data = updateStatus(data); // 🔥 replace full logic
+
         save(data);
       });
     });
   }
 
 });
+
 
 
 
