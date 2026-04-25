@@ -156,7 +156,7 @@ margin-top:10px;
 /* STATUS COLORS */
 .present{background:#dcfce7;}
 .late{background:#fef9c3;}
-.early{background:#bfdbfe ;}
+.early{background:#bfdbfe;}
 .absent{background:#fee2e2;}
 .leave{background:#e0f2fe;}
 .half{background:#ffedd5;}
@@ -1062,8 +1062,8 @@ if(data.status){
   cls = data.status.toLowerCase();
 }
 
-// 🔥 FINAL FIX (only status आधारित)
-if(data.status === "Early"){
+// 🔥 FIX: EARLY detect by BOTH
+if(data.status === "Early" || data.early){
   cls = "early";
 }
 
@@ -1087,7 +1087,7 @@ let outT = data.out
   : "";
 let displayStatus = data.status;
 
-if(data.status === "Early"){
+if(data.early){
   displayStatus = "Early";
 }
 
@@ -1303,7 +1303,7 @@ let lateHalf = autoHalf;
 let totalHalf = h + lateHalf;
 
 
-let earlyUsed = monthData.filter(x => x.status === "Early" || x.early).length;
+let earlyUsed = monthData.filter(x=>x.early).length;
 let earlyWarning = earlyUsed >= earlyLimit;
 
 let leaveMonthlyUsed = monthData.filter(x => x.status === "Leave").length;
@@ -1781,10 +1781,14 @@ function updateStatus(data){
     // ✅ EARLY condition
 if(toMinutes(data.out) < toMinutes(officeOut)){
   if(toMinutes(data.out) >= toMinutes("17:00") && earlyCount < earlyLimit){
-    data.status = "Early";
+    data.status = "Early";   // 🔥 MAIN CHANGE
+    data.early = true;
   } else {
     data.status = "Half";
+    data.early = false;
   }
+} else {
+  data.early = false;
 }
 
     // ✅ working hours check
