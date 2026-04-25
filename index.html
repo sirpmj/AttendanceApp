@@ -85,23 +85,57 @@ button:hover{opacity:.85}
 
 /* SUMMARY */
 #summaryBox{
-  display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(90px,1fr));
-  gap:6px;
-margin-top:10px;
-  margin-bottom:10px;
+display:grid;
+grid-template-columns:repeat(9,1fr); /* desktop full width */
+gap:8px;
+margin:10px 0;
 }
 
 #summaryBox p{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:4px;
-  font-size:14px;   /* 🔥 text bigger */
-  padding:10px 6px; /* 🔥 box bigger */
+background:#fff;
+border-radius:10px;
+padding:8px 6px;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:4px;
+font-size:12px;
+font-weight:600;
+box-shadow:0 1px 4px rgba(0,0,0,.08);
+margin:0;
 }
 
+#summaryBox b{
+font-size:12px;
+}
+
+.icon{
+width:8px;
+height:8px;
+margin-right:2px;
+flex:none;
+}
+
+/* Mobile: 3 per row */
+@media(max-width:600px){
+
+#summaryBox{
+grid-template-columns:repeat(3,1fr);
+gap:6px;
+}
+
+#summaryBox p{
+font-size:10px;
+padding:6px 4px;
+flex-direction:column;
+gap:2px;
+}
+
+#summaryBox b{
+font-size:11px;
+}
+
+}
 /* ICON BIG */
 .icon{
   width:10px;
@@ -138,25 +172,58 @@ margin-top:10px;
 }
 
 .day{
-  background:white;
-  border-radius:10px;
-  padding:6px;
-  text-align:center;
-  cursor:pointer;
-  font-size:18px;
-  min-height:65px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.08);
-  transition:.15s;
+display:flex;
+align-items:center;
+justify-content:center;   /* blank date center */
+gap:10px;
+background:#fff;
+padding:8px 6px;
+min-height:58px;
+border-radius:12px;
+box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
 
-.day:hover{
-  transform:scale(1.05);
+/* data present ho tab left aligned */
+.day.has-data{
+justify-content:flex-start;
 }
 
-.day{
-position:relative;
+.date-num{
+font-size:36px;
+font-weight:700;
+line-height:1;
 }
 
+.day-info{
+display:flex;
+flex-direction:column;
+font-size:10px;
+line-height:1.3;
+font-weight:600;
+}
+
+.in{
+color:#16a34a;
+}
+
+.out{
+color:#dc2626;
+}
+
+.status-line{
+color:#374151;
+font-weight:700;
+}
+
+@media(max-width:600px){
+.date-num{
+font-size:22px;
+}
+
+.day-info{
+font-size:9px;
+}
+}
 .quick-actions{
 display:none;
 margin-top:4px;
@@ -196,19 +263,35 @@ color:#fff;
 .holiday{background:#ede9fe;}
 .weekoff{ background:#cbd5f5; }
 
-/* WEEKDAYS */
 #weekdays{
-  display:grid;
-  grid-template-columns: repeat(7,1fr);
-  margin-bottom:4px;
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:4px;
+margin:8px 0 6px;
 }
 
 #weekdays div{
-  text-align:center;
-  font-size:16px;
-  font-weight:600;
-  color:#666;
-  padding:2px 0;
+text-align:center;
+font-size:32px;
+font-weight:700;
+padding:8px 0;
+border-radius:8px;
+background:#ffffff;
+color:#374151;
+box-shadow:0 1px 4px rgba(0,0,0,.06);
+}
+
+/* Sunday grey */
+#weekdays div:first-child{
+background:#e5e7eb;
+color:#6b7280;
+}
+
+@media(max-width:600px){
+#weekdays div{
+font-size:11px;
+padding:6px 0;
+}
 }
 
 /* CONTEXT MENU */
@@ -1362,8 +1445,12 @@ function setWithNote(type){
 
 // calendar
 function loadCalendar(){
+
+
   let cal=document.getElementById("calendar");
   cal.innerHTML="";
+
+
 
   let year = current.getFullYear();
   let month = current.getMonth();
@@ -1455,18 +1542,22 @@ let note = data.note
   ? `<div style="font-size:9px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.note}</div>` 
   : "";
 
-div.innerHTML = `
-<b>${i}</b>
-${inT}
-${outT}
-${st}
-${note}
+div.innerHTML=`
+<div class="date-num">${i}</div>
+
+<div class="day-info">
+${data.in ? `<div class="in">IN ${data.in}</div>` : ``}
+${data.out ? `<div class="out">OUT ${data.out}</div>` : ``}
+${displayStatus ? `<div class="status-line">${displayStatus}</div>` : ``}
+</div>
 
 <div class="quick-actions">
 <button class="mini-btn in-btn">IN</button>
 <button class="mini-btn out-btn">OUT</button>
 </div>
 `;
+
+
 
     // right click
 // RIGHT CLICK (desktop)
