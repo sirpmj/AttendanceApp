@@ -1033,6 +1033,9 @@ let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
+
+  // 👇 IMPORTANT: show popup here
+  document.getElementById("installPopup").style.display = "flex";
 });
 
 // Install button click
@@ -1041,18 +1044,16 @@ document.addEventListener("click", async (e) => {
   if (e.target.id === "installBtn") {
 
     if (!deferredPrompt) {
-      alert("Install option not available yet");
+      alert("Install option will appear after browser allows PWA install (try refresh)");
       return;
     }
 
     deferredPrompt.prompt();
 
     const { outcome } = await deferredPrompt.userChoice;
-
-    console.log("Install result:", outcome);
+    console.log(outcome);
 
     deferredPrompt = null;
-
     closeInstallPopup();
   }
 
