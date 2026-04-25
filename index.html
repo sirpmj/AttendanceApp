@@ -156,6 +156,7 @@ margin-top:10px;
 /* STATUS COLORS */
 .present{background:#dcfce7;}
 .late{background:#fef9c3;}
+.early{background:#bfdbfe ;}
 .absent{background:#fee2e2;}
 .leave{background:#e0f2fe;}
 .half{background:#ffedd5;}
@@ -710,7 +711,12 @@ const leaveYearlyLimit = 25;
 const auth = firebase.auth();
 
 
-
+// 🔥 GLOBAL FUNCTION
+function toMinutes(t){
+  if(!t) return 0; // safety
+  let [h,m] = t.split(":").map(Number);
+  return h*60 + m;
+}
 
 function logout(){
   firebase.auth().signOut().then(()=>{
@@ -941,25 +947,14 @@ function confirmNote(){
 
 
 async function save(d){
-  d.date = selected;
-
   let user = auth.currentUser;
   if(!user) return;
 
   await db.collection("users")
     .doc(user.uid)
     .collection("attendance")
-    .doc(selected)
+    .doc(d.date)   // 🔥 USE d.date NOT selected
     .set(d, { merge: true });
-
-  // 🔥 IMPORTANT: update cache AFTER save
-  let all = getAll();
-  all[selected] = d;
-  window.firebaseCache = all;
-
-  // 🔥 FORCE UI refresh AFTER sync
-  loadCalendar();
-  loadSummary();
 }
 
 function getData(){
@@ -1056,14 +1051,28 @@ if(isSunday && !data.status){
 }
 
 // ✅ Only apply holiday if NO manual data exists
-if(!old.manual && holidays[d]){
+if((!old.status || old.status === "") && holidays[d]){
   data.status = "Holiday";
   data.note = holidays[d];
 }
-    let cls=data.status?data.status.toLowerCase():"";
+
+let cls = "";
+
+if(data.status){
+  cls = data.status.toLowerCase();
+}
+
+// 🔥 FINAL FIX (only status आधारित)
+if(data.status === "Early"){
+  cls = "early";
+}
 
     let div=document.createElement("div");
-    div.className="day "+cls;
+    div.className = "day";   // reset
+
+if(cls){
+  div.classList.add(cls); // add fresh class
+}
 
 if(d === today()){
   div.classList.add("today");
@@ -1076,7 +1085,16 @@ let inT = data.in
 let outT = data.out 
   ? `<div class="time out">out ${data.out}</div>` 
   : "";
-let st = data.status ? `<div style="font-size:10px;">${data.status}</div>` : "";
+let displayStatus = data.status;
+
+if(data.status === "Early"){
+  displayStatus = "Early";
+}
+
+let st = displayStatus 
+  ? `<div style="font-size:10px;">${displayStatus}</div>` 
+  : "";
+
 let note = data.note 
   ? `<div style="font-size:9px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.note}</div>` 
   : "";
@@ -1125,34 +1143,23 @@ div.addEventListener("click", (e) => {
   let now = getTime();
 
   // 🔥 FIRST TAP = IN
-  if (!data.in) {
+if (!data.in) {
+  data.in = now;
 
-    data.in = now;
+  data = updateStatus(data); // 🔥 ADD THIS
 
-    if (toMinutes(now) <= toMinutes(graceTime)) {
-      data.status = "Present";
-    } else if (toMinutes(now) <= toMinutes("10:00")) {
-      data.status = "Late";
-    } else {
-      data.status = "Half";
-    }
-
-    save(data);
-  }
+  save(data);
+}
 
   // 🔥 SECOND TAP = OUT
-  else if (!data.out) {
+else if (!data.out) {
 
-    data.out = now;
+  data.out = now;
 
-    let hrs =
-      (new Date("1970-01-01T" + data.out) -
-       new Date("1970-01-01T" + data.in)) / 3600000;
+  data = updateStatus(data); // 🔥 ADD THIS
 
-    if (hrs < 4) data.status = "Half";
-
-    save(data);
-  }
+  save(data);
+}
 
   // 🔥 THIRD TAP = EDIT
   else {
@@ -1167,15 +1174,7 @@ div.addEventListener("click", (e) => {
           (new Date("1970-01-01T" + data.out) -
            new Date("1970-01-01T" + data.in)) / 3600000;
 
-        if (hrs < 4) {
-          data.status = "Half";
-        } else if (toMinutes(data.in) <= toMinutes(graceTime)) {
-          data.status = "Present";
-        } else if (toMinutes(data.in) <= toMinutes("10:00")) {
-          data.status = "Late";
-        } else {
-          data.status = "Half";
-        }
+data = updateStatus(data); // 🔥 replace full logic
 
         save(data);
       });
@@ -1186,10 +1185,7 @@ div.addEventListener("click", (e) => {
 
 
 
-function toMinutes(t){
-  let [h,m] = t.split(":").map(Number);
-  return h*60 + m;
-}
+
     // 🔥 DOUBLE CLICK = IN + OUT
     cal.appendChild(div);
   }
@@ -1307,7 +1303,7 @@ let lateHalf = autoHalf;
 let totalHalf = h + lateHalf;
 
 
-let earlyUsed = monthData.filter(x=>x.early).length;
+let earlyUsed = monthData.filter(x => x.status === "Early" || x.early).length;
 let earlyWarning = earlyUsed >= earlyLimit;
 
 let leaveMonthlyUsed = monthData.filter(x => x.status === "Leave").length;
@@ -1751,15 +1747,15 @@ function updateStatus(data){
 
   if(!data.in && !data.out){
     data.status = "";
+    data.early = false;
     return data;
   }
 
-  // 🔥 FIX: current date exclude karo
   let lateCount = getCurrentMonthData()
     .filter(x => x.status === "Late" && x.date !== data.date)
     .length;
 
-  // 🔥 IN based logic
+  // 🔥 IN logic
   if(data.in){
     if(toMinutes(data.in) <= toMinutes(graceTime)){
       data.status = "Present";
@@ -1772,10 +1768,26 @@ function updateStatus(data){
     }
   }
 
-  // 🔥 OUT based override
+  // 🔥 OUT logic + EARLY FIX
   if(data.in && data.out){
-    let hrs = (new Date("1970-01-01T"+data.out) - new Date("1970-01-01T"+data.in)) / 3600000;
 
+    let hrs = (new Date("1970-01-01T"+data.out) - 
+               new Date("1970-01-01T"+data.in)) / 3600000;
+
+    let earlyCount = getCurrentMonthData()
+      .filter(x => x.early && x.date !== data.date)
+      .length;
+
+    // ✅ EARLY condition
+if(toMinutes(data.out) < toMinutes(officeOut)){
+  if(toMinutes(data.out) >= toMinutes("17:00") && earlyCount < earlyLimit){
+    data.status = "Early";
+  } else {
+    data.status = "Half";
+  }
+}
+
+    // ✅ working hours check
     if(hrs < 4){
       data.status = "Half";
     }
