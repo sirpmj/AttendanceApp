@@ -614,7 +614,17 @@ body{
   text-align: center;
   font-weight: 600;
 }
+.leave-break{
+display:block;
+margin-top:2px;
+}
 
+@media(max-width:600px){
+#leaveBox{
+font-size:9px;
+line-height:1.2;
+}
+}
 
 .action-bar{
   display:flex;
@@ -1839,8 +1849,10 @@ document.getElementById("lateBox").innerText =
 
 let leave = getLeaveSummary();
 
-document.getElementById("leaveBox").innerText =
-`M:${leave.usedMonth}/${leave.monthlyLimit} | CF:${leave.carryForward} | Bal:${leave.balance} | Y:${leave.usedYear}/${leave.yearlyLimit}`;
+document.getElementById("leaveBox").innerHTML =
+`M:${leave.usedMonth}/${leave.monthlyLimit} | CF:${leave.carryForward}
+<span class="leave-break"></span>
+Bal:${leave.balance} | Y:${leave.usedYear}/${leave.yearlyLimit}`;
 
 document.getElementById("earlyUsed").innerText = 
   earlyUsed + "/" + earlyLimit + (earlyWarning ? " ⚠️" : "");
