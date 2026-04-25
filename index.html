@@ -1080,6 +1080,22 @@ function showFirstTimePopup() {
 }
 
 
+function isAppInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches;
+}
+
+function showFirstTimePopup() {
+
+  if (isAppInstalled()) return; // 👈 installed hai to popup nahi
+
+  const lastShown = localStorage.getItem("popupTime");
+  const now = Date.now();
+
+  if (!lastShown || (now - lastShown) > 24*60*60*1000) {
+    document.getElementById("installPopup").style.display = "flex";
+    localStorage.setItem("popupTime", now);
+  }
+}
 
 
 auth.onAuthStateChanged(user=>{
@@ -1125,6 +1141,7 @@ db.collection("users")
 
   loadCalendar();
   loadSummary();
+
 if(user){
     showFirstTimePopup();   // 👈 ADD HERE
   }
@@ -2194,10 +2211,11 @@ calendar.addEventListener("touchend",(e)=>{
 
 });
 
-// init
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log("Service Worker Registered"));
 }
+
 
 </script>
 </body>
