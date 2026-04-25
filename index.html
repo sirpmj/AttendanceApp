@@ -1806,7 +1806,19 @@ function openTimeModal(title, callback){
   document.getElementById("modalTitle").innerText = title;
 
   let input = document.getElementById("modalTime");
-  input.value = getTime();
+
+  let data = getData();
+
+  // 🔥 MAIN FIX
+  if(title.includes("IN") && data.in){
+    input.value = data.in;
+  } 
+  else if(title.includes("OUT") && data.out){
+    input.value = data.out;
+  } 
+  else {
+    input.value = getTime(); // first time
+  }
 
   modalCallback = callback;
 
