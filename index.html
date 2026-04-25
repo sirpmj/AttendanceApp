@@ -3,7 +3,7 @@
 <html>
 
 <head>
-
+<link rel="manifest" href="manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -529,6 +529,61 @@ body{
   font-weight: 600;
 }
 
+
+.action-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:4px;
+  margin:10px;
+  padding:12px;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  flex-wrap:wrap;
+}
+
+.user-box h3{
+  margin:0;
+  font-size:15px;
+  color:#111;
+}
+
+/* buttons row */
+.btn-group{
+  display:flex;
+  gap:4px;
+  flex-wrap:wrap;
+}
+
+/* buttons */
+.btn-group button,
+.file-btn{
+  padding:8px 10px;
+  border:none;
+  border-radius:8px;
+  font-size:13px;
+  cursor:pointer;
+  background:#2563eb;
+  color:white;
+  transition:0.2s;
+}
+
+.btn-group button:hover,
+.file-btn:hover{
+  opacity:0.85;
+}
+
+/* file input hide */
+.file-btn input{
+  display:none;
+}
+
+/* logout special */
+.logout-btn{
+  background:#ef4444 !important;
+}
+
 </style>
 </head>
 
@@ -617,10 +672,26 @@ body{
   </div>
 </div>
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin:10px;background:white;padding:10px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-  <h3 id="userWelcome" style="margin:0;font-size:14px;"></h3>
-  <button onclick="logout()" class="logout-btn">Logout</button>
+<div class="action-bar">
+
+  <div class="user-box">
+    <h3 id="userWelcome"></h3>
+  </div>
+
+  <div class="btn-group">
+    <button onclick="downloadReport()">📄 Report</button>
+    <button onclick="backupData()">💾 Backup</button>
+
+    <label class="file-btn">
+      📂 Restore
+      <input type="file" onchange="restoreData(event)">
+    </label>
+
+    <button onclick="logout()" class="logout-btn">🚪 Logout</button>
+  </div>
+
 </div>
+
 
 <div class="card" id="summaryBox">
 <p><span class="icon present-icon"></span><span>Present</span><b id="sumPresent">0</b></p>
@@ -665,6 +736,8 @@ body{
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
+
+
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCKlXV7if_WypGKK-uLHHbwhsFlzjQ3yic",
@@ -678,8 +751,61 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+
+<div id="installPopup" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+">
+
+  <div style="
+    background:#fff;
+    padding:20px;
+    border-radius:12px;
+    width:90%;
+    max-width:320px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+  ">
+
+    <h3>🎉 Welcome</h3>
+
+    <p style="font-size:14px; margin:10px 0;">
+      📲 Install this app for better experience
+    </p>
+
+    <button id="installBtn" style="
+      background:#4e73df;
+      color:#fff;
+      padding:8px 14px;
+      border:none;
+      border-radius:6px;
+      margin-right:6px;
+    ">Install</button>
+
+    <button onclick="closeInstallPopup()" style="
+      background:#ccc;
+      padding:8px 14px;
+      border:none;
+      border-radius:6px;
+    ">Later</button>
+
+  </div>
+</div>
+
 
 <script>
+
+
+
+
 let clickTimer = null;
 
 const holidays = {
@@ -797,6 +923,164 @@ function handleAuth(){
   }
 }
 
+function downloadReport() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  let user = firebase.auth().currentUser;
+
+  let name = "User";
+
+  if (user) {
+    if (user.displayName && user.displayName.trim() !== "") {
+      name = user.displayName;
+    } else if (user.email) {
+      name = user.email.split("@")[0];
+    }
+  }
+
+  name = name.charAt(0).toUpperCase() + name.slice(1);
+
+  let monthName = current.toLocaleString('default', { month: 'long' });
+  let year = current.getFullYear();
+
+  let all = getCurrentMonthData();
+
+  // 📊 COUNTS
+  let p = 0, l = 0, a = 0, lv = 0, h = 0;
+
+  all.forEach(d => {
+    switch (d.status) {
+      case "Present": p++; break;
+      case "Late": l++; break;
+      case "Absent": a++; break;
+      case "Leave": lv++; break;
+      case "Half": h++; break;
+    }
+  });
+
+  let total = p + l + a + lv + h;
+  let percent = total ? ((p + l + h) / total * 100).toFixed(1) : 0;
+
+  // 📄 HEADER
+  doc.setFontSize(14);
+  doc.text("Monthly Attendance Report", 14, 10);
+
+  doc.setFontSize(11);
+  doc.text("Name: " + name, 14, 18);
+  doc.text("Month: " + monthName + " " + year, 14, 24);
+
+  // 📊 SUMMARY
+  doc.text(`Present: ${p}`, 14, 35);
+  doc.text(`Late: ${l}`, 14, 42);
+  doc.text(`Absent: ${a}`, 14, 49);
+  doc.text(`Leave: ${lv}`, 14, 56);
+  doc.text(`Half Day: ${h}`, 14, 63);
+  doc.text(`Attendance: ${percent}%`, 14, 72);
+
+  // 📋 TABLE
+  let rows = all.map(item => [
+    item.date,
+    item.in || "-",
+    item.out || "-",
+    item.status || "-"
+  ]);
+
+  doc.autoTable({
+    head: [["Date", "IN", "OUT", "Status"]],
+    body: rows,
+    startY: 80
+  });
+
+  // 🔥 PROFESSIONAL FILE NAME
+  let safeName = name.replace(/\s+/g, "_");
+
+  doc.save(`${safeName}_Attendance_${monthName}_${year}.pdf`);
+}
+
+
+
+function backupData() {
+  let data = localStorage.getItem("attendanceData");
+
+  let blob = new Blob([data], { type: "application/json" });
+  let url = URL.createObjectURL(blob);
+
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "attendance-backup.json";
+  a.click();
+}
+
+
+function restoreData(event) {
+  let file = event.target.files[0];
+  let reader = new FileReader();
+
+  reader.onload = function(e) {
+    localStorage.setItem("attendanceData", e.target.result);
+    alert("Data restored successfully!");
+    location.reload();
+  };
+
+  reader.readAsText(file);
+}
+
+
+let deferredPrompt = null;
+
+// Install event capture
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+// Install button click
+document.addEventListener("click", async (e) => {
+
+  if (e.target.id === "installBtn") {
+
+    if (!deferredPrompt) {
+      alert("Install option not available yet");
+      return;
+    }
+
+    deferredPrompt.prompt();
+
+    const { outcome } = await deferredPrompt.userChoice;
+
+    console.log("Install result:", outcome);
+
+    deferredPrompt = null;
+
+    closeInstallPopup();
+  }
+
+});
+
+// Close popup
+function closeInstallPopup(){
+  document.getElementById("installPopup").style.display = "none";
+}
+
+
+function showFirstTimePopup() {
+
+  const lastShown = localStorage.getItem("popupTime");
+  const now = Date.now();
+
+  // 🔥 Show only if 24 hrs passed
+  if (!lastShown || (now - lastShown) > 24*60*60*1000) {
+
+    // 👇 popup show
+    document.getElementById("installPopup").style.display = "flex";
+
+    localStorage.setItem("popupTime", now);
+  }
+}
+
+
+
 
 auth.onAuthStateChanged(user=>{
   if(user){
@@ -841,6 +1125,9 @@ db.collection("users")
 
   loadCalendar();
   loadSummary();
+if(user){
+    showFirstTimePopup();   // 👈 ADD HERE
+  }
 });
 
   } else {
@@ -1908,7 +2195,9 @@ calendar.addEventListener("touchend",(e)=>{
 });
 
 // init
-
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
 
 </script>
 </body>
