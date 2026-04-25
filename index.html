@@ -105,6 +105,14 @@ box-shadow:0 1px 4px rgba(0,0,0,.08);
 margin:0;
 }
 
+/* NUMBER BIG */
+#summaryBox p{
+  background:white;
+  border-radius:10px;
+  padding:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+
 #summaryBox b{
 font-size:12px;
 }
@@ -116,7 +124,7 @@ margin-right:2px;
 flex:none;
 }
 
-/* Mobile: 3 per row */
+/* Mobile */
 @media(max-width:600px){
 
 #summaryBox{
@@ -125,10 +133,12 @@ gap:6px;
 }
 
 #summaryBox p{
-font-size:10px;
-padding:6px 4px;
-flex-direction:column;
-gap:2px;
+padding:7px 4px;
+}
+
+#summaryBox p .top{
+font-size:9px;
+gap:3px;
 }
 
 #summaryBox b{
@@ -157,13 +167,7 @@ font-size:11px;
 .percent-icon{background:#8b5cf6;}
 .weekoff-icon{ background:#6366f1; }
 
-/* NUMBER BIG */
-#summaryBox p{
-  background:white;
-  border-radius:10px;
-  padding:8px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.08);
-}
+
 /* CALENDAR */
 .calendar{
   display:grid;
