@@ -153,6 +153,38 @@ margin-top:10px;
   transform:scale(1.05);
 }
 
+.day{
+position:relative;
+}
+
+.quick-actions{
+display:none;
+margin-top:4px;
+gap:4px;
+justify-content:center;
+}
+
+.day.active .quick-actions{
+display:flex;
+}
+
+.mini-btn{
+font-size:9px;
+padding:3px 6px;
+border-radius:6px;
+border:none;
+}
+
+.in-btn{
+background:#16a34a;
+color:#fff;
+}
+
+.out-btn{
+background:#dc2626;
+color:#fff;
+}
+
 /* STATUS COLORS */
 .present{background:#dcfce7;}
 .late{background:#fef9c3;}
@@ -673,6 +705,10 @@ font-size:11px;
 
   </div>
 </div>
+
+
+
+
 
 <div class="topbar">
   <button onclick="changeMonth(-1)" class="nav-btn prev"></button>
@@ -1420,11 +1456,16 @@ let note = data.note
   : "";
 
 div.innerHTML = `
-  <b>${i}</b>
-  ${inT}
-  ${outT}
-  ${st}
-  ${note}
+<b>${i}</b>
+${inT}
+${outT}
+${st}
+${note}
+
+<div class="quick-actions">
+<button class="mini-btn in-btn">IN</button>
+<button class="mini-btn out-btn">OUT</button>
+</div>
 `;
 
     // right click
@@ -1450,80 +1491,61 @@ div.addEventListener("touchend", () => {
 });
 
 // CLICK (IN / OUT)
-div.addEventListener("click", (e) => {
+div.addEventListener("click",function(e){
 
-
-  if (e.detail > 1) return;
-
-  selected = d;
-
-  let all = getAll();
-  let data = all[d] || { date: d };
-
-  let now = getTime();
-
-  // 🔥 FIRST TAP = IN
-if (!data.in) {
-  data.in = now;
-
-  data = updateStatus(data); // 🔥 ADD THIS
-
-  save(data);
+// if IN/OUT button clicked ignore main day click
+if(
+e.target.classList.contains("in-btn") ||
+e.target.classList.contains("out-btn")
+){
+return;
 }
 
-  // 🔥 SECOND TAP = OUT
-else if (!data.out) {
+// previous open close
+document.querySelectorAll(".day")
+.forEach(x=>x.classList.remove("active"));
 
-  data.out = now;
-
-  data = updateStatus(data); // 🔥 ADD THIS
-
-  save(data);
-}
-
-  // 🔥 THIRD TAP = EDIT
-  else {
-
-    openTimeModal("Edit IN Time", (inTime) => {
-      data.in = inTime;
-
-      openTimeModal("Edit OUT Time", (outTime) => {
-        data.out = outTime;
-
-        let hrs =
-          (new Date("1970-01-01T" + data.out) -
-           new Date("1970-01-01T" + data.in)) / 3600000;
-
-data = updateStatus(data); // 🔥 replace full logic
-
-        save(data);
-      });
-    });
-  }
+this.classList.add("active");
+selected=d;
 
 });
 
 
+// IN button
+div.querySelector(".in-btn").addEventListener("click",function(e){
+e.stopPropagation();
+
+let data=getAll()[d] || {date:d};
+
+openTimeModal("Select IN Time",(t)=>{
+data.in=t;
+data=updateStatus(data);
+save(data);
+});
+
+});
 
 
-    // 🔥 DOUBLE CLICK = IN + OUT
-    cal.appendChild(div);
-  }
+// OUT button
+div.querySelector(".out-btn").addEventListener("click",function(e){
+e.stopPropagation();
+
+let data=getAll()[d] || {date:d};
+
+openTimeModal("Select OUT Time",(t)=>{
+data.out=t;
+data=updateStatus(data);
+save(data);
+});
+
+});
+
+cal.appendChild(div);
+
+
+} 
 }
 
-
-let lastTap = 0;
-
-function handleDoubleTap(callback){
-  let now = new Date().getTime();
-  let diff = now - lastTap;
-
-  if(diff < 300){
-    callback(); // double tap
-  }
-
-  lastTap = now;
-}
 
 
 // month change
