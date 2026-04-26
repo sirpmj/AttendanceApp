@@ -32,10 +32,11 @@
 
 /* TITLE */
 .app-title{
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 700;
-  text-align: center;
-  color: #111;
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .month-subtitle{
@@ -465,20 +466,6 @@ padding:6px 0;
   color:#dc2626;
 }
 
-.progress-bar{
-  height:8px;
-  background:#e5e7eb;
-  border-radius:10px;
-  overflow:hidden;
-  margin:8px 0;
-}
-
-#progressFill{
-  height:100%;
-  background:#22c55e;
-  width:0%;
-  transition:0.3s;
-}
 
 .user-info{
   font-size:8px;
@@ -704,7 +691,7 @@ font-size:11px;
 
   <div class="login-card">
     
-    <h1 class="app-name">Self Attendance</h1>
+    <h1 class="app-name">Smart Attendance</h1>
     <p class="app-sub">Smart Attendance Tracker</p>
 
     <!-- 👇 NAME (hidden by default) -->
@@ -778,7 +765,7 @@ font-size:11px;
   <button onclick="changeMonth(-1)" class="nav-btn prev"></button>
 
   <div class="title-area">
-    <div class="app-title">Self Attendance</div>
+    <div class="app-title">Smart Attendance</div>
     <div id="monthTitle" class="month-subtitle"></div>
   </div>
 
@@ -822,9 +809,7 @@ font-size:11px;
 
 </div>
 
-<div class="progress-bar">
-  <div id="progressFill"></div>
-</div>
+
 
 <div class="calendar" id="weekdays">
   <div>Sun</div><div>Mon</div><div>Tue</div>
@@ -1841,8 +1826,6 @@ document.getElementById("holidayBox").innerText =
   holidayMonth + " (" + holidayTillNow + "/" + holidayYear + ")";
 document.getElementById("sumPercent").innerText=
     total?((working/total)*100).toFixed(1)+"%":"0%";
-document.getElementById("progressFill").style.width =
-  total ? ((working/total)*100) + "%" : "0%";
 
 document.getElementById("lateBox").innerText = 
   l + " (" + lateUsed + "/" + lateLimit + ")" + (lateWarning ? " ⚠️" : "");
@@ -1860,7 +1843,7 @@ document.getElementById("earlyUsed").innerText =
 
 
 window.onload = () => {
-  document.title = "Self Attendance";
+  document.title = "Smart Attendance";
   
 };
 
