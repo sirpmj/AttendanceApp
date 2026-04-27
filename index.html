@@ -178,7 +178,7 @@ font-size:11px;
 .half-icon{background:#f97316;}
 .sunday-icon{background:#6b7280;}
 .holiday-icon{background:#8b5cf6;}
-.percent-icon{background:#8b5cf6;}
+.percent-icon{background:#D946EF;}
 .weekoff-icon{ background:#6366f1; }
 
 
@@ -291,17 +291,20 @@ display:flex;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-
+.card{
+  border:1px solid #e2e8f0;
+  box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
 /* STATUS COLORS */
-.present{background:#dcfce7;}
-.late{background:#fef9c3;}
-.early{background:#B0E0E6;}
-.absent{background:#fee2e2;}
-.leave{background:#e0f2fe;}
-.half{background:#ffedd5;}
-.sunday{background:#e5e7eb;}
-.holiday{background:#ede9fe;}
-.weekoff{ background:#cbd5f5; }
+.present{background:#BBF7D0;}     /* green slightly darker */
+.late{background:#FDE68A;}        /* yellow richer */
+.early{background:#A7DDE5;}       /* deeper cyan */
+.absent{background:#FCA5A5;}      /* stronger red light */
+.leave{background:#7DD3FC;}       /* mid sky blue */
+.half{background:#FDBA74;}        /* darker orange */
+.sunday{background:#D1D5DB;}      /* mid gray */
+.holiday{background:#C4B5FD;}     /* deeper purple */
+.weekoff{background:#A5B4FC;}     /* indigo mid */
 
 #weekdays{
 display:grid;
@@ -323,7 +326,7 @@ box-shadow:0 1px 4px rgba(0,0,0,.06);
 
 /* Sunday grey */
 #weekdays div:first-child{
-background:#e5e7eb;
+background:#D1D5DB;
 color:#6b7280;
 }
 
@@ -650,10 +653,10 @@ body{
 }
 
 .today{
-  background:#eff6ff;
-  border:2px solid #2563eb;
-  box-shadow:0 0 0 3px rgba(37,99,235,0.2);
-  border-radius:6px;
+  background:#DBEAFE; /* thoda darker blue */
+  border:2px solid #2563EB;
+  box-shadow:0 0 0 3px rgba(37,99,235,0.3); /* thoda strong glow */
+  border-radius:8px; /* thoda smooth */
 }
 
 
@@ -778,6 +781,32 @@ font-size:11px;
 
 body{
   background: linear-gradient(135deg, #e0f2fe, #f1f5f9);
+}
+
+
+.btn-group button,
+.file-btn{
+  background:#2563EB;
+  color:#fff;
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* hover same for all */
+.btn-group button:hover,
+.file-btn:hover{
+  background:#1D4ED8;
+}
+
+/* hide actual file input */
+.file-btn input{
+  display:none;
 }
 </style>
 </head>
