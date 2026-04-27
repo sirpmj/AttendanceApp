@@ -811,7 +811,16 @@ body{
   justify-content:center; /* (optional) andar ka content bhi center */
 }
 
+.note{
+font-size:10px;
+line-height:1.05;
+text-align:center;
+display:block;
+}
 
+.note br{
+display:block;
+}
 
 
 </style>
@@ -1618,9 +1627,14 @@ let st = displayStatus
   ? `<div style="font-size:10px;">${displayStatus}</div>` 
   : "";
 
-let note = data.note 
-  ? `<div style="font-size:9px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.note}</div>` 
-  : "";
+let holidayText = data.note || "";
+
+// two-word holiday names ko break karao
+holidayText = holidayText.replace(" ", "<br>");
+
+let note = data.note
+? `<div class="note">${holidayText}</div>`
+: "";
 
 div.innerHTML = `
 <b>${i}</b>
