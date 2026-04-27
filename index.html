@@ -131,12 +131,6 @@ margin:0;
 font-size:12px;
 }
 
-.icon{
-width:8px;
-height:8px;
-margin-right:2px;
-flex:none;
-}
 
 /* Mobile */
 @media(max-width:600px){
@@ -559,10 +553,7 @@ html, body{
   width:100%;        /* 🔥 add this */
 }
 
-body{
-  background:#f6f8fc;
-  margin:0;
-}
+
 /* CARD */
 .login-card{
   width:90%;
@@ -603,16 +594,8 @@ body{
   border-color:#2563eb;
 }
 
-/* BUTTON */
-.btn{
-  width:100%;
-  padding:12px;
-  margin-top:8px;
-  border-radius:10px;
-  border:none;
-  font-size:14px;
-  cursor:pointer;
-}
+
+
 /* 🔥 MAIN FIX */
 #loginBox{
   position:fixed;
@@ -652,6 +635,10 @@ body{
   transition:0.2s;
 }
 
+.day{
+  will-change: transform;
+}
+
 .today{
   background:#DBEAFE; /* thoda darker blue */
   border:2px solid #2563EB;
@@ -678,16 +665,17 @@ font-size:9px;
 
 .action-bar{
   display:flex;
-  justify-content:space-between;   /* left text + right buttons */
+  justify-content:space-between;
   align-items:center;
   gap:10px;
-  margin:10px auto;
-  padding:10px 12px;
+  margin:12px auto;
+  padding:12px 14px;
   max-width:1200px;
 
-  background:#ffffff;
-  border-radius:12px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(10px);
+  border-radius:14px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.08);
 }
 
 /* left text */
@@ -713,36 +701,43 @@ font-size:9px;
   border-radius:8px;
 }
 
+button{
+  all:unset;
+}
+
 @media(max-width:600px){
 
-.btn-group{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:4px;
-width:100%;
-}
+  .action-bar{
+    flex-direction:column;   /* 🔥 vertical layout */
+    align-items:flex-start;  /* left align */
+    gap:8px;
+  }
 
-.btn-group button,
-.file-btn{
-padding:6px 4px;
-font-size:11px;
-}
+  /* Line 1 → User Name full width */
+  .user-box{
+    width:100%;
+  }
 
-}
+  .user-box h3{
+    font-size:14px;
+  }
 
-.btn-group button:hover,
-.file-btn:hover{
-  opacity:0.85;
-}
+  /* Line 2 → Buttons */
+  .btn-group{
+    width:100%;
+    display:flex;
+    flex-wrap:wrap;      /* next line if needed */
+    gap:6px;
+  }
 
-/* file input hide */
-.file-btn input{
-  display:none;
-}
+  .btn-group button,
+  .file-btn{
+    flex:1;              /* equal width buttons */
+    text-align:center;
+    font-size:11px;
+    padding:6px;
+  }
 
-/* logout special */
-.logout-btn{
-  background:#ef4444 !important;
 }
 
 
