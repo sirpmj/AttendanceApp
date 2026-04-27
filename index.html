@@ -1171,12 +1171,11 @@ function restoreData(event) {
 
 let deferredPrompt = null;
 
-// Install event capture
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
 
-  // 👇 IMPORTANT: show popup here
+  // 🔥 show popup immediately
   document.getElementById("installPopup").style.display = "flex";
 });
 
@@ -1186,16 +1185,18 @@ document.addEventListener("click", async (e) => {
   if (e.target.id === "installBtn") {
 
     if (!deferredPrompt) {
-      alert("Install option will appear after browser allows PWA install (try refresh)");
+      alert("Install option not available yet");
       return;
     }
 
     deferredPrompt.prompt();
 
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(outcome);
+    const result = await deferredPrompt.userChoice;
+
+    console.log("Install result:", result.outcome);
 
     deferredPrompt = null;
+
     closeInstallPopup();
   }
 
@@ -1206,21 +1207,6 @@ function closeInstallPopup(){
   document.getElementById("installPopup").style.display = "none";
 }
 
-
-function showFirstTimePopup() {
-
-  const lastShown = localStorage.getItem("popupTime");
-  const now = Date.now();
-
-  // 🔥 Show only if 24 hrs passed
-  if (!lastShown || (now - lastShown) > 24*60*60*1000) {
-
-    // 👇 popup show
-    document.getElementById("installPopup").style.display = "flex";
-
-    localStorage.setItem("popupTime", now);
-  }
-}
 
 
 function isAppInstalled() {
