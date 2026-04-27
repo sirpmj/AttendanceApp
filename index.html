@@ -172,7 +172,7 @@ font-size:11px;
 /* Colors */
 .present-icon{background:#22c55e;}
 .late-icon{background:#eab308;}
-.early-icon{background:#3b82f6;}
+.early-icon{background:#4F8C9A;}
 .absent-icon{background:#ef4444;}
 .leave-icon{background:#0ea5e9;}
 .half-icon{background:#f97316;}
@@ -295,7 +295,7 @@ display:flex;
 /* STATUS COLORS */
 .present{background:#dcfce7;}
 .late{background:#fef9c3;}
-.early{background:#bfdbfe;}
+.early{background:#B0E0E6;}
 .absent{background:#fee2e2;}
 .leave{background:#e0f2fe;}
 .half{background:#ffedd5;}
@@ -1601,6 +1601,12 @@ ${note}
 `;
 
     // right click
+
+div.oncontextmenu = (e) => {
+  e.preventDefault();
+  selected = d;
+  showMenu(e.pageX, e.pageY, d);
+};
 
 div.addEventListener("dblclick", function(e){
   e.preventDefault();
