@@ -171,21 +171,37 @@ font-size:11px;
 
 /* CALENDAR */
 .calendar{
-  display:grid;
-  grid-template-columns: repeat(7,1fr);
-  gap:6px;
+display:grid;
+grid-template-columns:repeat(7,minmax(0,1fr));
+gap:4px;
+width:100%;
 }
 
 .day{
-  background:white;
-  border-radius:10px;
-  padding:6px;
-  text-align:center;
-  cursor:pointer;
-  font-size:18px;
-  min-height:65px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.08);
-  transition:.15s;
+background:#fff;
+border-radius:8px;
+padding:4px 2px;
+text-align:center;
+font-size:15px;
+min-height:66px;
+box-shadow:0 1px 4px rgba(0,0,0,.08);
+overflow:hidden;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+
+.calendar{
+gap:3px;
+}
+
+.day{
+font-size:11px;
+min-height:56px;
+padding:4px 1px;
+border-radius:7px;
+}
+
 }
 
 .day:hover{
@@ -295,20 +311,46 @@ display:flex;
 
 #weekdays{
 display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:4px;
-margin:8px 0 6px;
+grid-template-columns:repeat(7,minmax(0,1fr));
+gap:3px;
+margin:6px 0 5px;
+width:100%;
 }
 
 #weekdays div{
+display:flex;
+align-items:center;
+justify-content:center;
 text-align:center;
-font-size:18px;
+font-size:15px;
 font-weight:700;
 padding:8px 0;
 border-radius:8px;
-background:#ffffff;
+background:#fff;
 color:#374151;
 box-shadow:0 1px 4px rgba(0,0,0,.06);
+min-width:0;
+overflow:hidden;
+}
+
+#weekdays div:first-child{
+background:#D1D5DB;
+color:#6b7280;
+}
+
+/* MOBILE PERFECT FIT */
+@media(max-width:600px){
+
+#weekdays{
+gap:2px;
+}
+
+#weekdays div{
+font-size:10px;
+padding:6px 0;
+border-radius:6px;
+}
+
 }
 
 /* Sunday grey */
@@ -812,7 +854,7 @@ body{
 }
 
 .note{
-font-size:10px;
+font-size:9px;
 line-height:1.05;
 text-align:center;
 display:block;
@@ -822,6 +864,20 @@ display:block;
 display:block;
 }
 
+
+
+.date-num{
+display:block;
+font-size:14px;
+font-weight:700;
+line-height:1;
+}
+
+@media(max-width:600px){
+.date-num{
+font-size:11px;
+}
+}
 
 </style>
 </head>
@@ -901,6 +957,8 @@ display:block;
 <div class="footer-note">
   📅 Tap for punch • Double tap for menu
 </div>
+
+
 
 <div class="topbar">
   <button onclick="changeMonth(-1)" class="nav-btn prev"></button>
@@ -1624,7 +1682,7 @@ if(data.early){
 }
 
 let st = displayStatus 
-  ? `<div style="font-size:10px;">${displayStatus}</div>` 
+  ? `<div style="font-size:9px;">${displayStatus}</div>` 
   : "";
 
 let holidayText = data.note || "";
