@@ -221,21 +221,76 @@ display:flex;
 }
 
 .mini-btn{
-font-size:9px;
-padding:3px 6px;
-border-radius:6px;
-border:none;
+  font-size:11px;
+  padding:5px 10px;
+  border-radius:20px;
+  border:none;
+  font-weight:600;
+
+  /* 🔥 smooth feel */
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+
+  /* 📱 better tap */
+  min-width:44px;
 }
 
+/* 👇 press effect */
+.mini-btn:active{
+  transform: scale(0.92);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* IN button */
 .in-btn{
-background:#16a34a;
-color:#fff;
+  background: transparent;
+  color: #16a34a;
+  border: 1px solid #16a34a;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  transition: 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.out-btn{
-background:#dc2626;
-color:#fff;
+.in-btn:hover{
+  background: #16a34a;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(22,163,74,0.25);
+  transform: translateY(-1px);
 }
+
+.in-btn:active{
+  transform: scale(0.95);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* OUT button */
+.out-btn{
+  background: transparent;
+  color: #d97706;
+  border: 1px solid #d97706;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  transition: 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.out-btn:hover{
+  background: #d97706;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(217,119,6,0.25);
+  transform: translateY(-1px);
+}
+
+.out-btn:active{
+  transform: scale(0.95);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
 
 /* STATUS COLORS */
 .present{background:#dcfce7;}
@@ -1546,12 +1601,19 @@ ${note}
 `;
 
     // right click
-// RIGHT CLICK (desktop)
-div.oncontextmenu = (e) => {
+
+div.addEventListener("dblclick", function(e){
   e.preventDefault();
+
   selected = d;
-  showMenu(e.pageX, e.pageY, d);
-};
+
+  showMenu(
+    e.pageX,
+    e.pageY,
+    d
+  );
+});
+
 
 // 🔥 MOBILE LONG PRESS (ADD HERE)
 let lastTap = 0;
@@ -1648,6 +1710,8 @@ if(!data.out){
 }
 
 });
+
+
 
 cal.appendChild(div);
 
