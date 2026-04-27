@@ -224,75 +224,61 @@ display:flex;
 }
 
 .mini-btn{
-  font-size:11px;
-  padding:5px 10px;
-  border-radius:20px;
-  border:none;
-  font-weight:600;
-
-  /* 🔥 smooth feel */
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-
-  /* 📱 better tap */
-  min-width:44px;
+font-size:10px;
+padding:4px 8px;
+border-radius:16px;
+border:none;
+font-weight:600;
+line-height:1;
+width:auto;          /* text ke hisab se */
+min-width:auto;      /* old 44px remove */
+display:inline-flex;
+align-items:center;
+justify-content:center;
+white-space:nowrap;
+transition:.15s;
+box-shadow:0 2px 5px rgba(0,0,0,.12);
 }
 
-/* 👇 press effect */
 .mini-btn:active{
-  transform: scale(0.92);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+transform:scale(.94);
 }
 
-/* IN button */
+/* IN */
 .in-btn{
-  background: transparent;
-  color: #16a34a;
-  border: 1px solid #16a34a;
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-weight: 600;
-  transition: 0.25s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  -webkit-tap-highlight-color: transparent;
+background:transparent;
+color:#16a34a;
+border:1px solid #16a34a;
+padding:4px 8px;     /* compact */
+border-radius:999px;
+font-size:10px;
+font-weight:600;
+width:auto;
+min-width:auto;
 }
 
-.in-btn:hover{
-  background: #16a34a;
-  color: #fff;
-  box-shadow: 0 6px 14px rgba(22,163,74,0.25);
-  transform: translateY(-1px);
-}
-
-.in-btn:active{
-  transform: scale(0.95);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-/* OUT button */
+/* OUT */
 .out-btn{
-  background: transparent;
-  color: #d97706;
-  border: 1px solid #d97706;
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-weight: 600;
-  transition: 0.25s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  -webkit-tap-highlight-color: transparent;
+background:transparent;
+color:#d97706;
+border:1px solid #d97706;
+padding:4px 8px;     /* compact */
+border-radius:999px;
+font-size:10px;
+font-weight:600;
+width:auto;
+min-width:auto;
 }
 
-.out-btn:hover{
-  background: #d97706;
-  color: #fff;
-  box-shadow: 0 6px 14px rgba(217,119,6,0.25);
-  transform: translateY(-1px);
+/* mobile extra compact */
+@media(max-width:600px){
+.in-btn,
+.out-btn{
+font-size:9px;
+padding:3px 7px;
+}
 }
 
-.out-btn:active{
-  transform: scale(0.95);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
 
 .card{
   border:1px solid #e2e8f0;
