@@ -800,9 +800,8 @@ body{
 </div>
 
 <div class="footer-note">
-  📅 Tap any date or right-click for options
+  📅 Tap for punch • Double tap for menu
 </div>
-
 
 <div class="topbar">
   <button onclick="changeMonth(-1)" class="nav-btn prev"></button>
@@ -1569,23 +1568,40 @@ div.oncontextmenu = (e) => {
 };
 
 // 🔥 MOBILE LONG PRESS (ADD HERE)
-let pressTimer;
+let lastTap = 0;
 
-div.addEventListener("touchstart", (e) => {
-  pressTimer = setTimeout(() => {
+div.addEventListener("touchend", function(e){
+
+  let currentTime = new Date().getTime();
+  let tapLength = currentTime - lastTap;
+
+  if(tapLength < 300 && tapLength > 0){
+    // ✅ DOUBLE TAP → MENU
     selected = d;
-    showMenu(e.touches[0].pageX, e.touches[0].pageY, d);
-  }, 500);
-});
 
-div.addEventListener("touchend", () => {
-  clearTimeout(pressTimer);
+    showMenu(
+      e.changedTouches[0].pageX,
+      e.changedTouches[0].pageY,
+      d
+    );
+
+    // 🔥 prevent zoom
+    e.preventDefault();
+
+    // 🔥 vibration (optional)
+    if(navigator.vibrate){
+      navigator.vibrate(30);
+    }
+  }
+
+  lastTap = currentTime;
 });
 
 // CLICK (IN / OUT)
 div.addEventListener("click",function(e){
 
-// if IN/OUT button clicked ignore main day click
+if(e.detail === 2) return; // 🔥 IMPORTANT
+
 if(
 e.target.classList.contains("in-btn") ||
 e.target.classList.contains("out-btn")
@@ -1593,7 +1609,6 @@ e.target.classList.contains("out-btn")
 return;
 }
 
-// previous open close
 document.querySelectorAll(".day")
 .forEach(x=>x.classList.remove("active"));
 
