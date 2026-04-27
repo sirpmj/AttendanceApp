@@ -678,39 +678,39 @@ font-size:9px;
 
 .action-bar{
   display:flex;
-  justify-content:space-between;
+  justify-content:space-between;   /* left text + right buttons */
   align-items:center;
-  gap:4px;
-  margin:10px;
-  padding:0px;
-  background:#fff;
+  gap:10px;
+  margin:10px auto;
+  padding:10px 12px;
+  max-width:1200px;
+
+  background:#ffffff;
   border-radius:12px;
   box-shadow:0 2px 10px rgba(0,0,0,0.08);
-  flex-wrap:wrap;
 }
 
+/* left text */
 .user-box h3{
   margin:0;
-  font-size:15px;
-  color:#111;
+  font-size:14px;
+  color:#0f172a;
+  font-weight:600;
 }
 
-/* buttons row */
+/* buttons */
 .btn-group{
-display:flex;
-flex-wrap:nowrap;      /* ek hi line */
-gap:6px;
-overflow-x:auto;       /* mobile pe scroll ho sake */
-white-space:nowrap;
--webkit-overflow-scrolling:touch;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;  /* mobile safe */
 }
 
+/* buttons size fix */
 .btn-group button,
 .file-btn{
-flex:0 0 auto;
-padding:7px 8px;
-font-size:12px;
-border-radius:8px;
+  padding:6px 10px;
+  font-size:12px;
+  border-radius:8px;
 }
 
 @media(max-width:600px){
@@ -808,11 +808,29 @@ body{
 .file-btn input{
   display:none;
 }
+
+.container{
+  width:100%;
+  max-width:1200px;
+  margin:0 auto;   /* 🔥 center */
+  padding:0 12px;  /* side space */
+}
+
+.top-bottom{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  justify-content:center; /* (optional) andar ka content bhi center */
+}
+
+
+
+
 </style>
 </head>
 
 <body>
-
+<div class="container">
 <div id="loginBox" class="login-container">
 
   <div class="login-card">
