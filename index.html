@@ -734,7 +734,7 @@ body{
   <div class="login-card">
     
     <h1 class="app-name">Smart Attendance</h1>
-    <p class="app-sub">Smart Attendance Tracker</p>
+    <p class="app-sub">Smart Leave Attendance Tracker</p>
 
     <!-- 👇 NAME (hidden by default) -->
     <input type="text" id="name" placeholder="Full Name" class="input" style="display:none;">
@@ -800,9 +800,8 @@ body{
 </div>
 
 <div class="footer-note">
-  📅 Tap on calendar date to enter time
+  📅 Tap any date or right-click for options
 </div>
-
 
 
 <div class="topbar">
@@ -1610,11 +1609,19 @@ e.stopPropagation();
 
 let data=getAll()[d] || {date:d};
 
-openTimeModal("Select IN Time",(t)=>{
-data.in=t;
-data=updateStatus(data);
-save(data);
-});
+if(!data.in){
+  // ✅ FIRST TAP → AUTO TIME
+  data.in = getTime();
+  data = updateStatus(data);
+  save(data);
+} else {
+  // ✅ SECOND TAP → EDIT
+  openTimeModal("Edit IN Time",(t)=>{
+    data.in=t;
+    data=updateStatus(data);
+    save(data);
+  });
+}
 
 });
 
@@ -1625,11 +1632,19 @@ e.stopPropagation();
 
 let data=getAll()[d] || {date:d};
 
-openTimeModal("Select OUT Time",(t)=>{
-data.out=t;
-data=updateStatus(data);
-save(data);
-});
+if(!data.out){
+  // ✅ FIRST TAP → AUTO TIME
+  data.out = getTime();
+  data = updateStatus(data);
+  save(data);
+} else {
+  // ✅ SECOND TAP → EDIT
+  openTimeModal("Edit OUT Time",(t)=>{
+    data.out=t;
+    data=updateStatus(data);
+    save(data);
+  });
+}
 
 });
 
