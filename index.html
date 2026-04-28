@@ -2129,11 +2129,36 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
 
-  // 🔥 show popup immediately
-  document.getElementById("installPopup").style.display = "flex";
+  // ❌ direct show remove
+  // document.getElementById("installPopup").style.display = "flex";
+
+  // ✅ 24hr logic se show
+  showFirstTimePopup();
 });
 
-// Install button click
+function showFirstTimePopup() {
+
+  if (isAppInstalled()) return;
+  if (!deferredPrompt) return; // install available hona chahiye
+
+  const lastShown = localStorage.getItem("popupTime");
+  const now = Date.now();
+
+  if (!lastShown || (now - lastShown) > (24 * 60 * 60 * 1000)) {
+
+    document.getElementById("installPopup").style.display = "flex";
+  }
+}
+
+
+function closeInstallPopup(){
+
+  document.getElementById("installPopup").style.display = "none";
+
+  // 🔥 yahi se 24hr start hoga
+  localStorage.setItem("popupTime", Date.now());
+}
+
 document.addEventListener("click", async (e) => {
 
   if (e.target.id === "installBtn") {
@@ -2151,44 +2176,15 @@ document.addEventListener("click", async (e) => {
 
     deferredPrompt = null;
 
-    closeInstallPopup();
+    closeInstallPopup(); // 🔥 timer save
   }
 
 });
-
-// Close popup
-function closeInstallPopup(){
-
-  document.getElementById("installPopup").style.display = "none";
-
-  // 🔥 reset timer (important)
-  localStorage.setItem("popupTime", Date.now());
-}
-
 
 function isAppInstalled() {
   return window.matchMedia('(display-mode: standalone)').matches;
 }
 
-function showFirstTimePopup() {
-
-  // already installed → skip
-  if (isAppInstalled()) return;
-
-  // install option hi available nahi → skip
-  if (!deferredPrompt) return;
-
-  const lastShown = localStorage.getItem("popupTime");
-  const now = Date.now();
-
-  // 🔥 24 hour rule
-  if (!lastShown || (now - lastShown) > (24 * 60 * 60 * 1000)) {
-
-    document.getElementById("installPopup").style.display = "flex";
-
-    localStorage.setItem("popupTime", now);
-  }
-}
 
 
 auth.onAuthStateChanged(user=>{
