@@ -1095,6 +1095,10 @@ color:#fff !important;
   animation: pop 1s infinite alternate;
 }
 
+.birthday{
+  background:#C4B5FD; /* holiday jaisa */
+}
+
 @keyframes pop{
   from{transform:scale(1);}
   to{transform:scale(1.05);}
@@ -1570,7 +1574,11 @@ function getBirthdayNames(date){
 
 async function loadBirthdays(){
   try{
-    let res = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv");
+
+    let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
+
+    let res = await fetch(url);   // 🔥 updated
+
     let text = await res.text();
 
     let rows = text.trim().split("\n").map(r => r.split(","));
@@ -1586,6 +1594,7 @@ async function loadBirthdays(){
     birthdayData = [];
   }
 }
+
 
 function getToday(){
   let d = new Date();
@@ -1671,6 +1680,27 @@ function launchConfetti(){
   }
 }
 
+function getBirthdaysForDate(dateStr){
+
+  let d = new Date(dateStr);
+
+  let day = String(d.getDate()).padStart(2, "0");
+  let month = String(d.getMonth() + 1).padStart(2, "0");
+
+  return birthdayData.filter(b => {
+
+    if(!b.date) return false;
+
+    let clean = b.date.replace(/\//g, "-");
+
+    let parts = clean.split("-");
+
+    let bDay = parts[0].padStart(2, "0");
+    let bMonth = parts[1].padStart(2, "0");
+
+    return (bDay === day && bMonth === month);
+  });
+}
 
 
 
@@ -2433,6 +2463,8 @@ if((!old.status || old.status === "") && holidays[d]){
   data.note = holidays[d];
 }
 
+
+
 let cls = "";
 
 if(data.status){
@@ -2455,10 +2487,18 @@ let bList = getBirthdayNames(d);
 let birthdayText = "";
 
 if (bList.length > 0) {
+
   let names = bList.map(x => x.name).join(", ");
 
+  // 🔥 Birthday ko Holiday treat karo
+  data.status = "Birthday";
+  data.note = "🎂 " + names;
+
+  // 🎨 same UI as holiday + animation
+  div.classList.add("holiday");
   div.classList.add("birthday");
 
+  // 👇 text show
   birthdayText = `<div class="note">🎂 ${names}</div>`;
 }
 
@@ -3385,8 +3425,17 @@ window.addEventListener("load", async () => {
 
   showBirthdayStrip();
   showBirthdayPopup();
-autoWishAll();
+  autoWishAll();
 });
+
+setInterval(async () => {
+
+  await loadBirthdays();
+
+  loadCalendar();        // 🔥 calendar refresh
+  showBirthdayStrip();   // 🔥 strip refresh
+
+}, 30000); // 30 sec
 
 </script>
 </body>
