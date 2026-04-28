@@ -25,15 +25,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 8px;
-  min-height: 60px;
+  padding: 8px 12px;
+  min-height: 40px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   border-radius: 0 0 12px 12px;
 }
 
 /* TITLE */
 .app-title{
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   background: linear-gradient(90deg, #2563eb, #06b6d4);
   -webkit-background-clip: text;
@@ -56,7 +56,7 @@
   font-size: 14px;
   color: #666;
   text-align: center;
-  margin-top: 2px;
+  margin-top: 0px;
 }
 
 /* center block */
@@ -101,18 +101,18 @@ button:hover{opacity:.85}
 #summaryBox{
 display:grid;
 grid-template-columns:repeat(9,1fr); /* desktop full width */
-gap:8px;
+gap:4px;
 margin:10px 0;
 }
 
 #summaryBox p{
   background:linear-gradient(135deg,#ffffff,#f8fafc);
-  border-radius:12px;
-  padding:10px 6px;
+  border-radius:10px;
+  padding:8px 4px;
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:6px;
+  gap:2px;
   font-size:12px;
   font-weight:600;
   box-shadow:0 3px 8px rgba(0,0,0,0.08);
@@ -666,18 +666,19 @@ font-size:9px;
 }
 
 .action-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  margin:12px auto;
-  padding:12px 14px;
-  max-width:1200px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:8px;
 
-  background:rgba(255,255,255,0.7);
-  backdrop-filter:blur(10px);
-  border-radius:14px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.08);
+margin:6px auto;      /* was 12 */
+padding:7px 12px;     /* was 12 14 */
+
+max-width:1200px;
+background:rgba(255,255,255,0.7);
+backdrop-filter:blur(10px);
+border-radius:12px;
+box-shadow:0 3px 10px rgba(0,0,0,.06);
 }
 
 /* left text */
@@ -745,7 +746,7 @@ button{
 
 .footer-note{
 position:fixed;
-bottom:104px;
+bottom:90px;
 left:50%;
 transform:translateX(-50%);
 font-size:11px;
@@ -958,7 +959,7 @@ padding-bottom:95px;
 /* live strip */
 #liveStrip{
 position:fixed;
-bottom:66px;   /* taskbar ke just upar */
+bottom:65px;   /* taskbar ke just upar */
 left:50%;
 transform:translateX(-50%);
 background:#2563eb;
@@ -987,7 +988,7 @@ z-index:9998;
 /* footer note above live strip */
 .footer-note{
 position:fixed;
-bottom:104px;  /* live strip ke upar */
+bottom:90px;  /* live strip ke upar */
 left:50%;
 transform:translateX(-50%);
 font-size:11px;
