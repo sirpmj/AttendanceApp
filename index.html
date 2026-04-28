@@ -1095,10 +1095,6 @@ color:#fff !important;
   animation: pop 1s infinite alternate;
 }
 
-.birthday{
-  background:#C4B5FD; /* holiday jaisa */
-}
-
 @keyframes pop{
   from{transform:scale(1);}
   to{transform:scale(1.05);}
@@ -1595,7 +1591,6 @@ async function loadBirthdays(){
   }
 }
 
-
 function getToday(){
   let d = new Date();
   return String(d.getDate()).padStart(2,"0") + "-" +
@@ -1680,28 +1675,7 @@ function launchConfetti(){
   }
 }
 
-function getBirthdaysForDate(dateStr){
 
-  let d = new Date(dateStr);
-
-  let day = d.getDate();
-  let month = d.getMonth() + 1;
-
-  return birthdayData.filter(b => {
-
-    if(!b.date) return false;
-
-    // 🔥 clean + normalize
-    let parts = b.date.split(/[\/\-]/); // handle / and -
-
-    if(parts.length < 2) return false;
-
-    let bDay = parseInt(parts[0]);
-    let bMonth = parseInt(parts[1]);
-
-    return (bDay === day && bMonth === month);
-  });
-}
 
 
 function manualWish(names){
@@ -2463,55 +2437,35 @@ if((!old.status || old.status === "") && holidays[d]){
   data.note = holidays[d];
 }
 
-
-
 let cls = "";
 
 if(data.status){
   cls = data.status.toLowerCase();
 }
 
-// EARLY fix
+// 🔥 FIX: EARLY detect by BOTH
 if(data.status === "Early" || data.early){
   cls = "early";
 }
 
 let div = document.createElement("div");
+
+// base class
 div.classList.add("day");
 
-// 🎂 birthday check
-let bList = getBirthdaysForDate(d);
+// birthday check
+let bList = getBirthdayNames(d);
 
 let birthdayText = "";
 
 if (bList.length > 0) {
-
   let names = bList.map(x => x.name).join(", ");
 
-  data.status = "Holiday";
-  data.note = "🎂 " + names;
-
-  div.classList.add("holiday");
   div.classList.add("birthday");
 
   birthdayText = `<div class="note">🎂 ${names}</div>`;
-
-  // 🔥 important
-  cls = "holiday";
 }
 
-// apply class
-if (cls) {
-  div.classList.add(cls);
-}
-
-// today
-if (d === today()) {
-  div.classList.add("today");
-}
-
-// 🔥 render text
-div.innerHTML += birthdayText;
 // status class
 if (cls) {
   div.classList.add(cls);
