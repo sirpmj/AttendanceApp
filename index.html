@@ -744,10 +744,28 @@ button{
 
 
 .footer-note{
-  position: fixed;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+position:fixed;
+bottom:104px;
+left:50%;
+transform:translateX(-50%);
+font-size:11px;
+padding:6px 14px;
+border-radius:18px;
+white-space:nowrap;
+z-index:9997;
+}
+
+@media(min-width:768px){
+.footer-note{
+bottom:18px;   /* desktop niche */
+}
+}
+
+@media(max-width:767px){
+.footer-note{
+bottom:104px;  /* mobile live strip ke upar */
+}
+}
   
   /* 🎨 final style */
   backdrop-filter: blur(8px);
@@ -1572,29 +1590,32 @@ async function loadBirthdays(){
 
 try{
 
-let url=
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t="
-+Date.now();
+    let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
 
 let res=await fetch(url,{cache:"no-store"});
 let text=await res.text();
 
-birthdayData = text
-.trim()
-.split("\n")
-.slice(1)
-.map(r=>{
-let c=r.replace(/\r/g,"").split(",");
+let rows=text.trim().split("\n");
 
-return{
-name:(c[0]||"").trim(),
-date:(c[1]||"").trim(), // 28-04
+birthdayData=[];
+
+rows.slice(1).forEach(r=>{
+
+let c=r.split(",");
+
+if(c.length>=2){
+
+birthdayData.push({
+name:c[0].trim(),
+date:c[1].trim(), // DD-MM
 phone:(c[2]||"").trim()
-};
-})
-.filter(x=>x.name && x.date);
+});
 
-console.log("Birthdays Loaded:",birthdayData);
+}
+
+});
+
+console.log("Birthdays Loaded",birthdayData);
 
 }catch(e){
 console.log("Birthday fetch error",e);
@@ -1602,7 +1623,6 @@ birthdayData=[];
 }
 
 }
-
 
 function getToday(){
   let d = new Date();
@@ -1932,6 +1952,12 @@ alert("Already punched today");
 function updateLiveStrip(){
 
 let d = getData();
+
+if(!d.in && !d.out && !d.status){
+document.getElementById("liveStrip").innerText="🕒 Today Not Punched";
+document.getElementById("liveStrip").style.background="#2563eb";
+return;
+}
 
 let status = normalizeStatus(d.status);
 
@@ -2489,15 +2515,19 @@ div.classList.add("day");
 // birthday check
 let bList=getBirthdayNames(formatDM(d));
 
+let birthdayHtml="";
+
 if(bList.length){
 
-div.classList.add("holiday");
+let names=bList.map(x=>x.name).join("<br>");
+
+div.classList.add("holiday"); // holiday color like holiday
 
 birthdayHtml=`
 <div class="note">
-🎂 Birthday
+🎉Birthday
 <br>
-${bList.map(x=>x.name).join("<br>")}
+${names}
 </div>
 `;
 
