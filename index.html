@@ -987,12 +987,16 @@ padding-bottom:95px;
 
 /* live strip */
 #liveStrip{
+position:fixed;
 bottom:66px;
-padding:3px 10px;
-font-size:10px;
-line-height:1;
+left:50%;
+transform:translateX(-50%);
+
+padding:4px 10px;     /* was bigger */
+font-size:11px;       /* smaller */
+line-height:1.1;
+border-radius:14px;
 min-height:auto;
-border-radius:12px;
 }
 
 #liveStrip{
@@ -1013,7 +1017,7 @@ border-radius:12px;
 /* footer note above live strip */
 .footer-note{
 position:fixed;
-bottom:80px;  /* live strip ke upar */
+bottom:90px;  /* live strip ke upar */
 left:50%;
 transform:translateX(-50%);
 font-size:11px;
