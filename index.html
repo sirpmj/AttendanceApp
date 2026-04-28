@@ -1085,6 +1085,27 @@ color:#fff !important;
 .dark-mode .leave-icon{background:#38bdf8;}
 .dark-mode .holiday-icon{background:#a78bfa;}
 .dark-mode .weekoff-icon{background:#818cf8;}
+
+
+
+.birthday{
+  background:#f472b6;
+  color:#fff;
+  font-weight:bold;
+  animation: pop 1s infinite alternate;
+}
+
+@keyframes pop{
+  from{transform:scale(1);}
+  to{transform:scale(1.05);}
+}
+
+@keyframes flash{
+  0%{background:#fff;}
+  50%{background:#fde68a;}
+  100%{background:#fff;}
+}
+
 </style>
 </head>
 
@@ -1165,6 +1186,19 @@ color:#fff !important;
 </div>
 
 
+<div id="birthdayStrip" style="
+  position:fixed;
+  top:70px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#f472b6;
+  color:white;
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:12px;
+  z-index:9999;
+  display:none;
+"></div>
 
 
 <div class="bottom-nav">
@@ -1379,7 +1413,7 @@ const db = firebase.firestore();
 <script>
 
 
-
+let birthdayData = [];
 
 let clickTimer = null;
 
@@ -1497,6 +1531,232 @@ function handleAuth(){
 
   }
 }
+
+function showBirthdayStrip(){
+  let list = todayBirthdays();
+
+  if(list.length === 0) return;
+
+  let strip = document.getElementById("birthdayStrip");
+  strip.style.display = "block";
+  strip.innerText = "🎂 Today: " + list.map(x => x.name).join(", ");
+}
+
+function getBirthdayNames(date){
+  return birthdayData.filter(b => b.date === date);
+}
+
+
+async function loadBirthdays(){
+  try{
+    let res = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv");
+    let text = await res.text();
+
+    let rows = text.trim().split("\n").map(r => r.split(","));
+
+    birthdayData = rows.slice(1).map(r => ({
+      name: r[0],
+      date: r[1],
+      phone: r[2] || ""
+    }));
+
+  }catch(e){
+    console.log("Birthday load failed", e);
+    birthdayData = [];
+  }
+}
+
+function getToday(){
+  let d = new Date();
+  return String(d.getDate()).padStart(2,"0") + "-" +
+         String(d.getMonth()+1).padStart(2,"0");
+}
+
+function todayBirthdays(){
+  return birthdayData.filter(b => b.date === getToday());
+}
+
+
+function showBirthdayPopup(){
+
+  let list = todayBirthdays();
+  if(list.length === 0) return;
+
+  let names = list.map(x => x.name).join(", ");
+
+  let popup = document.createElement("div");
+
+  popup.innerHTML = `
+    <div style="
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.5);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:99999;
+    ">
+      <div style="
+        background:white;
+        padding:20px;
+        border-radius:12px;
+        text-align:center;
+        width:90%;
+        max-width:320px;
+      ">
+        <h2>🎉 Happy Birthday</h2>
+        <p style="margin:10px 0;font-size:14px;">${names}</p>
+
+        <button onclick="this.parentElement.parentElement.remove()"
+        style="padding:8px 12px;border:none;background:#4CAF50;color:white;border-radius:6px;">
+        OK
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  launchConfetti();
+}
+
+
+function launchConfetti(){
+  for(let i=0;i<80;i++){
+    let div = document.createElement("div");
+
+    div.style.position = "fixed";
+    div.style.left = Math.random()*100 + "vw";
+    div.style.top = "-10px";
+    div.style.width = "8px";
+    div.style.height = "8px";
+    div.style.background = ["#ff0","#f0f","#0ff","#0f0"][Math.floor(Math.random()*4)];
+    div.style.zIndex = 9999;
+    div.style.borderRadius = "50%";
+    div.style.animation = "fall 3s linear";
+
+    document.body.appendChild(div);
+
+    setTimeout(()=>div.remove(),3000);
+  }
+}
+
+
+
+
+function sendWhatsAppWish(name, phone){
+  let msg = `🎉 Happy Birthday ${name} 🎂\nWishing you a wonderful year ahead!`;
+
+  let url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+  window.open(url, "_blank");
+}
+
+
+
+function autoWishAll(){
+
+  let list = todayBirthdays();
+
+  list.forEach((p, i)=>{
+    setTimeout(()=>{
+      if(p.phone){
+        sendWhatsAppWish(p.name, p.phone);
+      }
+    }, i * 1500); // delay to avoid spam block
+  });
+
+}
+
+function addBirthdayBadge(cell, date){
+
+  let list = birthdayData.filter(b => b.date === date);
+
+  if(list.length > 0){
+    let badge = document.createElement("div");
+    badge.innerText = "🎂";
+    badge.style.position = "absolute";
+    badge.style.top = "2px";
+    badge.style.right = "4px";
+    badge.style.fontSize = "12px";
+
+    cell.style.position = "relative";
+    cell.appendChild(badge);
+  }
+}
+
+function generateCard(name){
+
+  let canvas = document.createElement("canvas");
+  canvas.width = 400;
+  canvas.height = 250;
+
+  let ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#ff4da6";
+  ctx.fillRect(0,0,400,250);
+
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText("🎉 Happy Birthday 🎉", 100, 100);
+
+  ctx.font = "24px Arial";
+  ctx.fillText(name, 150, 150);
+
+  return canvas.toDataURL("image/png");
+}
+
+
+function shareBirthdayCard(name){
+
+  let img = generateCard(name);
+
+  let a = document.createElement("a");
+  a.href = img;
+  a.download = name + "_birthday.png";
+  a.click();
+}
+
+
+function initBirthdaySystem(){
+
+  loadBirthdays().then(()=>{
+
+    showBirthdayPopup();
+
+    let list = todayBirthdays();
+
+    if(list.length > 0){
+
+      // auto strip
+      document.getElementById("birthdayStrip").style.display = "block";
+      document.getElementById("birthdayStrip").innerText =
+        "🎂 Today: " + list.map(x=>x.name).join(", ");
+
+      // optional auto WhatsApp
+      // autoWishAll();
+
+    }
+
+  });
+
+}
+
+
+async function initApp(){
+
+await loadBirthdays();
+
+showBirthdayStrip();
+showBirthdayPopup();
+birthdayEffect();
+
+
+}
+
+
+
+
 
 
 function goHome(){
@@ -2151,6 +2411,13 @@ if(data.status === "Early" || data.early){
 }
 
     let div=document.createElement("div");
+let bList = getBirthdayNames(d);
+
+if(bList.length > 0){
+  let names = bList.map(x => x.name).join(", ");
+  div.classList.add("birthday");
+  note = `<div class="note">🎂 ${names}</div>`;
+}
     div.className = "day";   // reset
 
 if(cls){
@@ -3053,6 +3320,12 @@ if ('serviceWorker' in navigator) {
     .then(() => console.log("Service Worker Registered"));
 }
 
+window.addEventListener("load", async () => {
+  await loadBirthdays();
+
+  showBirthdayStrip();
+  showBirthdayPopup();
+});
 
 </script>
 </body>
