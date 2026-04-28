@@ -1691,9 +1691,12 @@ function getBirthdaysForDate(dateStr){
 
     if(!b.date) return false;
 
+    // 🔥 clean format (support -, /, etc)
     let clean = b.date.replace(/\//g, "-");
 
     let parts = clean.split("-");
+
+    if(parts.length < 2) return false;
 
     let bDay = parts[0].padStart(2, "0");
     let bMonth = parts[1].padStart(2, "0");
@@ -2471,18 +2474,16 @@ if(data.status){
   cls = data.status.toLowerCase();
 }
 
-// 🔥 FIX: EARLY detect by BOTH
+// EARLY fix
 if(data.status === "Early" || data.early){
   cls = "early";
 }
 
 let div = document.createElement("div");
-
-// base class
 div.classList.add("day");
 
-// birthday check
-let bList = getBirthdayNames(d);
+// 🎂 birthday check
+let bList = getBirthdaysForDate(d);
 
 let birthdayText = "";
 
@@ -2490,18 +2491,30 @@ if (bList.length > 0) {
 
   let names = bList.map(x => x.name).join(", ");
 
-  // 🔥 Birthday ko Holiday treat karo
-  data.status = "Birthday";
+  data.status = "Holiday";
   data.note = "🎂 " + names;
 
-  // 🎨 same UI as holiday + animation
   div.classList.add("holiday");
   div.classList.add("birthday");
 
-  // 👇 text show
   birthdayText = `<div class="note">🎂 ${names}</div>`;
+
+  // 🔥 important
+  cls = "holiday";
 }
 
+// apply class
+if (cls) {
+  div.classList.add(cls);
+}
+
+// today
+if (d === today()) {
+  div.classList.add("today");
+}
+
+// 🔥 render text
+div.innerHTML += birthdayText;
 // status class
 if (cls) {
   div.classList.add(cls);
