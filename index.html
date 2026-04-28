@@ -1106,6 +1106,27 @@ color:#fff !important;
   100%{background:#fff;}
 }
 
+
+.wish-btn{
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  padding: 3px 6px;
+  border: none;
+  border-radius: 6px;
+  background: #ff4da6;
+  color: white;
+  cursor: pointer;
+  z-index: 10;
+  position: relative;
+}
+
+.day{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 </style>
 </head>
 
@@ -1653,10 +1674,15 @@ function launchConfetti(){
 
 
 
-function sendWhatsAppWish(name, phone){
-  let msg = `🎉 Happy Birthday ${name} 🎂\nWishing you a wonderful year ahead!`;
+function manualWish(names){
 
-  let url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  let msg =
+`🎉 Happy Birthday 🎂
+Dear ${names}
+
+Wishing you a wonderful year ahead! 🎊`;
+
+  let url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
   window.open(url, "_blank");
 }
@@ -2481,12 +2507,24 @@ ${st}
 ${birthdayText}
 ${holidayHtml}
 
+${bList.length > 0 ? `
+  <button class="wish-btn"
+    onclick="manualWish('${bList.map(x=>x.name).join(",")}')">
+    🎉 Wish
+  </button>
+` : ""}
+
 <div class="quick-actions">
 <button class="mini-btn in-btn">↗ 09:00</button>
 <button class="mini-btn out-btn">↘ 18:00</button>
 </div>
 `;
 
+
+
+div.querySelector(".wish-btn")?.addEventListener("click", function(e){
+  e.stopPropagation();
+});
     // right click
 
 div.oncontextmenu = (e) => {
