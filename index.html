@@ -886,20 +886,45 @@ font-weight:700;
 }
 
 /* center floating punch */
+/* smaller floating punch */
 .punch-fab{
 all:unset;
-width:66px;
-height:66px;
-background:#2563eb;
+width:52px;
+height:52px;
 border-radius:50%;
 display:flex;
-justify-content:center;
 align-items:center;
+justify-content:center;
+font-size:22px;
+background:#2563eb;
 color:#fff;
-font-size:28px;
-transform:translateY(-18px);
-box-shadow:0 8px 25px rgba(37,99,235,.4);
-animation:pulse 2s infinite;
+
+transform:translateY(-10px); /* less lift */
+box-shadow:0 5px 14px rgba(37,99,235,.30);
+animation:none; /* optional pulse off */
+z-index:10001;
+}
+
+/* shorter bottom nav */
+.bottom-nav{
+height:58px;
+z-index:9999;
+}
+
+/* app content space */
+body{
+padding-bottom:110px; /* taskbar + footer space */
+}
+
+/* footer note above taskbar */
+.footer-note{
+bottom:70px;   /* was 12px */
+z-index:9998;
+}
+
+/* context menu always above nav */
+.context-menu{
+z-index:12000 !important;
 }
 
 @keyframes pulse{
@@ -912,18 +937,39 @@ padding-bottom:95px;
 }
 
 /* live strip */
+/* live strip */
 #liveStrip{
 position:fixed;
-bottom:72px;
+bottom:66px;   /* taskbar ke just upar */
 left:50%;
 transform:translateX(-50%);
 background:#2563eb;
 color:#fff;
-padding:8px 16px;
+padding:7px 14px;
 border-radius:18px;
-font-size:12px;
-box-shadow:0 4px 10px rgba(0,0,0,.15);
+font-size:11px;
 z-index:9998;
+}
+
+/* footer note above live strip */
+.footer-note{
+position:fixed;
+bottom:104px;  /* live strip ke upar */
+left:50%;
+transform:translateX(-50%);
+font-size:11px;
+padding:6px 12px;
+z-index:9997;
+
+white-space:nowrap;
+max-width:90%;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+/* enough bottom space */
+body{
+padding-bottom:120px;
 }
 
 /* bottom sheet */
@@ -965,6 +1011,65 @@ text-align:left;
 background:#ef4444 !important;
 color:#fff !important;
 }
+
+
+
+.dark-mode{
+background:#0f172a !important;
+color:#fff;
+}
+
+.dark-mode .topbar,
+.dark-mode .card,
+.dark-mode .day,
+.dark-mode .bottom-nav,
+.dark-mode .sheet-box{
+background:#1e293b !important;
+color:#fff !important;
+}
+
+.dark-mode .day{
+box-shadow:none;
+border:1px solid #334155;
+}
+
+.dark-mode .month-subtitle{
+color:#cbd5e1;
+}
+
+.dark-mode .footer-note{
+background:rgba(30,41,59,.85);
+color:white;
+}
+
+.dark-mode .context-menu{
+background:#1e293b;
+color:#fff;
+}
+
+
+
+/* SUMMARY DARK FIX */
+.dark-mode #summaryBox p{
+background:#1e293b !important;
+color:#fff !important;
+border:1px solid #334155;
+}
+
+.dark-mode #summaryBox span,
+.dark-mode #summaryBox b,
+.dark-mode #summaryBox p span{
+color:#fff !important;
+}
+
+/* icons visible */
+.dark-mode .present-icon{background:#22c55e;}
+.dark-mode .late-icon{background:#facc15;}
+.dark-mode .early-icon{background:#67e8f9;}
+.dark-mode .absent-icon{background:#f87171;}
+.dark-mode .leave-icon{background:#38bdf8;}
+.dark-mode .holiday-icon{background:#a78bfa;}
+.dark-mode .weekoff-icon{background:#818cf8;}
 </style>
 </head>
 
@@ -1088,11 +1193,25 @@ Today: Not Punched
 
 <h3>Quick Actions</h3>
 
-<button onclick="downloadReport()">📄 Export Report</button>
-<button onclick="backupData()">💾 Backup</button>
-<button onclick="toggleDark()">🌙 Dark Mode</button>
-<button onclick="showHoliday()">🎉 Holidays</button>
-<button onclick="logout()">🚪 Logout</button>
+<button onclick="downloadReport()">
+📄 Export Report
+</button>
+
+<button onclick="backupData()">
+💾 Backup
+</button>
+
+<button onclick="showHoliday()">
+🎉 Holidays
+</button>
+
+<button onclick="toggleDark()">
+🌙 Dark Mode
+</button>
+
+<button onclick="logout()">
+🚪 Logout
+</button>
 
 <button onclick="closeSheet()" class="close-btn">
 Close
@@ -1382,6 +1501,7 @@ document.getElementById("summaryBox")
 .scrollIntoView({behavior:"smooth"});
 }
 
+/* MORE SHEET */
 function openMoreSheet(){
 document.getElementById("moreSheet").style.display="block";
 }
@@ -1390,12 +1510,57 @@ function closeSheet(){
 document.getElementById("moreSheet").style.display="none";
 }
 
-function showHoliday(){
-alert("Holiday list coming");
+
+/* DARK MODE */
+function toggleDark(){
+
+document.body.classList.toggle("dark-mode");
+
+localStorage.setItem(
+"darkMode",
+document.body.classList.contains("dark-mode")
+);
+
+closeSheet();
 }
 
-function toggleDark(){
-document.body.classList.toggle("dark");
+
+/* auto restore dark mode */
+if(localStorage.getItem("darkMode")==="true"){
+document.body.classList.add("dark-mode");
+}
+
+
+
+
+
+/* HOLIDAY POPUP */
+function showHoliday(){
+
+closeSheet();
+
+let todayDate = new Date();
+
+let upcoming = Object.entries(holidays)
+.filter(([d]) => new Date(d) >= todayDate)
+.sort((a,b)=>new Date(a[0])-new Date(b[0]))
+.slice(0,5);
+
+if(!upcoming.length){
+alert("No upcoming holidays");
+return;
+}
+
+let list = upcoming
+.map(([date,name]) =>
+"• "+date+" - "+name
+)
+.join("\n");
+
+alert(
+"Upcoming Holidays\n\n"+list
+);
+
 }
 
 function quickPunch(){
@@ -2297,19 +2462,24 @@ window.onload = () => {
 
 // menu
 function showMenu(x,y,date){
-  selected = date;
+selected=date;
 
-  let m=document.getElementById("menu");
+let m=document.getElementById("menu");
 
-  let maxX = window.innerWidth - 150;
-  let maxY = window.innerHeight - 200;
+m.style.display="block";
 
-  m.style.left = Math.min(x, maxX) + "px";
-  m.style.top = Math.min(y, maxY) + "px";
+let menuW=170;
+let menuH=220;
 
-  m.style.display="block";
+/* bottom nav height protect */
+let bottomSafe=90;
+
+let maxX=window.innerWidth-menuW;
+let maxY=window.innerHeight-menuH-bottomSafe;
+
+m.style.left=Math.min(x,maxX)+"px";
+m.style.top=Math.min(y,maxY)+"px";
 }
-
 
 
 // actions
