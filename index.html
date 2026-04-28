@@ -1678,11 +1678,12 @@ function manualWish(names){
 
   let msg =
 `🎉 Happy Birthday 🎂
-Dear ${names}
+
+${names}
 
 Wishing you a wonderful year ahead! 🎊`;
 
-  let url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  let url = "https://wa.me/?text=" + encodeURIComponent(msg);
 
   window.open(url, "_blank");
 }
@@ -2508,8 +2509,7 @@ ${birthdayText}
 ${holidayHtml}
 
 ${bList.length > 0 ? `
-  <button class="wish-btn"
-    onclick="manualWish('${bList.map(x=>x.name).join(",")}')">
+  <button class="wish-btn" data-names="${namesStr}">
     🎉 Wish
   </button>
 ` : ""}
@@ -2522,8 +2522,13 @@ ${bList.length > 0 ? `
 
 
 
-div.querySelector(".wish-btn")?.addEventListener("click", function(e){
-  e.stopPropagation();
+document.addEventListener("click", function(e){
+
+  if(e.target.classList.contains("wish-btn")){
+    let names = e.target.getAttribute("data-names");
+    manualWish(names);
+  }
+
 });
     // right click
 
