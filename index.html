@@ -2233,23 +2233,29 @@ auth.onAuthStateChanged(user=>{
 db.collection("users")
 .doc(user.uid)
 .collection("attendance")
-.onSnapshot(snapshot => {
+.onSnapshot(async(snapshot) => {
 
-  let all = {};
+let all={};
 
-  snapshot.forEach(doc => {
-    all[doc.id] = doc.data();
-  });
+snapshot.forEach(doc=>{
+all[doc.id]=doc.data();
+});
 
-  window.firebaseCache = all;
+window.firebaseCache=all;
 
-  loadCalendar();
-  loadSummary();
+/* Birthday fetch */
+await loadBirthdays();
+
+loadCalendar();
+loadSummary();
+
+showBirthdayStrip();
+showBirthdayPopup();
+
 updateLiveStrip();
 
-if(user){
-    showFirstTimePopup();   // 👈 ADD HERE
-  }
+showFirstTimePopup();
+
 });
 
   } else {
