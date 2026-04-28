@@ -697,13 +697,13 @@ flex-wrap:wrap;
 }
 
 #birthdayStrip{
-display:inline-flex;
-align-items:center;
+display:none; /* JS show karega */
 background:#f472b6;
 color:#fff;
 padding:3px 8px;
 border-radius:999px;
 font-size:10px;
+font-weight:600;
 white-space:nowrap;
 position:static;
 }
@@ -1355,11 +1355,10 @@ Close
 
 <div class="action-bar">
 
-  <div class="user-box">
-    <h3 id="userWelcome"></h3>
-<div id="birthdayStrip"></div>
-
-  </div>
+<div class="user-box">
+  <h3 id="userWelcome"></h3>
+  <span id="birthdayStrip"></span>
+</div>
 
   <div class="btn-group">
     <button onclick="downloadReport()">📄 Report</button>
@@ -1615,11 +1614,11 @@ strip.style.display="none";
 return;
 }
 
-strip.style.display="block";
-strip.innerText=
-"🎂 Today: "+list.map(x=>x.name).join(", ");
+strip.style.display="inline-flex";
+strip.innerText="🎂 "+list.map(x=>x.name).join(", ");
 
 }
+
 function getBirthdayNames(date){
   return birthdayData.filter(b => b.date === date);
 }
