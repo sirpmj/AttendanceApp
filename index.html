@@ -2520,8 +2520,6 @@ ${bList.length > 0 ? `
 </div>
 `;
 
-
-
 document.addEventListener("click", function(e){
 
   if(e.target.classList.contains("wish-btn")){
@@ -2529,6 +2527,10 @@ document.addEventListener("click", function(e){
     manualWish(names);
   }
 
+});
+
+div.querySelector(".wish-btn")?.addEventListener("click", function(e){
+  e.stopPropagation();
 });
     // right click
 
