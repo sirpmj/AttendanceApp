@@ -1569,26 +1569,41 @@ function getBirthdayNames(date){
 
 
 async function loadBirthdays(){
-  try{
+
+try{
 
     let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
 
-    let res = await fetch(url);   // 🔥 updated
+let res=await fetch(url,{cache:"no-store"});
+let text=await res.text();
 
-    let text = await res.text();
+let rows=text.trim().split("\n");
 
-    let rows = text.trim().split("\n").map(r => r.split(","));
+birthdayData=[];
 
-    birthdayData = rows.slice(1).map(r => ({
-      name: r[0],
-      date: r[1],
-      phone: r[2] || ""
-    }));
+rows.slice(1).forEach(r=>{
 
-  }catch(e){
-    console.log("Birthday load failed", e);
-    birthdayData = [];
-  }
+let c=r.split(",");
+
+if(c.length>=2){
+
+birthdayData.push({
+name:c[0].trim(),
+date:c[1].trim(), // DD-MM
+phone:(c[2]||"").trim()
+});
+
+}
+
+});
+
+console.log("Birthdays Loaded",birthdayData);
+
+}catch(e){
+console.log("Birthday fetch error",e);
+birthdayData=[];
+}
+
 }
 
 function getToday(){
@@ -2468,18 +2483,24 @@ let div = document.createElement("div");
 div.classList.add("day");
 
 // birthday check
-let bList = getBirthdayNames(formatDM(d)); // ✅ FIX
+let bList=getBirthdayNames(formatDM(d));
 
-let birthdayText = "";
-let namesStr = "";
+let birthdayHtml="";
 
-if (bList.length > 0) {
+if(bList.length){
 
-  namesStr = bList.map(x => x.name).join(", ");
+let names=bList.map(x=>x.name).join("<br>");
 
-  div.classList.add("birthday");
+div.classList.add("holiday"); // holiday color like holiday
 
-  birthdayText = `<div class="note">🎂 ${namesStr}</div>`;
+birthdayHtml=`
+<div class="note">
+🎂 Birthday
+<br>
+${names}
+</div>
+`;
+
 }
 
 // status class
@@ -2520,19 +2541,13 @@ let holidayHtml = data.note
   ? `<div class="note">${holidayText}</div>`
   : "";
 
-div.innerHTML = `
-<b>${i}</b>
+div.innerHTML=`
+<b class="date-num">${i}</b>
 ${inT}
 ${outT}
 ${st}
-${birthdayText}
+${birthdayHtml}
 ${holidayHtml}
-
-${bList.length > 0 ? `
-let namesStr = bList.map(x => x.name).join(", ");
-    🎉 Wish
-  </button>
-` : ""}
 
 <div class="quick-actions">
 <button class="mini-btn in-btn">↗ 09:00</button>
