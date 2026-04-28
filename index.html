@@ -2387,9 +2387,8 @@ updateLiveStrip();
 
 // calendar
 function loadCalendar(){
-
-  let cal = document.getElementById("calendar");
-  cal.innerHTML = "";
+  let cal=document.getElementById("calendar");
+  cal.innerHTML="";
 
   let year = current.getFullYear();
   let month = current.getMonth();
@@ -2398,136 +2397,145 @@ function loadCalendar(){
     current.toLocaleString('default',{month:'long',year:'numeric'});
 
   let firstDay = new Date(year, month, 1).getDay();
-  let days = new Date(year, month+1, 0).getDate();
+  let days = new Date(year, month+1,0).getDate();
 
-  // empty spaces
   for(let i=0;i<firstDay;i++){
     cal.appendChild(document.createElement("div"));
   }
 
-  let all = getAll(); // 🔥 outside loop (performance)
-
   for(let i=1;i<=days;i++){
-
-    let date = new Date(year, month, i);
-
+    let date=new Date(year, month, i);
     let d = date.getFullYear() + "-" + 
-      String(date.getMonth()+1).padStart(2,'0') + "-" + 
-      String(date.getDate()).padStart(2,'0');
+        String(date.getMonth()+1).padStart(2,'0') + "-" + 
+        String(date.getDate()).padStart(2,'0');
 
-    let old = all[d] || {};
+   let all = getAll();
+let old = all[d] || {};
 
-    // Sunday check
-    let isSunday = new Intl.DateTimeFormat("en-US", {
-      weekday: "short",
-      timeZone: "Asia/Kolkata"
-    }).format(date) === "Sun";
 
-    let data = {
-      date: d,
-      in: old.in || "",
-      out: old.out || "",
-      status: old.status || "",
-      note: old.note || ""
-    };
+let isSunday = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  timeZone: "Asia/Kolkata"
+}).format(date) === "Sun";
 
-    // Sunday default
-    if(isSunday && !data.status){
-      data.status = "Sunday";
-    }
+let data = {
+  date: d,
+  in: old.in || "",
+  out: old.out || "",
+  status: old.status || "",
+  note: old.note || ""
+};
 
-    // Holiday (only if no manual status)
-    if((!old.status || old.status === "") && holidays[d]){
-      data.status = "Holiday";
-      data.note = holidays[d];
-    }
-
-    // class detect
-    let cls = "";
-    if(data.status){
-      cls = data.status.toLowerCase();
-    }
-
-    if(data.status === "Early" || data.early){
-      cls = "early";
-    }
-
-    let div = document.createElement("div");
-    div.classList.add("day");
-
-    // 🎂 BIRTHDAY LOGIC
-    let bList = getBirthdaysForDate(d);
-    let birthdayText = "";
-    let namesStr = "";
-
-    if (bList.length > 0) {
-
-      let names = bList.map(x => x.name).join(", ");
-      namesStr = names;
-
-      // ❌ status change nahi (summary safe)
-      data.note = "🎂 " + names;
-
-      // ✅ same UI as holiday
-      div.classList.add("holiday");
-      div.classList.add("birthday");
-
-      birthdayText = `<div class="note">🎂 ${names}</div>`;
-    }
-
-    // apply class
-    if (cls) div.classList.add(cls);
-
-    // today highlight
-    if (d === today()) div.classList.add("today");
-
-    // times
-    let inT = data.in ? `<div class="time in">⬇ ${data.in}</div>` : "";
-    let outT = data.out ? `<div class="time out">⬆ ${data.out}</div>` : "";
-
-    let displayStatus = data.early ? "Early" : data.status;
-
-    let st = displayStatus
-      ? `<div style="font-size:9px;">${displayStatus}</div>`
-      : "";
-
-    // holiday text format
-    let holidayText = (data.note || "").replace(/\s+/g, "<br>");
-
-    let holidayHtml = data.note
-      ? `<div class="note">${holidayText}</div>`
-      : "";
-
-    // ✅ FINAL RENDER
-    div.innerHTML = `
-      <b>${i}</b>
-      ${inT}
-      ${outT}
-      ${st}
-      ${holidayHtml || ""}
-      ${birthdayText || ""}
-
-      ${namesStr ? `
-        <button class="wish-btn" data-names="${namesStr}">
-          🎉 Wish
-        </button>
-      ` : ""}
-
-      <div class="quick-actions">
-        <button class="mini-btn in-btn">↗ 09:00</button>
-        <button class="mini-btn out-btn">↘ 18:00</button>
-      </div>
-    `;
-
-    // stop propagation
-    div.querySelector(".wish-btn")?.addEventListener("click", function(e){
-      e.stopPropagation();
-    });
-
-    cal.appendChild(div);
-  }
+// 🔥 DEFAULT SUNDAY = OFF (auto save)
+if(isSunday && !data.status){
+  data.status = "Sunday"; // only UI
 }
 
+// ✅ Only apply holiday if NO manual data exists
+if((!old.status || old.status === "") && holidays[d]){
+  data.status = "Holiday";
+  data.note = holidays[d];
+}
+
+let cls = "";
+
+if(data.status){
+  cls = data.status.toLowerCase();
+}
+
+// 🔥 FIX: EARLY detect by BOTH
+if(data.status === "Early" || data.early){
+  cls = "early";
+}
+
+let div = document.createElement("div");
+
+// base class
+div.classList.add("day");
+
+// birthday check
+let bList = getBirthdayNames(d);
+
+let birthdayText = "";
+
+if (bList.length > 0) {
+  let names = bList.map(x => x.name).join(", ");
+
+  div.classList.add("birthday");
+
+  birthdayText = `<div class="note">🎂 ${names}</div>`;
+}
+
+// status class
+if (cls) {
+  div.classList.add(cls);
+}
+
+// today highlight
+if (d === today()) {
+  div.classList.add("today");
+}
+
+
+let inT = data.in 
+  ? `<div class="time in">⬇ ${data.in}</div>` 
+  : "";
+
+let outT = data.out 
+  ? `<div class="time out">⬆ ${data.out}</div>` 
+  : "";
+let displayStatus = data.status;
+
+if(data.early){
+  displayStatus = "Early";
+}
+
+let st = displayStatus
+  ? `<div style="font-size:9px;">${displayStatus}</div>`
+  : "";
+
+// ✅ safe holiday text formatting
+let holidayText = data.note || "";
+
+// replace ALL spaces (not only first)
+holidayText = holidayText.replace(/\s+/g, "<br>");
+
+let holidayHtml = data.note
+  ? `<div class="note">${holidayText}</div>`
+  : "";
+
+div.innerHTML = `
+<b>${i}</b>
+${inT}
+${outT}
+${st}
+${birthdayText}
+${holidayHtml}
+
+${bList.length > 0 ? `
+  <button class="wish-btn" data-names="${namesStr}">
+    🎉 Wish
+  </button>
+` : ""}
+
+<div class="quick-actions">
+<button class="mini-btn in-btn">↗ 09:00</button>
+<button class="mini-btn out-btn">↘ 18:00</button>
+</div>
+`;
+
+document.addEventListener("click", function(e){
+
+  if(e.target.classList.contains("wish-btn")){
+    let names = e.target.getAttribute("data-names");
+    manualWish(names);
+  }
+
+});
+
+div.querySelector(".wish-btn")?.addEventListener("click", function(e){
+  e.stopPropagation();
+});
     // right click
 
 div.oncontextmenu = (e) => {
@@ -3321,15 +3329,6 @@ function confirmTime(){
     cb(time);
   }
 }
-
-
-document.addEventListener("click", function(e){
-  if(e.target.classList.contains("wish-btn")){
-    let names = e.target.getAttribute("data-names");
-    manualWish(names);
-  }
-});
-
 
 
 let startX = 0;
