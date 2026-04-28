@@ -2468,16 +2468,18 @@ let div = document.createElement("div");
 div.classList.add("day");
 
 // birthday check
-let bList = getBirthdayNames(d);
+let bList = getBirthdayNames(formatDM(d)); // ✅ FIX
 
 let birthdayText = "";
+let namesStr = "";
 
 if (bList.length > 0) {
-  let names = bList.map(x => x.name).join(", ");
+
+  namesStr = bList.map(x => x.name).join(", ");
 
   div.classList.add("birthday");
 
-  birthdayText = `<div class="note">🎂 ${names}</div>`;
+  birthdayText = `<div class="note">🎂 ${namesStr}</div>`;
 }
 
 // status class
@@ -2527,7 +2529,7 @@ ${birthdayText}
 ${holidayHtml}
 
 ${bList.length > 0 ? `
-  <button class="wish-btn" data-names="${namesStr}">
+let namesStr = bList.map(x => x.name).join(", ");
     🎉 Wish
   </button>
 ` : ""}
