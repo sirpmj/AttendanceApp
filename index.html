@@ -846,6 +846,125 @@ font-size:11px;
 }
 }
 
+
+
+
+/* bottom nav */
+.bottom-nav{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+height:68px;
+background:rgba(255,255,255,.96);
+backdrop-filter:blur(15px);
+display:flex;
+justify-content:space-around;
+align-items:center;
+border-top:1px solid #ddd;
+box-shadow:0 -4px 18px rgba(0,0,0,.08);
+z-index:9999;
+}
+
+.nav-item{
+all:unset;
+flex:1;
+display:flex;
+flex-direction:column;
+align-items:center;
+font-size:11px;
+color:#64748b;
+}
+
+.nav-item span{
+font-size:22px;
+}
+
+.nav-item.active{
+color:#2563eb;
+font-weight:700;
+}
+
+/* center floating punch */
+.punch-fab{
+all:unset;
+width:66px;
+height:66px;
+background:#2563eb;
+border-radius:50%;
+display:flex;
+justify-content:center;
+align-items:center;
+color:#fff;
+font-size:28px;
+transform:translateY(-18px);
+box-shadow:0 8px 25px rgba(37,99,235,.4);
+animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+0%,100%{transform:translateY(-18px) scale(1);}
+50%{transform:translateY(-18px) scale(1.06);}
+}
+
+body{
+padding-bottom:95px;
+}
+
+/* live strip */
+#liveStrip{
+position:fixed;
+bottom:72px;
+left:50%;
+transform:translateX(-50%);
+background:#2563eb;
+color:#fff;
+padding:8px 16px;
+border-radius:18px;
+font-size:12px;
+box-shadow:0 4px 10px rgba(0,0,0,.15);
+z-index:9998;
+}
+
+/* bottom sheet */
+.sheet{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.4);
+z-index:10000;
+}
+
+.sheet-box{
+position:absolute;
+bottom:0;
+width:100%;
+background:#fff;
+padding:20px;
+border-radius:20px 20px 0 0;
+animation:up .25s ease;
+}
+
+@keyframes up{
+from{transform:translateY(100%);}
+to{transform:translateY(0);}
+}
+
+.sheet-box button{
+display:block;
+width:100%;
+margin:10px 0;
+padding:12px;
+background:#f1f5f9;
+border-radius:12px;
+color:#111;
+text-align:left;
+}
+
+.close-btn{
+background:#ef4444 !important;
+color:#fff !important;
+}
 </style>
 </head>
 
@@ -925,6 +1044,62 @@ font-size:11px;
   📅 Tap for punch • Double tap for menu
 </div>
 
+
+
+
+<div class="bottom-nav">
+
+<button class="nav-item active" onclick="goHome()">
+<span>🏠</span>
+<small>Home</small>
+</button>
+
+<button class="nav-item" onclick="showAttendance()">
+<span>📅</span>
+<small>Calendar</small>
+</button>
+
+<button class="punch-fab" onclick="quickPunch()">
+⏱
+</button>
+
+<button class="nav-item" onclick="showInsights()">
+<span>📊</span>
+<small>Insights</small>
+</button>
+
+<button class="nav-item" onclick="openMoreSheet()">
+<span>☰</span>
+<small>More</small>
+</button>
+
+</div>
+
+
+<!-- live status strip -->
+<div id="liveStrip">
+Today: Not Punched
+</div>
+
+
+<!-- Bottom Sheet -->
+<div id="moreSheet" class="sheet">
+<div class="sheet-box">
+
+<h3>Quick Actions</h3>
+
+<button onclick="downloadReport()">📄 Export Report</button>
+<button onclick="backupData()">💾 Backup</button>
+<button onclick="toggleDark()">🌙 Dark Mode</button>
+<button onclick="showHoliday()">🎉 Holidays</button>
+<button onclick="logout()">🚪 Logout</button>
+
+<button onclick="closeSheet()" class="close-btn">
+Close
+</button>
+
+</div>
+</div>
 
 
 <div class="topbar">
@@ -1188,6 +1363,70 @@ function handleAuth(){
 
   }
 }
+
+
+function goHome(){
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+}
+
+function showAttendance(){
+document.getElementById("calendar")
+.scrollIntoView({behavior:"smooth"});
+}
+
+function showInsights(){
+document.getElementById("summaryBox")
+.scrollIntoView({behavior:"smooth"});
+}
+
+function openMoreSheet(){
+document.getElementById("moreSheet").style.display="block";
+}
+
+function closeSheet(){
+document.getElementById("moreSheet").style.display="none";
+}
+
+function showHoliday(){
+alert("Holiday list coming");
+}
+
+function toggleDark(){
+document.body.classList.toggle("dark");
+}
+
+function quickPunch(){
+
+selected=today();
+let d=getData();
+
+if(!d.in){
+d.in=getTime();
+d=updateStatus(d);
+save(d);
+
+document.getElementById("liveStrip").innerHTML=
+"IN Marked : "+d.in;
+return;
+}
+
+if(!d.out){
+d.out=getTime();
+d=updateStatus(d);
+save(d);
+
+document.getElementById("liveStrip").innerHTML=
+"Completed ✓ "+d.out;
+return;
+}
+
+alert("Already punched today");
+}
+
+
 
 function downloadReport() {
   const { jsPDF } = window.jspdf;
