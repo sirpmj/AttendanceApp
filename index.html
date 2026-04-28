@@ -1573,7 +1573,16 @@ function getToday(){
 }
 
 function todayBirthdays(){
-  return birthdayData.filter(b => b.date === getToday());
+  let today = getToday(); // 28-04
+
+  return birthdayData.filter(b => b.date === today);
+}
+
+function formatDM(dateStr){
+  // "2026-04-28" → "28-04"
+  let d = new Date(dateStr);
+  return String(d.getDate()).padStart(2,"0") + "-" +
+         String(d.getMonth()+1).padStart(2,"0");
 }
 
 
@@ -1655,17 +1664,15 @@ function sendWhatsAppWish(name, phone){
 
 
 function autoWishAll(){
-
   let list = todayBirthdays();
 
-  list.forEach((p, i)=>{
-    setTimeout(()=>{
-      if(p.phone){
-        sendWhatsAppWish(p.name, p.phone);
-      }
-    }, i * 1500); // delay to avoid spam block
-  });
+  if(list.length === 0) return;
 
+  let first = list[0];
+
+  if(first.phone){
+    sendWhatsAppWish(first.name, first.phone);
+  }
 }
 
 function addBirthdayBadge(cell, date){
@@ -2410,23 +2417,34 @@ if(data.status === "Early" || data.early){
   cls = "early";
 }
 
-    let div=document.createElement("div");
+let div = document.createElement("div");
+
+// base class
+div.classList.add("day");
+
+// birthday check
 let bList = getBirthdayNames(d);
 
-if(bList.length > 0){
+let birthdayText = "";
+
+if (bList.length > 0) {
   let names = bList.map(x => x.name).join(", ");
+
   div.classList.add("birthday");
-  note = `<div class="note">🎂 ${names}</div>`;
-}
-    div.className = "day";   // reset
 
-if(cls){
-  div.classList.add(cls); // add fresh class
+  birthdayText = `<div class="note">🎂 ${names}</div>`;
 }
 
-if(d === today()){
+// status class
+if (cls) {
+  div.classList.add(cls);
+}
+
+// today highlight
+if (d === today()) {
   div.classList.add("today");
 }
+
 
 let inT = data.in 
   ? `<div class="time in">⬇ ${data.in}</div>` 
@@ -2441,34 +2459,31 @@ if(data.early){
   displayStatus = "Early";
 }
 
-let st = displayStatus 
-  ? `<div style="font-size:9px;">${displayStatus}</div>` 
+let st = displayStatus
+  ? `<div style="font-size:9px;">${displayStatus}</div>`
   : "";
 
+// ✅ safe holiday text formatting
 let holidayText = data.note || "";
 
-// two-word holiday names ko break karao
-holidayText = holidayText.replace(" ", "<br>");
+// replace ALL spaces (not only first)
+holidayText = holidayText.replace(/\s+/g, "<br>");
 
-let note = data.note
-? `<div class="note">${holidayText}</div>`
-: "";
+let holidayHtml = data.note
+  ? `<div class="note">${holidayText}</div>`
+  : "";
 
 div.innerHTML = `
 <b>${i}</b>
 ${inT}
 ${outT}
 ${st}
-${note}
+${birthdayText}
+${holidayHtml}
 
 <div class="quick-actions">
-<button class="mini-btn in-btn">
-↗ 09:00
-</button>
-
-<button class="mini-btn out-btn">
-↘ 18:00
-</button>
+<button class="mini-btn in-btn">↗ 09:00</button>
+<button class="mini-btn out-btn">↘ 18:00</button>
 </div>
 `;
 
@@ -3325,6 +3340,7 @@ window.addEventListener("load", async () => {
 
   showBirthdayStrip();
   showBirthdayPopup();
+autoWishAll();
 });
 
 </script>
