@@ -1203,7 +1203,7 @@ color:#fff !important;
 </div>
 
 <div class="footer-note">
-  📅 Tap for punch • Double tap on date for menu
+  📅 Tap for punch • Double tap for menu
 </div>
 
 
@@ -2158,9 +2158,12 @@ document.addEventListener("click", async (e) => {
 
 // Close popup
 function closeInstallPopup(){
-  document.getElementById("installPopup").style.display = "none";
-}
 
+  document.getElementById("installPopup").style.display = "none";
+
+  // 🔥 reset timer (important)
+  localStorage.setItem("popupTime", Date.now());
+}
 
 
 function isAppInstalled() {
@@ -2169,13 +2172,20 @@ function isAppInstalled() {
 
 function showFirstTimePopup() {
 
-  if (isAppInstalled()) return; // 👈 installed hai to popup nahi
+  // already installed → skip
+  if (isAppInstalled()) return;
+
+  // install option hi available nahi → skip
+  if (!deferredPrompt) return;
 
   const lastShown = localStorage.getItem("popupTime");
   const now = Date.now();
 
-  if (!lastShown || (now - lastShown) > 24*60*60*1000) {
+  // 🔥 24 hour rule
+  if (!lastShown || (now - lastShown) > (24 * 60 * 60 * 1000)) {
+
     document.getElementById("installPopup").style.display = "flex";
+
     localStorage.setItem("popupTime", now);
   }
 }
