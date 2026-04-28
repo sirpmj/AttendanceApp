@@ -951,6 +951,21 @@ font-size:11px;
 z-index:9998;
 }
 
+#liveStrip{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 600px){
+  #liveStrip{
+    font-size: 12px;
+    padding: 6px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 /* footer note above live strip */
 .footer-note{
 position:fixed;
