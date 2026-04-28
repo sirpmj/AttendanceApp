@@ -689,36 +689,7 @@ box-shadow:0 3px 10px rgba(0,0,0,.06);
   font-weight:600;
 }
 
-.user-box{
-display:flex;
-align-items:center;
-gap:8px;
-flex-wrap:wrap;
-}
 
-#birthdayStrip{
-display:none; /* JS show karega */
-background:#f472b6;
-color:#fff;
-padding:3px 8px;
-border-radius:999px;
-font-size:10px;
-font-weight:600;
-white-space:nowrap;
-position:relative;
-top:24px;
-}
-
-@media(max-width:600px){
-.user-box{
-gap:6px;
-}
-
-#birthdayStrip{
-font-size:10px;
-padding:4px 8px;
-}
-}
 
 /* buttons */
 .btn-group{
@@ -1256,21 +1227,6 @@ color:#fff !important;
 </div>
 
 
-<div id="birthdayStrip" style="
-position:fixed;
-top:8px;
-left:50%;
-transform:translateX(-50%);
-background:#f472b6;
-color:#fff;
-padding:4px 12px;
-font-size:11px;
-border-radius:16px;
-z-index:10001;
-display:none;
-">
-</div>
-
 
 <div class="bottom-nav">
 
@@ -1358,7 +1314,6 @@ Close
 
 <div class="user-box">
   <h3 id="userWelcome"></h3>
-  <span id="birthdayStrip"></span>
 </div>
 
   <div class="btn-group">
@@ -1604,21 +1559,6 @@ function handleAuth(){
   }
 }
 
-function showBirthdayStrip(){
-
-let list=todayBirthdays();
-
-let strip=document.getElementById("birthdayStrip");
-
-if(!list.length){
-strip.style.display="none";
-return;
-}
-
-strip.style.display="inline-flex";
-strip.innerText="🎂 "+list.map(x=>x.name).join(", ");
-
-}
 
 function getBirthdayNames(date){
   return birthdayData.filter(b => b.date === date);
@@ -1838,25 +1778,20 @@ function shareBirthdayCard(name){
 
 function initBirthdaySystem(){
 
-  loadBirthdays().then(()=>{
+loadBirthdays().then(()=>{
 
-    showBirthdayPopup();
+showBirthdayPopup();
 
-    let list = todayBirthdays();
+let list=todayBirthdays();
 
-    if(list.length > 0){
+if(list.length>0){
 
-      // auto strip
-      document.getElementById("birthdayStrip").style.display = "block";
-      document.getElementById("birthdayStrip").innerText =
-        "🎂 Today: " + list.map(x=>x.name).join(", ");
+// optional auto WhatsApp
+// autoWishAll();
 
-      // optional auto WhatsApp
-      // autoWishAll();
+}
 
-    }
-
-  });
+});
 
 }
 
@@ -1865,7 +1800,6 @@ async function initApp(){
 
 await loadBirthdays();
 
-showBirthdayStrip();
 showBirthdayPopup();
 birthdayEffect();
 
@@ -2312,7 +2246,6 @@ await loadBirthdays();
 loadCalendar();
 loadSummary();
 
-showBirthdayStrip();
 showBirthdayPopup();
 
 updateLiveStrip();
@@ -3487,14 +3420,12 @@ if ('serviceWorker' in navigator) {
 window.addEventListener("load", async () => {
   await loadBirthdays();
 
-  showBirthdayStrip();
   showBirthdayPopup();
   autoWishAll();
 });
 
 setInterval(async () => {
   await loadBirthdays();
-  showBirthdayStrip();
   loadCalendar();
 }, 15000);
 
