@@ -689,26 +689,23 @@ box-shadow:0 3px 10px rgba(0,0,0,.06);
   font-weight:600;
 }
 
-#birthdayStrip{
-display:none;
-position:static;   /* fixed remove */
-transform:none;
-top:auto;
-left:auto;
-
-background:#f472b6;
-color:#fff;
-padding:5px 10px;
-border-radius:14px;
-font-size:11px;
-white-space:nowrap;
-}
-
 .user-box{
 display:flex;
 align-items:center;
 gap:8px;
 flex-wrap:wrap;
+}
+
+#birthdayStrip{
+display:inline-flex;
+align-items:center;
+background:#f472b6;
+color:#fff;
+padding:3px 8px;
+border-radius:999px;
+font-size:10px;
+white-space:nowrap;
+position:static;
 }
 
 @media(max-width:600px){
@@ -990,16 +987,12 @@ padding-bottom:95px;
 
 /* live strip */
 #liveStrip{
-position:fixed;
 bottom:66px;
-left:50%;
-transform:translateX(-50%);
-
-padding:4px 10px;     /* was bigger */
-font-size:11px;       /* smaller */
-line-height:1.1;
-border-radius:14px;
+padding:3px 10px;
+font-size:10px;
+line-height:1;
 min-height:auto;
+border-radius:12px;
 }
 
 #liveStrip{
@@ -1020,7 +1013,7 @@ min-height:auto;
 /* footer note above live strip */
 .footer-note{
 position:fixed;
-bottom:90px;  /* live strip ke upar */
+bottom:80px;  /* live strip ke upar */
 left:50%;
 transform:translateX(-50%);
 font-size:11px;
