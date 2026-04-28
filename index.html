@@ -689,6 +689,39 @@ box-shadow:0 3px 10px rgba(0,0,0,.06);
   font-weight:600;
 }
 
+#birthdayStrip{
+display:none;
+position:static;   /* fixed remove */
+transform:none;
+top:auto;
+left:auto;
+
+background:#f472b6;
+color:#fff;
+padding:5px 10px;
+border-radius:14px;
+font-size:11px;
+white-space:nowrap;
+}
+
+.user-box{
+display:flex;
+align-items:center;
+gap:8px;
+flex-wrap:wrap;
+}
+
+@media(max-width:600px){
+.user-box{
+gap:6px;
+}
+
+#birthdayStrip{
+font-size:10px;
+padding:4px 8px;
+}
+}
+
 /* buttons */
 .btn-group{
   display:flex;
