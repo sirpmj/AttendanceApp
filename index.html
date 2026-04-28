@@ -1684,27 +1684,24 @@ function getBirthdaysForDate(dateStr){
 
   let d = new Date(dateStr);
 
-  let day = String(d.getDate()).padStart(2, "0");
-  let month = String(d.getMonth() + 1).padStart(2, "0");
+  let day = d.getDate();
+  let month = d.getMonth() + 1;
 
   return birthdayData.filter(b => {
 
     if(!b.date) return false;
 
-    // 🔥 clean format (support -, /, etc)
-    let clean = b.date.replace(/\//g, "-");
-
-    let parts = clean.split("-");
+    // 🔥 clean + normalize
+    let parts = b.date.split(/[\/\-]/); // handle / and -
 
     if(parts.length < 2) return false;
 
-    let bDay = parts[0].padStart(2, "0");
-    let bMonth = parts[1].padStart(2, "0");
+    let bDay = parseInt(parts[0]);
+    let bMonth = parseInt(parts[1]);
 
     return (bDay === day && bMonth === month);
   });
 }
-
 
 
 function manualWish(names){
