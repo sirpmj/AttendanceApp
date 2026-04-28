@@ -956,18 +956,17 @@ padding-bottom:95px;
 }
 
 /* live strip */
-/* live strip */
 #liveStrip{
 position:fixed;
-bottom:65px;   /* taskbar ke just upar */
+bottom:66px;
 left:50%;
 transform:translateX(-50%);
-background:#2563eb;
-color:#fff;
-padding:7px 14px;
-border-radius:18px;
-font-size:11px;
-z-index:9998;
+
+padding:4px 10px;     /* was bigger */
+font-size:11px;       /* smaller */
+line-height:1.1;
+border-radius:14px;
+min-height:auto;
 }
 
 #liveStrip{
@@ -1227,18 +1226,19 @@ color:#fff !important;
 
 
 <div id="birthdayStrip" style="
-  position:fixed;
-  top:60px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#f472b6;
-  color:white;
-  padding:6px 12px;
-  border-radius:20px;
-  font-size:12px;
-  z-index:9999;
-  display:none;
-"></div>
+position:fixed;
+top:8px;
+left:50%;
+transform:translateX(-50%);
+background:#f472b6;
+color:#fff;
+padding:4px 12px;
+font-size:11px;
+border-radius:16px;
+z-index:10001;
+display:none;
+">
+</div>
 
 
 <div class="bottom-nav">
@@ -1327,6 +1327,8 @@ Close
 
   <div class="user-box">
     <h3 id="userWelcome"></h3>
+<div id="birthdayStrip"></div>
+
   </div>
 
   <div class="btn-group">
@@ -1573,15 +1575,21 @@ function handleAuth(){
 }
 
 function showBirthdayStrip(){
-  let list = todayBirthdays();
 
-  if(list.length === 0) return;
+let list=todayBirthdays();
 
-  let strip = document.getElementById("birthdayStrip");
-  strip.style.display = "block";
-  strip.innerText = "🎂 Today: " + list.map(x => x.name).join(", ");
+let strip=document.getElementById("birthdayStrip");
+
+if(!list.length){
+strip.style.display="none";
+return;
 }
 
+strip.style.display="block";
+strip.innerText=
+"🎂 Today: "+list.map(x=>x.name).join(", ");
+
+}
 function getBirthdayNames(date){
   return birthdayData.filter(b => b.date === date);
 }
