@@ -2660,16 +2660,6 @@ ${birthdayHtml}
 </div>
 `;
 
-document.addEventListener("click", function(e){
-
-  if(e.target.classList.contains("wish-btn")){
-
-    let names = e.target.getAttribute("data-names");
-
-    manualWish(names);
-  }
-
-});
 
 div.querySelector(".wish-btn")?.addEventListener("click", function(e){
   e.stopPropagation();
