@@ -1764,9 +1764,9 @@ function manualWish(names){
   let msg =
 `🎉 Happy Birthday 🎂
 
-${names}
+Dear ${names},
 
-Wishing you a wonderful year ahead! 🎊`;
+Wishing you a fantastic year ahead! 🎊✨`;
 
   let url = "https://wa.me/?text=" + encodeURIComponent(msg);
 
@@ -2594,20 +2594,18 @@ div.classList.add("day");
 // birthday check
 let bList=getBirthdayNames(formatDM(d));
 
-let birthdayHtml="";
+let birthdayHtml = "";
 
 if(bList.length){
 
-let names=bList.map(x=>x.name).join("<br>");
-
-div.classList.add("birthday"); // holiday color like holiday
-
-birthdayHtml=`
-<div class="note">
-🎂${names}
-</div>
-`;
-
+  birthdayHtml = bList.map(x=>`
+    <div class="note">
+      🎂 ${x.name}
+      <button class="wish-btn" data-names="${x.name}">
+        Wish 🎉
+      </button>
+    </div>
+  `).join("");
 }
 
 // status class
@@ -2665,7 +2663,9 @@ ${birthdayHtml}
 document.addEventListener("click", function(e){
 
   if(e.target.classList.contains("wish-btn")){
+
     let names = e.target.getAttribute("data-names");
+
     manualWish(names);
   }
 
