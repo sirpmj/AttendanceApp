@@ -2555,6 +2555,8 @@ if(isSunday && !data.status){
 if((!old.status || old.status === "") && holidays[d]){
   data.status = "Holiday";
   data.note = holidays[d];
+
+
 }
 
 let cls = "";
@@ -2635,8 +2637,8 @@ div.innerHTML=`
 ${inT}
 ${outT}
 ${st}
-${birthdayHtml}
 ${holidayHtml}
+${birthdayHtml}
 
 <div class="quick-actions">
 <button class="mini-btn in-btn">↗ 09:00</button>
