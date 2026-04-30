@@ -224,6 +224,11 @@ margin-top:4px;
 display:flex;
 }
 
+.holiday{
+  background:#93c5fd !important;
+  color:#000;
+}
+
 .mini-btn{
 border:none;
 border-radius:999px;
@@ -355,6 +360,7 @@ padding:6px 0;
 .context-menu div:hover{
   background:#f3f4f6;
 }
+
 
 
 .dot{
@@ -2361,8 +2367,9 @@ all[doc.id]=doc.data();
 window.firebaseCache=all;
 
 /* Birthday fetch */
-await loadBirthdays();
  await loadHolidays(); 
+await loadBirthdays();
+
 loadCalendar();
 loadSummary();
 
