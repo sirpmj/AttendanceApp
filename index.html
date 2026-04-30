@@ -1496,29 +1496,20 @@ let birthdayData = [];
 
 let clickTimer = null;
 
-const HOLIDAY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
+const holidays = {
+ "2026-01-14": "Makar Sankranti",
+ "2026-01-26": "Republic Day",
+ "2026-03-14": "Holi",
+ "2026-08-15": "Independence Day",
+ "2026-08-19": "Raksha Bandhan",
+ "2026-08-26": "Janmashtami",
+ "2026-09-17": "Ganesh Chaturthi",
+ "2026-10-20": "Dussehra",
+ "2026-11-08": "Diwali",
+ "2026-11-09": "New Year",
+ "2026-11-10": "Bhai Dooj",
 
-let holidays = {};
-
-async function loadHolidays(){
-  let res = await fetch(HOLIDAY_URL);
-  let text = await res.text();
-
-  let rows = text.trim().split("\n").slice(1); // ✅ trim added
-
-  rows.forEach(r=>{
-    let cols = r.split(",");
-
-    let date = cols[0]?.trim();
-    let name = cols.slice(1).join(",").trim(); // ✅ fix for comma in name
-
-    if(date && name){
-      holidays[date] = name;
-    }
-  });
-
-  console.log("Holidays Loaded:", holidays); // ✅ debug
-}
+};
 
 // 🔥 NEW SETTINGS
 const officeIn="09:00";
@@ -1860,7 +1851,7 @@ if(list.length>0){
 async function initApp(){
 
 await loadBirthdays();
-loadHolidays();
+
 showBirthdayPopup();
 birthdayEffect();
 
@@ -2349,7 +2340,7 @@ window.firebaseCache=all;
 
 /* Birthday fetch */
 await loadBirthdays();
-loadHolidays();
+
 loadCalendar();
 loadSummary();
 
@@ -2570,19 +2561,10 @@ if(isSunday && !data.status){
 }
 
 // ✅ Only apply holiday if NO manual data exists
-let key = formatDM(d); // e.g. "01-01"
-
-if((!old.status || old.status === "") && holidays[key]){
+if((!old.status || old.status === "") && holidays[d]){
   data.status = "Holiday";
-  data.note = holidays[key];
-
-  div.classList.add("holiday");
-
-  holidayHtml = `
-  <div class="note">
-    Holiday<br>${data.note}
-  </div>
-  `;
+  data.note = holidays[d];
+let holidayHtml = "";
 }
 
 let cls = "";
@@ -3534,14 +3516,13 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener("load", async () => {
   await loadBirthdays();
-loadHolidays();
+
   showBirthdayPopup();
   autoWishAll();
 });
 
 setInterval(async () => {
   await loadBirthdays();
-loadHolidays();
   loadCalendar();
 }, 15000);
 
