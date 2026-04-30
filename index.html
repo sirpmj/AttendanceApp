@@ -1502,7 +1502,7 @@ async function loadHolidays(){
 
 try{
 
-let url = "https://docs.google.com/spreadsheets/d/e/YOUR_HOLIDAY_SHEET_ID/pub?output=csv&t=" + Date.now();
+let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
 
 let res = await fetch(url,{cache:"no-store"});
 let text = await res.text();
