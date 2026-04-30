@@ -1281,6 +1281,10 @@ Today: Not Punched
 🎉 Holidays
 </button>
 
+<button onclick="showUpcomingBirthdays()">
+🎂 Upcoming Birthdays
+</button>
+
 <button onclick="toggleDark()">
 🌙 Dark Mode
 </button>
@@ -1806,6 +1810,52 @@ birthdayEffect();
 
 }
 
+
+function showUpcomingBirthdays(){
+
+  closeSheet();
+
+  if(!birthdayData || birthdayData.length === 0){
+    alert("No birthday data");
+    return;
+  }
+
+  let today = new Date();
+
+  // convert DD-MM → date object (current year)
+  let list = birthdayData.map(b=>{
+    let [d,m] = b.date.split("-");
+    let dt = new Date(today.getFullYear(), m-1, d);
+
+    return {
+      name: b.name,
+      date: dt
+    };
+  });
+
+  // future birthdays only
+  let upcoming = list
+    .filter(x => x.date >= today)
+    .sort((a,b)=>a.date - b.date)
+    .slice(0,5);
+
+  // agar year end cross ho gaya
+  if(upcoming.length === 0){
+    upcoming = list
+      .sort((a,b)=>a.date - b.date)
+      .slice(0,5);
+  }
+
+  let text = upcoming.map(x=>{
+    let d = x.date;
+    let day = String(d.getDate()).padStart(2,'0');
+    let mon = String(d.getMonth()+1).padStart(2,'0');
+
+    return `🎂 ${x.name} - ${day}-${mon}`;
+  }).join("\n");
+
+  alert("Upcoming Birthdays\n\n" + text);
+}
 
 
 
