@@ -2594,11 +2594,14 @@ if(isSunday && !data.status){
   data.status = "Sunday"; // only UI
 }
 
-const ADMIN_EMAIL = "sbprajapati@suvidhigroup.com";
+const ADMINS = [
+  "sbprajapati@suvidhigroup.com",
+  "mespmj@gmail.com"
+];
 
 function isAdmin(){
   let user = firebase.auth().currentUser;
-  return user && user.email === ADMIN_EMAIL;
+  return user && ADMINS.includes(user.email);
 }
 
 // ✅ Only apply holiday if NO manual data exists
