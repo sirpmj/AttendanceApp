@@ -1494,6 +1494,26 @@ const db = firebase.firestore();
 
 let birthdayData = [];
 
+let clickTimer = null;
+
+const HOLIDAY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
+
+
+let holidays = {};
+
+async function loadHolidays(){
+  let res = await fetch(HOLIDAY_URL);
+  let text = await res.text();
+
+  let rows = text.split("\n").slice(1);
+
+  rows.forEach(r=>{
+    let [date,name] = r.split(",");
+    if(date && name){
+      holidays[date.trim()] = name.trim();
+    }
+  });
+}
 
 // 🔥 NEW SETTINGS
 const officeIn="09:00";
@@ -1941,21 +1961,6 @@ document.body.classList.add("dark-mode");
 
 
 
-let holidays = {};
-
-async function loadHolidays(){
-  let res = await fetch(https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now(););
-  let text = await res.text();
-
-  let rows = text.split("\n").slice(1);
-
-  rows.forEach(r=>{
-    let [date,name] = r.split(",");
-    if(date && name){
-      holidays[date.trim()] = name.trim();
-    }
-  });
-}
 
 
 /* HOLIDAY POPUP */
