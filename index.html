@@ -1926,7 +1926,22 @@ function showUpcomingBirthdays(){
 
 
 
+function sendCardWhatsApp(name){
 
+  // 🎂 Message
+  let msg = `🎉 Happy Birthday ${name} 🎂
+
+Wishing you a wonderful year ahead! 🎊`;
+
+  // 📱 Open WhatsApp
+  let url = "https://wa.me/?text=" + encodeURIComponent(msg);
+  window.open(url, "_blank");
+
+  // 🎁 Download Card after small delay
+  setTimeout(()=>{
+    shareBirthdayCard(name);
+  }, 800);
+}
 
 function goHome(){
 window.scrollTo({
@@ -2613,13 +2628,9 @@ if(bList.length){
     <div class="note">
       🎂 ${x.name}
 
-      <button onclick="manualWish('${x.name}')">
-        Wish 🎉
-      </button>
-
-      <button onclick="shareBirthdayCard('${x.name}')">
-        🎁 Card
-      </button>
+<button onclick="sendCardWhatsApp('${x.name}')">
+  🎉 Wish + Card
+</button>
 
     </div>
   `).join("");
