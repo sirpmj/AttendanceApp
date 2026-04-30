@@ -1494,22 +1494,6 @@ const db = firebase.firestore();
 
 let birthdayData = [];
 
-let clickTimer = null;
-
-const holidays = {
- "2026-01-14": "Makar Sankranti",
- "2026-01-26": "Republic Day",
- "2026-03-14": "Holi",
- "2026-08-15": "Independence Day",
- "2026-08-19": "Raksha Bandhan",
- "2026-08-26": "Janmashtami",
- "2026-09-17": "Ganesh Chaturthi",
- "2026-10-20": "Dussehra",
- "2026-11-08": "Diwali",
- "2026-11-09": "New Year",
- "2026-11-10": "Bhai Dooj",
-
-};
 
 // 🔥 NEW SETTINGS
 const officeIn="09:00";
@@ -1957,6 +1941,21 @@ document.body.classList.add("dark-mode");
 
 
 
+let holidays = {};
+
+async function loadHolidays(){
+  let res = await fetch(https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now(););
+  let text = await res.text();
+
+  let rows = text.split("\n").slice(1);
+
+  rows.forEach(r=>{
+    let [date,name] = r.split(",");
+    if(date && name){
+      holidays[date.trim()] = name.trim();
+    }
+  });
+}
 
 
 /* HOLIDAY POPUP */
@@ -2561,11 +2560,19 @@ if(isSunday && !data.status){
 }
 
 // ✅ Only apply holiday if NO manual data exists
-if((!old.status || old.status === "") && holidays[d]){
+let key = formatDM(d); // e.g. "01-01"
+
+if((!old.status || old.status === "") && holidays[key]){
   data.status = "Holiday";
-  data.note = holidays[d];
+  data.note = holidays[key];
 
+  div.classList.add("holiday");
 
+  holidayHtml = `
+  <div class="note">
+    Holiday<br>${data.note}
+  </div>
+  `;
 }
 
 let cls = "";
