@@ -1158,10 +1158,10 @@ color:#fff !important;
 }
 
 .birthday{
-  background:linear-gradient(135deg,#fce7f3,#fbcfe8);
-  color:#831843;
+  background:#d9f99d;   /* light green-yellow */
+  color:#365314;
   font-weight:500;
-  animation: pop 1s infinite alternate;
+  animation: flash 1.5s infinite;
 }
 
 @keyframes pop{
@@ -1175,6 +1175,21 @@ color:#fff !important;
   100%{background:#fff;}
 }
 
+if(isTodayBirthday){
+  div.classList.add("birthday","animate");
+}else{
+  div.classList.add("birthday");
+}
+
+.birthday{
+  background:#f472b6;
+  color:#fff;
+  font-weight:bold;
+}
+
+.animate{
+  animation: pop 0.8s ease-in-out infinite alternate;
+}
 
 .wish-btn{
   display: block;
@@ -1333,7 +1348,7 @@ Today: Not Punched
 
 
 <button onclick="showHoliday()">
-🎉 Holidays
+🎉 Upcoming Holidays
 </button>
 
 <button onclick="showUpcomingBirthdays()">
@@ -2590,7 +2605,7 @@ div.classList.add("birthday"); // holiday color like holiday
 
 birthdayHtml=`
 <div class="note">
-🎉${names}
+🎂${names}
 </div>
 `;
 
