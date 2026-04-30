@@ -2594,6 +2594,13 @@ if(isSunday && !data.status){
   data.status = "Sunday"; // only UI
 }
 
+const ADMIN_EMAIL = "sbprajapati@suvidhigroup.com";
+
+function isAdmin(){
+  let user = firebase.auth().currentUser;
+  return user && user.email === ADMIN_EMAIL;
+}
+
 // ✅ Only apply holiday if NO manual data exists
 if(holidays[d] && !old.manual){
   data.status = "Holiday";
@@ -2624,16 +2631,26 @@ let birthdayHtml = "";
 
 if(bList.length){
 
-  birthdayHtml = bList.map(x=>`
-    <div class="note">
-      🎂 ${x.name}
+  birthdayHtml = bList.map(x=>{
 
-<button onclick="sendCardWhatsApp('${x.name}')">
-  🎉 Wish + Card
-</button>
+    return `
+      <div class="note">
+        🎂 ${x.name}
 
-    </div>
-  `).join("");
+        ${isAdmin() ? `
+          <button onclick="manualWish('${x.name}')">
+            Wish 🎉
+          </button>
+
+          <button onclick="sendCardWhatsApp('${x.name}')">
+            🎁 Card
+          </button>
+        ` : ""}
+
+      </div>
+    `;
+
+  }).join("");
 }
 
 // status class
