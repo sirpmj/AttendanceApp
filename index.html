@@ -1506,16 +1506,23 @@ async function loadHolidays(){
 
   let rows = text.trim().split("\n").slice(1); // ✅ trim added
 
-  rows.forEach(r=>{
-    let cols = r.split(",");
+rows.forEach(r=>{
+  let cols = r.split(",");
 
-    let date = cols[0]?.trim();
-    let name = cols.slice(1).join(",").trim(); // ✅ fix for comma in name
+  let rawDate = cols[0]?.trim();   // "01-01"
+  let name = cols.slice(1).join(",").trim();
 
-    if(date && name){
-      holidays[date] = name;
-    }
-  });
+  if(rawDate && name){
+
+    let [day,month] = rawDate.split("-");
+
+    let fullDate = new Date().getFullYear() + "-" +
+      month.padStart(2,"0") + "-" +
+      day.padStart(2,"0");
+
+    holidays[fullDate] = name;  // ✅ FIX
+  }
+});
 
   console.log("Holidays Loaded:", holidays); // ✅ debug
 }
@@ -1863,7 +1870,7 @@ if(list.length>0){
 async function initApp(){
 
 await loadBirthdays();
-loadHolidays();
+await loadHolidays();
 showBirthdayPopup();
 birthdayEffect();
 
@@ -2353,7 +2360,7 @@ window.firebaseCache=all;
 
 /* Birthday fetch */
 await loadBirthdays();
-loadHolidays();
+await loadHolidays();
 loadCalendar();
 loadSummary();
 
@@ -2574,9 +2581,9 @@ if(isSunday && !data.status){
 }
 
 // ✅ Only apply holiday if NO manual data exists
-if((!old.status || old.status === "") && holidays[d]){
+if((!old.status || old.status === "") && holidays[Key]){
   data.status = "Holiday";
-  data.note = holidays[d];
+  data.note = holidays[Key];
 let holidayHtml = "";
 }
 
@@ -3529,14 +3536,14 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener("load", async () => {
   await loadBirthdays();
-loadHolidays();
+await loadHolidays();
   showBirthdayPopup();
   autoWishAll();
 });
 
 setInterval(async () => {
   await loadBirthdays();
-loadHolidays();
+await loadHolidays();
   loadCalendar();
 }, 15000);
 
