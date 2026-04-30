@@ -1209,6 +1209,11 @@ if(isTodayBirthday){
   align-items: center;
 }
 
+
+.holiday {
+  background: #dbeafe;
+  color: #1e40af;
+}
 </style>
 </head>
 
@@ -2590,7 +2595,7 @@ if(isSunday && !data.status){
 }
 
 // ✅ Only apply holiday if NO manual data exists
-if(!old.status && holidays[d]){
+if(holidays[d] && !old.manual){
   data.status = "Holiday";
   data.note = holidays[d];
 }
