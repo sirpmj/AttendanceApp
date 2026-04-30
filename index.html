@@ -1498,21 +1498,26 @@ let clickTimer = null;
 
 const HOLIDAY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
 
-
 let holidays = {};
 
 async function loadHolidays(){
   let res = await fetch(HOLIDAY_URL);
   let text = await res.text();
 
-  let rows = text.split("\n").slice(1);
+  let rows = text.trim().split("\n").slice(1); // ✅ trim added
 
   rows.forEach(r=>{
-    let [date,name] = r.split(",");
+    let cols = r.split(",");
+
+    let date = cols[0]?.trim();
+    let name = cols.slice(1).join(",").trim(); // ✅ fix for comma in name
+
     if(date && name){
-      holidays[date.trim()] = name.trim();
+      holidays[date] = name;
     }
   });
+
+  console.log("Holidays Loaded:", holidays); // ✅ debug
 }
 
 // 🔥 NEW SETTINGS
@@ -1855,7 +1860,7 @@ if(list.length>0){
 async function initApp(){
 
 await loadBirthdays();
-
+loadHolidays();
 showBirthdayPopup();
 birthdayEffect();
 
@@ -2344,7 +2349,7 @@ window.firebaseCache=all;
 
 /* Birthday fetch */
 await loadBirthdays();
-
+loadHolidays();
 loadCalendar();
 loadSummary();
 
@@ -3529,13 +3534,14 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener("load", async () => {
   await loadBirthdays();
-
+loadHolidays();
   showBirthdayPopup();
   autoWishAll();
 });
 
 setInterval(async () => {
   await loadBirthdays();
+loadHolidays();
   loadCalendar();
 }, 15000);
 
