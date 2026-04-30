@@ -1496,20 +1496,37 @@ let birthdayData = [];
 
 let clickTimer = null;
 
-const holidays = {
- "2026-01-14": "Makar Sankranti",
- "2026-01-26": "Republic Day",
- "2026-03-14": "Holi",
- "2026-08-15": "Independence Day",
- "2026-08-19": "Raksha Bandhan",
- "2026-08-26": "Janmashtami",
- "2026-09-17": "Ganesh Chaturthi",
- "2026-10-20": "Dussehra",
- "2026-11-08": "Diwali",
- "2026-11-09": "New Year",
- "2026-11-10": "Bhai Dooj",
+let holidays = {}; // 🔥 object banega dynamically
 
-};
+async function loadHolidays(){
+  try{
+    let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
+
+    let res = await fetch(url,{cache:"no-store"});
+    let text = await res.text();
+
+    let rows = text.trim().split("\n");
+
+    holidays = {}; // reset
+
+    rows.slice(1).forEach(r=>{
+      let c = r.split(",");
+
+      if(c.length >= 2){
+        let date = c[0].trim();   // YYYY-MM-DD
+        let name = c[1].trim();
+
+        holidays[date] = name;
+      }
+    });
+
+    console.log("Holidays Loaded", holidays);
+
+  }catch(e){
+    console.log("Holiday fetch error", e);
+    holidays = {};
+  }
+}
 
 // 🔥 NEW SETTINGS
 const officeIn="09:00";
@@ -1851,7 +1868,7 @@ if(list.length>0){
 async function initApp(){
 
 await loadBirthdays();
-
+await loadHolidays();
 showBirthdayPopup();
 birthdayEffect();
 
@@ -2340,7 +2357,7 @@ window.firebaseCache=all;
 
 /* Birthday fetch */
 await loadBirthdays();
-
+await loadHolidays();
 loadCalendar();
 loadSummary();
 
@@ -3516,13 +3533,14 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener("load", async () => {
   await loadBirthdays();
-
+await loadHolidays();
   showBirthdayPopup();
   autoWishAll();
 });
 
 setInterval(async () => {
   await loadBirthdays();
+await loadHolidays();
   loadCalendar();
 }, 15000);
 
