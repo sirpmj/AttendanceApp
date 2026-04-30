@@ -1503,13 +1503,13 @@ const db = firebase.firestore();
 <script>
 
 
-let birthdayData = [];
+
 
 let clickTimer = null;
 
-let holidays = {};
 
-async function loadHolidays(){
+
+async function loadSheetData(){
 
 try{
 
@@ -1520,26 +1520,39 @@ let text = await res.text();
 
 let rows = text.trim().split("\n");
 
+birthdayData = [];
 holidays = {};
 
 rows.slice(1).forEach(r=>{
 
 let c = r.split(",");
 
-if(c.length >= 2){
+let type = (c[0]||"").trim().toLowerCase();
+let name = (c[1]||"").trim();
+let date = (c[2]||"").trim();
+let phone = (c[3]||"").trim();
 
-holidays[c[0].trim()] = c[1].trim(); 
-// YYYY-MM-DD : Holiday Name
+if(type === "birthday"){
+  birthdayData.push({
+    name,
+    date,   // DD-MM
+    phone
+  });
+}
 
+if(type === "holiday"){
+  holidays[date] = name; // YYYY-MM-DD
 }
 
 });
 
-console.log("Holidays Loaded", holidays);
+console.log("Birthdays:", birthdayData);
+console.log("Holidays:", holidays);
 
 }catch(e){
-console.log("Holiday fetch error",e);
-holidays = {};
+console.log("Sheet fetch error",e);
+birthdayData=[];
+holidays={};
 }
 
 }
@@ -1650,43 +1663,6 @@ function getBirthdayNames(date){
 }
 
 
-async function loadBirthdays(){
-
-try{
-
-    let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
-
-let res=await fetch(url,{cache:"no-store"});
-let text=await res.text();
-
-let rows=text.trim().split("\n");
-
-birthdayData=[];
-
-rows.slice(1).forEach(r=>{
-
-let c=r.split(",");
-
-if(c.length>=2){
-
-birthdayData.push({
-name:c[0].trim(),
-date:c[1].trim(), // DD-MM
-phone:(c[2]||"").trim()
-});
-
-}
-
-});
-
-console.log("Birthdays Loaded",birthdayData);
-
-}catch(e){
-console.log("Birthday fetch error",e);
-birthdayData=[];
-}
-
-}
 
 function getToday(){
   let d = new Date();
@@ -1883,8 +1859,7 @@ if(list.length>0){
 
 async function initApp(){
 
-await loadBirthdays();
- await loadHolidays(); 
+await loadSheetData();
 showBirthdayPopup();
 birthdayEffect();
 
@@ -2372,8 +2347,7 @@ all[doc.id]=doc.data();
 window.firebaseCache=all;
 
 /* Birthday fetch */
- await loadHolidays(); 
-await loadBirthdays();
+await loadSheetData();
 
 loadCalendar();
 loadSummary();
@@ -3549,15 +3523,13 @@ if ('serviceWorker' in navigator) {
 }
 
 window.addEventListener("load", async () => {
-  await loadBirthdays();
- await loadHolidays(); 
+await loadSheetData();
   showBirthdayPopup();
   autoWishAll();
 });
 
 setInterval(async () => {
-  await loadBirthdays();
- await loadHolidays(); 
+await loadSheetData();
   loadCalendar();
 }, 15000);
 
