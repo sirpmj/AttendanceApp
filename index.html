@@ -1496,36 +1496,41 @@ let birthdayData = [];
 
 let clickTimer = null;
 
-let holidays = {}; // 🔥 object banega dynamically
+let holidays = {};
 
 async function loadHolidays(){
-  try{
-    let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
 
-    let res = await fetch(url,{cache:"no-store"});
-    let text = await res.text();
+try{
 
-    let rows = text.trim().split("\n");
+let url = "https://docs.google.com/spreadsheets/d/e/YOUR_HOLIDAY_SHEET_ID/pub?output=csv&t=" + Date.now();
 
-    holidays = {}; // reset
+let res = await fetch(url,{cache:"no-store"});
+let text = await res.text();
 
-    rows.slice(1).forEach(r=>{
-      let c = r.split(",");
+let rows = text.trim().split("\n");
 
-      if(c.length >= 2){
-        let date = c[0].trim();   // YYYY-MM-DD
-        let name = c[1].trim();
+holidays = {};
 
-        holidays[date] = name;
-      }
-    });
+rows.slice(1).forEach(r=>{
 
-    console.log("Holidays Loaded", holidays);
+let c = r.split(",");
 
-  }catch(e){
-    console.log("Holiday fetch error", e);
-    holidays = {};
-  }
+if(c.length >= 2){
+
+holidays[c[0].trim()] = c[1].trim(); 
+// YYYY-MM-DD : Holiday Name
+
+}
+
+});
+
+console.log("Holidays Loaded", holidays);
+
+}catch(e){
+console.log("Holiday fetch error",e);
+holidays = {};
+}
+
 }
 
 // 🔥 NEW SETTINGS
@@ -1868,7 +1873,7 @@ if(list.length>0){
 async function initApp(){
 
 await loadBirthdays();
-await loadHolidays();
+
 showBirthdayPopup();
 birthdayEffect();
 
@@ -2357,7 +2362,7 @@ window.firebaseCache=all;
 
 /* Birthday fetch */
 await loadBirthdays();
-await loadHolidays();
+await loadBirthdays();
 loadCalendar();
 loadSummary();
 
@@ -3533,14 +3538,14 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener("load", async () => {
   await loadBirthdays();
-await loadHolidays();
+ await loadHolidays(); 
   showBirthdayPopup();
   autoWishAll();
 });
 
 setInterval(async () => {
   await loadBirthdays();
-await loadHolidays();
+await loadBirthdays();
   loadCalendar();
 }, 15000);
 
