@@ -1873,7 +1873,7 @@ if(list.length>0){
 async function initApp(){
 
 await loadBirthdays();
-
+ await loadHolidays(); 
 showBirthdayPopup();
 birthdayEffect();
 
@@ -2362,7 +2362,7 @@ window.firebaseCache=all;
 
 /* Birthday fetch */
 await loadBirthdays();
-await loadBirthdays();
+ await loadHolidays(); 
 loadCalendar();
 loadSummary();
 
@@ -2583,11 +2583,11 @@ if(isSunday && !data.status){
 }
 
 // ✅ Only apply holiday if NO manual data exists
-if((!old.status || old.status === "") && holidays[d]){
+if(!old.status && holidays[d]){
   data.status = "Holiday";
   data.note = holidays[d];
-let holidayHtml = "";
 }
+
 
 let cls = "";
 
@@ -3545,7 +3545,7 @@ window.addEventListener("load", async () => {
 
 setInterval(async () => {
   await loadBirthdays();
-await loadBirthdays();
+ await loadHolidays(); 
   loadCalendar();
 }, 15000);
 
