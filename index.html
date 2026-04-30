@@ -1807,20 +1807,31 @@ function addBirthdayBadge(cell, date){
 function generateCard(name){
 
   let canvas = document.createElement("canvas");
-  canvas.width = 400;
-  canvas.height = 250;
+  canvas.width = 500;
+  canvas.height = 300;
 
   let ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = "#ff4da6";
-  ctx.fillRect(0,0,400,250);
+  // background gradient
+  let grad = ctx.createLinearGradient(0,0,500,300);
+  grad.addColorStop(0,"#ff7eb3");
+  grad.addColorStop(1,"#ff758c");
 
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,500,300);
+
+  // text
   ctx.fillStyle = "white";
-  ctx.font = "20px Arial";
-  ctx.fillText("🎉 Happy Birthday 🎉", 100, 100);
+  ctx.textAlign = "center";
 
-  ctx.font = "24px Arial";
-  ctx.fillText(name, 150, 150);
+  ctx.font = "28px Arial";
+  ctx.fillText("🎉 Happy Birthday 🎉", 250, 100);
+
+  ctx.font = "32px Arial";
+  ctx.fillText(name, 250, 160);
+
+  ctx.font = "16px Arial";
+  ctx.fillText("Wishing you a wonderful year ahead!", 250, 220);
 
   return canvas.toDataURL("image/png");
 }
@@ -2601,9 +2612,15 @@ if(bList.length){
   birthdayHtml = bList.map(x=>`
     <div class="note">
       🎂 ${x.name}
-      <button class="wish-btn" data-names="${x.name}">
+
+      <button onclick="manualWish('${x.name}')">
         Wish 🎉
       </button>
+
+      <button onclick="shareBirthdayCard('${x.name}')">
+        🎁 Card
+      </button>
+
     </div>
   `).join("");
 }
