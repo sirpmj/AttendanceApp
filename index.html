@@ -1740,20 +1740,22 @@ function launchConfetti(){
 
 
 
-function manualWish(names){
+function manualWish(name, phone){
 
   let msg =
 `🎉 Happy Birthday 🎂
 
-Dear ${names},
+Dear ${name},
 
 Wishing you a fantastic year ahead! 🎊✨`;
 
-  let url = "https://wa.me/?text=" + encodeURIComponent(msg);
+  // clean number (remove spaces, +, -)
+  let num = phone.replace(/\D/g, "");
+
+  let url = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
 
   window.open(url, "_blank");
 }
-
 
 
 function autoWishAll(){
@@ -1909,19 +1911,20 @@ function showUpcomingBirthdays(){
 
 function sendCardWhatsApp(name){
 
-  // 🎂 Message
   let msg = `🎉 Happy Birthday ${name} 🎂
 
 Wishing you a wonderful year ahead! 🎊`;
 
-  // 📱 Open WhatsApp
-  let url = "https://wa.me/?text=" + encodeURIComponent(msg);
-  window.open(url, "_blank");
+  // 🎁 Generate card first
+  shareBirthdayCard(name);
 
-  // 🎁 Download Card after small delay
-  setTimeout(()=>{
-    shareBirthdayCard(name);
-  }, 800);
+  // slight delay so UI feels natural
+  setTimeout(() => {
+    window.open(
+      "https://wa.me/?text=" + encodeURIComponent(msg),
+      "_blank"
+    );
+  }, 300);
 }
 
 function goHome(){
