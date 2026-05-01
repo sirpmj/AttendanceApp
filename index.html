@@ -1740,27 +1740,16 @@ function launchConfetti(){
 
 
 
-function manualWish(name, phone){
+function manualWish(names){
 
-  if(!phone || String(phone).trim() === ""){
-    alert("Phone number missing!");
-    return;
-  }
+  let msg =
+`🎉 Happy Birthday 🎂
 
-  let num = String(phone).trim().replace(/\D/g, "");
-
-  if(num.length < 10){
-    alert("Invalid phone number: " + phone);
-    return;
-  }
-
-  let msg = `🎉 Happy Birthday 🎂
-
-Dear ${name},
+Dear ${names},
 
 Wishing you a fantastic year ahead! 🎊✨`;
 
-  let url = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+  let url = "https://wa.me/?text=" + encodeURIComponent(msg);
 
   window.open(url, "_blank");
 }
