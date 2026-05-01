@@ -1232,8 +1232,37 @@ color:#fff !important;
   text-align:center;
 }
 
+.year-summary{
+  margin:10px;
+  padding:10px;
+  background:#111;
+  color:#fff;
+  border-radius:10px;
+  font-size:13px;
+  line-height:1.6;
+}
 
+#insightBox{
+  display:grid;
+  gap:10px;
+  padding:10px;
+}
 
+.card{
+  background:#fff;
+  padding:12px;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  font-size:14px;
+}
+
+.card.big{
+  font-size:28px;
+  font-weight:bold;
+  text-align:center;
+  background:#22c55e;
+  color:#fff;
+}
 </style>
 </head>
 
@@ -1315,7 +1344,26 @@ color:#fff !important;
 
 <div id="yearView" style="display:none;">
   <div class="year-grid" id="yearGrid"></div>
+<div id="yearSummary" class="year-summary"></div>
 </div>
+
+
+
+<div id="insightBox" style="display:none;">
+  <div class="card big" id="attPercent">--%</div>
+  <div class="card" id="alertBox"></div>
+  <div class="card" id="todayBox"></div>
+  <div class="card" id="monthBox"></div>
+  <div class="card" id="leaveBox"></div>
+  <div class="card" id="streakBox"></div>
+
+  <div class="card">
+    <b>📈 Monthly Performance</b>
+    <div id="monthlyChart"></div>
+  </div>
+</div>
+
+
 
 <div class="bottom-nav">
 
@@ -1528,7 +1576,7 @@ document.getElementById("app").style.display = "none";
 
 
 let clickTimer = null;
-
+let isInsightOpen = false;
 let isYearMode = false;
 
 async function loadSheetData(){
@@ -2003,7 +2051,7 @@ function openYearView(){
   document.getElementById("weekdays").style.display = "none";
   document.getElementById("calendar").style.display = "none";
   document.getElementById("liveStrip").style.display = "none";
-
+document.getElementById("insightBox").style.display = "none";
   // ✅ IMPORTANT: bottom nav visible रहेगा
   document.querySelector(".bottom-nav").style.display = "flex";
 
@@ -2117,7 +2165,7 @@ if(data){
       selected = today();
       closeYearView();
     };
-
+loadYearSummary();
     box.appendChild(title);
     box.appendChild(days);
     grid.appendChild(box);
@@ -2177,20 +2225,168 @@ function toggleCalendarView(){
   }
 }
 
+function loadYearSummary(){
 
+  let all = getAll();
+  let year = current.getFullYear();
+
+  let p=0,l=0,e=0,hf=0,lv=0,a=0,w=0,hol=0;
+
+  Object.keys(all).forEach(key=>{
+
+    let dt = new Date(key);
+
+    if(dt.getFullYear() === year){
+
+      let s = (all[key].status || "").toLowerCase();
+
+      if(s.includes("present")) p++;
+      else if(s.includes("late")) l++;
+      else if(s.includes("early")) e++;
+      else if(s.includes("half")) hf++;
+      else if(s.includes("leave")) lv++;
+      else if(s.includes("absent")) a++;
+      else if(s.includes("week")) w++;
+      else if(s.includes("holiday")) hol++;
+    }
+
+  });
+
+  let working = (p+l+e+hf+lv+a);
+  let percent = working ? Math.round((p/working)*100) : 0;
+
+  document.getElementById("yearSummary").innerHTML = `
+  <b>📊 Year Summary</b><br>
+
+  🟢 Present: ${p}<br>
+  🟡 Late: ${l}<br>
+  🔵 Early: ${e}<br>
+  🟠 Half Day: ${hf}<br>
+  🔵 Leave: ${lv}<br>
+  🔴 Absent: ${a}<br>
+  ⚫ Week Off: ${w}<br>
+  🟣 Holiday: ${hol}<br><br>
+
+  <b>Attendance: ${percent}%</b>
+  `;
+}
+
+
+
+function loadInsights(){
+
+  let all = getAll();
+  let p=0,a=0,l=0;
+
+  Object.values(all).forEach(d=>{
+    let s = (d.status||"").toLowerCase();
+
+    if(s.includes("present")) p++;
+    else if(s.includes("absent")) a++;
+    else if(s.includes("late")) l++;
+  });
+
+  let total = p+a+l;
+  let percent = total ? Math.round((p/total)*100) : 0;
+
+  document.getElementById("attPercent").innerText = percent + "%";
+
+  document.getElementById("monthBox").innerText =
+    `P:${p} | A:${a} | L:${l}`;
+
+  document.getElementById("alertBox").innerText =
+    percent < 75 ? "⚠️ Low Attendance" : "✅ Good";
+
+  document.getElementById("todayBox").innerText =
+    "Today: " + (all[today()]?.status || "No Data");
+
+  document.getElementById("leaveBox").innerText = "Leave: Check";
+
+  document.getElementById("streakBox").innerText = "🔥 Streak loading...";
+}
+
+
+function loadMonthlyChart(){
+
+  let all = getAll();
+  let year = new Date().getFullYear();
+  let html = "";
+
+  for(let m=0;m<12;m++){
+
+    let p=0,total=0;
+
+    Object.keys(all).forEach(k=>{
+      let d = new Date(k);
+
+      if(d.getFullYear()==year && d.getMonth()==m){
+
+        let s = (all[k].status||"").toLowerCase();
+
+        if(!s.includes("week") && !s.includes("holiday")){
+          total++;
+          if(s.includes("present")) p++;
+        }
+      }
+    });
+
+    let per = total ? Math.round((p/total)*100) : 0;
+
+    let name = new Date(year,m).toLocaleString("default",{month:"short"});
+
+    html += `
+      <div style="font-size:12px;margin:5px 0;">
+        ${name} ${per}%
+        <div style="height:8px;background:#22c55e;width:${per}%;border-radius:4px;"></div>
+      </div>
+    `;
+  }
+
+  document.getElementById("monthlyChart").innerHTML = html;
+}
 
 function showInsights(){
-document.getElementById("summaryBox")
-.scrollIntoView({behavior:"smooth"});
-}
 
-/* MORE SHEET */
-function openMoreSheet(){
-document.getElementById("moreSheet").style.display="block";
-}
+  // 🔁 अगर already open है → CLOSE करके Calendar दिखाओ
+  if(isInsightOpen){
 
-function closeSheet(){
-document.getElementById("moreSheet").style.display="none";
+    // hide insight
+    document.getElementById("insightBox").style.display = "none";
+
+    // 🔥 restore calendar UI
+    document.getElementById("calendar").style.display = "grid";
+    document.getElementById("summaryBox").style.display = "grid";
+    document.getElementById("weekdays").style.display = "grid";
+    document.getElementById("liveStrip").style.display = "block";
+
+    // reload calendar fresh
+    loadCalendar();
+    loadSummary();
+    updateLiveStrip();
+
+    isInsightOpen = false;
+    return;
+  }
+
+  // 🔥 OPEN INSIGHT
+
+  // hide everything except bottom bar
+  document.getElementById("calendar").style.display = "none";
+  document.getElementById("yearView").style.display = "none";
+  document.getElementById("summaryBox").style.display = "none";
+  document.getElementById("weekdays").style.display = "none";
+  document.getElementById("liveStrip").style.display = "none";
+
+  // show insight
+  document.getElementById("insightBox").style.display = "grid";
+
+  // fresh load
+  loadInsights();
+  loadMonthlyChart();
+
+  window.scrollTo({top:0, behavior:"smooth"});
+
+  isInsightOpen = true;
 }
 
 
@@ -2218,6 +2414,24 @@ function setActiveNav(index){
   document.querySelectorAll(".nav-item").forEach((btn,i)=>{
     btn.classList.toggle("active", i === index);
   });
+}
+
+
+
+function autoHideFooterNote(){
+
+  let note = document.querySelector(".footer-note");
+
+  if(!note) return;
+
+  // show (just in case)
+  note.style.opacity = "1";
+
+  // hide after 5 sec
+setTimeout(()=>{
+  note.style.opacity = "0";
+  note.style.display = "none";
+}, 5000);
 }
 
 
@@ -3068,8 +3282,8 @@ if(!data.out){
 
 cal.appendChild(div);
 
-
-} 
+}
+autoHideFooterNote(); 
 }
 
 
