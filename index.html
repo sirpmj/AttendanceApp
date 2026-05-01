@@ -1740,17 +1740,19 @@ function launchConfetti(){
 
 
 
-function manualWishFromRow(tr){
+function manualWish(name, phone){
 
-  let name = tr.cells[1].innerText;
-  let phone = tr.cells[3].innerText;
-
-  if(!phone){
-    alert("Phone missing in table!");
+  if(!phone || String(phone).trim() === ""){
+    alert("Phone number missing!");
     return;
   }
 
-  let num = phone.replace(/\D/g, "");
+  let num = String(phone).trim().replace(/\D/g, "");
+
+  if(num.length < 10){
+    alert("Invalid phone number: " + phone);
+    return;
+  }
 
   let msg = `🎉 Happy Birthday 🎂
 
