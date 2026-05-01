@@ -1740,20 +1740,23 @@ function launchConfetti(){
 
 
 
-function manualWish(name, phone){
+function manualWishFromRow(tr){
+
+  let name = tr.cells[1].innerText;
+  let phone = tr.cells[3].innerText;
 
   if(!phone){
-    alert("Phone number missing!");
+    alert("Phone missing in table!");
     return;
   }
+
+  let num = phone.replace(/\D/g, "");
 
   let msg = `🎉 Happy Birthday 🎂
 
 Dear ${name},
 
 Wishing you a fantastic year ahead! 🎊✨`;
-
-  let num = String(phone).replace(/\D/g, "");
 
   let url = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
 
