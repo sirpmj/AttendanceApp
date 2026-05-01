@@ -1159,67 +1159,41 @@ color:#fff !important;
 .dark-mode .weekoff-icon{background:#818cf8;}
 
 
-.holiday.birthday{
+/* ================= BASE DAY ================= */
+.day{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch; /* 🔥 center hata diya */
+  padding:2px;
+}
+
+/* ================= HOLIDAY ================= */
+.day.holiday{
+  background:#dbeafe;
+  color:#1e40af;
+}
+
+/* ================= BIRTHDAY ================= */
+.day.birthday{
+  background:#ffc0cb !important;
+  color:#000;
   border:2px solid #ec4899;
 }
 
-.birthday{
-  background:#f9a8d4;
-  color:#831843;
+/* ================= BOTH ================= */
+.day.holiday.birthday{
+  background:linear-gradient(135deg,#ffc0cb,#dbeafe) !important;
 }
 
+/* ================= ANIMATION ================= */
 @keyframes pop{
   from{transform:scale(1);}
   to{transform:scale(1.05);}
 }
 
-@keyframes flash{
-  0%{background:#fff;}
-  50%{background:#fde68a;}
-  100%{background:#fff;}
-}
-
-if(isTodayBirthday){
-  div.classList.add("birthday","animate");
-}else{
-  div.classList.add("birthday");
-}
-
 .animate{
   animation: pop 0.8s ease-in-out infinite alternate;
 }
-
-.wish-btn{
-  display: block;
-  margin-top: 4px;
-  font-size: 10px;
-  padding: 3px 6px;
-  border: none;
-  border-radius: 6px;
-  background: #ff4da6;
-  color: white;
-  cursor: pointer;
-  z-index: 10;
-  position: relative;
-}
-
-.day{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-
-.holiday {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.day.birthday{
-  background:#ffc0cb !important;
-  color:#000;
-}
-
 </style>
 </head>
 
@@ -2612,6 +2586,7 @@ function isAdmin(){
 
 // ✅ Only apply holiday if NO manual data exists
 if(holidays[d] && !old.manual){
+  div.classList.add("holiday");
   data.status = "Holiday";
   data.note = holidays[d];
 }
@@ -2633,27 +2608,33 @@ let div = document.createElement("div");
 // base class
 div.classList.add("day");
 
-// birthday check
-let bList=getBirthdayNames(formatDM(d));
+// 🎂 birthday apply (ALWAYS LAST → priority)
+let bList = getBirthdayNames(formatDM(d));
 
 let birthdayHtml = "";
 
 if(bList.length){
-div.classList.add("birthday");
+
+  div.classList.add("birthday");
+
+  // 👉 today birthday animation
+  let todayDM = getToday();
+  if(bList.some(b => b.date === todayDM)){
+    div.classList.add("animate");
+  }
+
   birthdayHtml = bList.map(x=>{
 
     return `
-      <div class="note">
-        ${x.name}
+      <div class="note birthday-row">
+
+        <span class="bname">🎂 ${x.name}</span>
 
         ${isAdmin() ? `
-          <button onclick="manualWish('${x.name}')">
-            🎉
-          </button>
-
-          <button onclick="sendCardWhatsApp('${x.name}')">
-            🎁
-          </button>
+          <span class="bactions">
+            <button onclick="manualWish('${x.name}')">🎉</button>
+            <button onclick="sendCardWhatsApp('${x.name}')">🎁</button>
+          </span>
         ` : ""}
 
       </div>
