@@ -1219,6 +1219,7 @@ if(isTodayBirthday){
   background:#ffc0cb !important;
   color:#000;
 }
+
 </style>
 </head>
 
@@ -2642,21 +2643,17 @@ div.classList.add("birthday");
   birthdayHtml = bList.map(x=>{
 
     return `
-      <div class="note" style="
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:2px;
-        font-size:10px;
-      ">
-
-        <span>🎂${x.name}</span>
+      <div class="note">
+        ${x.name}
 
         ${isAdmin() ? `
-          <span style="display:flex; gap:2px;">
-            <button onclick="manualWish('${x.name}')">🎉</button>
-            <button onclick="sendCardWhatsApp('${x.name}')">🎁</button>
-          </span>
+          <button onclick="manualWish('${x.name}')">
+            🎉
+          </button>
+
+          <button onclick="sendCardWhatsApp('${x.name}')">
+            🎁
+          </button>
         ` : ""}
 
       </div>
