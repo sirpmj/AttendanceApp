@@ -1177,7 +1177,6 @@ color:#fff !important;
 .day.birthday{
   background:#ffc0cb !important;
   color:#000;
-  border:2px solid #ec4899;
 }
 
 /* ================= BOTH ================= */
@@ -1194,6 +1193,8 @@ color:#fff !important;
 .animate{
   animation: pop 0.8s ease-in-out infinite alternate;
 }
+
+
 </style>
 </head>
 
@@ -2586,7 +2587,6 @@ function isAdmin(){
 
 // ✅ Only apply holiday if NO manual data exists
 if(holidays[d] && !old.manual){
-  div.classList.add("holiday");
   data.status = "Holiday";
   data.note = holidays[d];
 }
@@ -2608,33 +2608,27 @@ let div = document.createElement("div");
 // base class
 div.classList.add("day");
 
-// 🎂 birthday apply (ALWAYS LAST → priority)
-let bList = getBirthdayNames(formatDM(d));
+// birthday check
+let bList=getBirthdayNames(formatDM(d));
 
 let birthdayHtml = "";
 
 if(bList.length){
-
-  div.classList.add("birthday");
-
-  // 👉 today birthday animation
-  let todayDM = getToday();
-  if(bList.some(b => b.date === todayDM)){
-    div.classList.add("animate");
-  }
-
+div.classList.add("birthday");
   birthdayHtml = bList.map(x=>{
 
     return `
-      <div class="note birthday-row">
-
-        <span class="bname">🎂 ${x.name}</span>
+      <div class="note">
+        ${x.name}
 
         ${isAdmin() ? `
-          <span class="bactions">
-            <button onclick="manualWish('${x.name}')">🎉</button>
-            <button onclick="sendCardWhatsApp('${x.name}')">🎁</button>
-          </span>
+          <button onclick="manualWish('${x.name}')">
+            🎉
+          </button>
+
+          <button onclick="sendCardWhatsApp('${x.name}')">
+            🎁
+          </button>
         ` : ""}
 
       </div>
