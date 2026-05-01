@@ -1742,20 +1742,24 @@ function launchConfetti(){
 
 function manualWish(name, phone){
 
-  let msg =
-`🎉 Happy Birthday 🎂
+  if(!phone){
+    alert("Phone number missing!");
+    return;
+  }
+
+  let msg = `🎉 Happy Birthday 🎂
 
 Dear ${name},
 
 Wishing you a fantastic year ahead! 🎊✨`;
 
-  // clean number (remove spaces, +, -)
-  let num = phone.replace(/\D/g, "");
+  let num = String(phone).replace(/\D/g, "");
 
   let url = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
 
   window.open(url, "_blank");
 }
+
 
 
 function autoWishAll(){
