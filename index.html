@@ -1219,6 +1219,38 @@ if(isTodayBirthday){
   background:#ffc0cb !important;
   color:#000;
 }
+
+
+.birthday-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:4px;
+  font-size:10px;
+
+  white-space:nowrap;          /* 🔥 no line break */
+}
+
+.bname{
+  max-width:60%;
+  overflow:hidden;
+  text-overflow:ellipsis;      /* long name → ... */
+}
+
+.bactions{
+  display:flex;
+  gap:3px;
+  flex-shrink:0;               /* buttons squeeze na ho */
+}
+
+.birthday-row button{
+  border:none;
+  background:#4CAF50;
+  color:#fff;
+  border-radius:4px;
+  padding:2px 4px;
+  font-size:9px;
+}
 </style>
 </head>
 
@@ -2638,22 +2670,17 @@ let bList=getBirthdayNames(formatDM(d));
 let birthdayHtml = "";
 
 if(bList.length){
-div.classList.add("birthday");
+  div.classList.add("birthday");
+
   birthdayHtml = bList.map(x=>{
 
     return `
-      <div class="note" style="
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:6px;
-        font-size:11px;
-      ">
+      <div class="note birthday-row">
 
-        <span>🎂 ${x.name}</span>
+        <span class="bname">🎂 ${x.name}</span>
 
         ${isAdmin() ? `
-          <span style="display:flex; gap:4px;">
+          <span class="bactions">
             <button onclick="manualWish('${x.name}')">🎉</button>
             <button onclick="sendCardWhatsApp('${x.name}')">🎁</button>
           </span>
