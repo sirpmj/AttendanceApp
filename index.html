@@ -2638,15 +2638,15 @@ if(bList.length){
 
     return `
       <div class="note">
-        🎂 ${x.name}
+        ${x.name}
 
         ${isAdmin() ? `
           <button onclick="manualWish('${x.name}')">
-            Wish 🎉
+            🎉
           </button>
 
           <button onclick="sendCardWhatsApp('${x.name}')">
-            🎁 Card
+            🎁
           </button>
         ` : ""}
 
