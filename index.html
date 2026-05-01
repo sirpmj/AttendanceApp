@@ -1276,6 +1276,27 @@ color:#fff !important;
 
 
 
+<div id="birthdayPopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+justify-content:center; align-items:center; z-index:9999;">
+
+  <div style="background:#fff; padding:20px; border-radius:12px; text-align:center; width:320px;">
+
+    <h2>🎂 Birthday Today!</h2>
+    <p id="bdayName">Friend</p>
+
+    <canvas id="cardCanvas" width="300" height="220"
+      style="border:1px solid #ddd; margin:10px 0;"></canvas>
+
+    <button onclick="wishWhatsApp()">💬 Wish</button>
+    <button onclick="shareCard()">📤 Share</button>
+    <button onclick="downloadCard()">📥 Download</button>
+    <br><br>
+    <button onclick="closePopup()">❌ Close</button>
+
+  </div>
+</div>
+
+
 <div class="bottom-nav">
 
 <button class="nav-item active" onclick="goHome()">
@@ -1663,6 +1684,108 @@ function formatDM(dateStr){
   return String(d.getDate()).padStart(2,"0") + "-" +
          String(d.getMonth()+1).padStart(2,"0");
 }
+
+
+function showBirthdayPopup(name){
+
+  document.getElementById("birthdayPopup").style.display = "flex";
+  document.getElementById("bdayName").innerText = name;
+
+  let canvas = document.getElementById("cardCanvas");
+  let ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#fff0f5";
+  ctx.fillRect(0,0,300,220);
+
+  ctx.fillStyle = "#d63384";
+  ctx.font = "18px Arial";
+  ctx.fillText("🎉 Happy Birthday 🎉", 50, 60);
+
+  ctx.fillStyle = "#000";
+  ctx.fillText("Dear " + name, 80, 110);
+  ctx.fillText("Wishing you joy & success!", 30, 150);
+}
+
+
+
+function checkBirthday(data){
+
+  let today = new Date();
+  let dd = String(today.getDate()).padStart(2,'0');
+  let mm = String(today.getMonth()+1).padStart(2,'0');
+
+  let todayStr = mm + "-" + dd; // format: 06-01
+
+  data.forEach(row => {
+    if(row.Date === todayStr){
+      showBirthdayPopup(row.Name);
+    }
+  });
+}
+
+
+
+function wishWhatsApp(){
+
+  let name = document.getElementById("bdayName").innerText;
+
+  let msg = `🎉 Happy Birthday 🎂
+
+Dear ${name},
+
+Wishing you a fantastic year ahead! 🎊✨`;
+
+  window.open(
+    "https://wa.me/?text=" + encodeURIComponent(msg),
+    "_blank"
+  );
+}
+
+
+async function shareCard(){
+
+  let canvas = document.getElementById("cardCanvas");
+
+  canvas.toBlob(async (blob) => {
+
+    let file = new File([blob], "birthday-card.png", { type: "image/png" });
+
+    let name = document.getElementById("bdayName").innerText;
+
+    let shareData = {
+      files: [file],
+      text: `🎂 Happy Birthday ${name}! 🎉`,
+      title: "Birthday Wish"
+    };
+
+    if(navigator.canShare && navigator.canShare(shareData)){
+      await navigator.share(shareData);
+    } else {
+      alert("Share not supported. Please download instead.");
+    }
+
+  });
+}
+
+
+
+function downloadCard(){
+
+  let canvas = document.getElementById("cardCanvas");
+
+  let link = document.createElement("a");
+  link.download = "birthday-card.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+
+
+function closePopup(){
+  document.getElementById("birthdayPopup").style.display = "none";
+}
+
+
 
 
 function showBirthdayPopup(){
