@@ -606,6 +606,7 @@ html, body{
 
 /* 🔥 MAIN FIX */
 #loginBox{
+ display:none;
   position:fixed;
   top:0;
   left:0;
@@ -1072,13 +1073,7 @@ padding-bottom:120px;
    ❌ CLOSE BUTTON
 ========================= */
 
-.close-btn{
-  margin-top:8px !important;
-  padding:10px;
-  background:#ef4444 !important;
-  color:#fff !important;
-  justify-content:center;
-}
+
 
 /* =========================
    🌙 DARK MODE SUPPORT
@@ -1347,9 +1342,6 @@ Today: Not Punched
 🚪 Logout
 </button>
 
-<button onclick="closeSheet()" class="close-btn">
-Close
-</button>
 
 </div>
 </div>
@@ -1483,7 +1475,8 @@ const db = firebase.firestore();
 
 <script>
 
-
+document.getElementById("loginBox").style.display = "none";
+document.getElementById("app").style.display = "none";
 
 
 let clickTimer = null;
@@ -2311,7 +2304,14 @@ function isAppInstalled() {
   return window.matchMedia('(display-mode: standalone)').matches;
 }
 
+document.getElementById("moreSheet").addEventListener("click", function(e){
 
+  // agar background (sheet) par click hua
+  if(e.target.id === "moreSheet"){
+    closeSheet();
+  }
+
+});
 
 auth.onAuthStateChanged(user=>{
   if(user){
@@ -2822,11 +2822,21 @@ cal.appendChild(div);
 
 
 // month change
+let isChangingMonth = false;
+
 function changeMonth(step){
-  current.setMonth(current.getMonth()+step);
+  if(isChangingMonth) return; // 🔥 double trigger block
+  isChangingMonth = true;
+
+  current.setMonth(current.getMonth() + step);
+
   loadCalendar();
   loadSummary();
-updateLiveStrip();
+  updateLiveStrip();
+
+  setTimeout(()=>{
+    isChangingMonth = false;
+  }, 200); // small delay
 }
 
 function punchTime(type){
