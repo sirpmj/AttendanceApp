@@ -205,7 +205,7 @@ border-radius:7px;
 }
 
 .day:hover{
-  transform:scale(1.05);
+  transform:translateY(-2px);
 }
 
 .day{
@@ -637,15 +637,25 @@ html, body{
 }
 
 
-
-.calendar.swiping{
-  opacity:0.6;
-  transform:scale(0.98);
-  transition:0.2s;
+.day{
+  position:relative;
+  transition: all 0.25s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
-.day{
-  will-change: transform;
+/* 🔥 PREMIUM HOVER */
+.day:hover{
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  z-index: 5;
+}
+
+
+.day:hover{
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(6px);
 }
 
 .today{
@@ -752,6 +762,11 @@ button{
 
 }
 
+#liveStrip{
+  color:#fff;
+  font-weight:600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4); /* 🔥 glow readability */
+}
 
 .footer-note{
 position:fixed;
@@ -1189,6 +1204,35 @@ color:#fff !important;
   animation: pop 0.8s ease-in-out infinite alternate;
 }
 
+.year-grid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:10px;
+  padding:10px;
+}
+
+.month-box{
+  background:#fff;
+  border-radius:10px;
+  padding:6px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.month-title{
+  font-size:12px;
+  font-weight:600;
+  text-align:center;
+  margin-bottom:4px;
+}
+
+.mini-days{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size:9px;
+  text-align:center;
+}
+
+
 
 </style>
 </head>
@@ -1269,18 +1313,20 @@ color:#fff !important;
   📅 Tap for punch • Double tap on Date for menu
 </div>
 
-
+<div id="yearView" style="display:none;">
+  <div class="year-grid" id="yearGrid"></div>
+</div>
 
 <div class="bottom-nav">
 
-<button class="nav-item active" onclick="goHome()">
-<span>🏠</span>
-<small>Home</small>
+<button class="nav-item active" onclick="goHome(); setActiveNav(0)">
+  <span>🏠</span>
+  <small>Home</small>
 </button>
 
-<button class="nav-item" onclick="showAttendance()">
-<span>📅</span>
-<small>Calendar</small>
+<button class="nav-item" onclick="openYearView()">
+  <span>📅</span>
+  <small>Calendar</small>
 </button>
 
 <button class="punch-fab" onclick="quickPunch()">
@@ -1919,15 +1965,107 @@ Wishing you a wonderful year ahead! 🎊`;
 }
 
 function goHome(){
-window.scrollTo({
-top:0,
-behavior:"smooth"
-});
+
+  // 🔥 India current time
+  let now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+  );
+
+  // 🔥 force reset month + year
+  current = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // 🔥 today select
+  selected = today();
+
+  // 🔥 views reset (IMPORTANT)
+  document.getElementById("yearView").style.display = "none";
+  document.getElementById("calendar").style.display = "grid";
+
+  // 🔥 reload everything
+  loadCalendar();
+  loadSummary();
+  updateLiveStrip();
+
+  // 🔥 scroll top
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+  // 🔥 nav active
+  setActiveNav(0);
 }
 
-function showAttendance(){
-document.getElementById("calendar")
-.scrollIntoView({behavior:"smooth"});
+function openYearView(){
+
+  document.getElementById("yearView").style.display = "block";
+  document.getElementById("calendar").style.display = "none";
+
+  let grid = document.getElementById("yearGrid");
+  grid.innerHTML = "";
+
+  let year = current.getFullYear();
+
+  for(let m=0; m<12; m++){
+
+    let first = new Date(year, m, 1);
+    let last = new Date(year, m+1, 0).getDate();
+
+    let box = document.createElement("div");
+    box.className = "month-box";
+
+    let title = document.createElement("div");
+    title.className = "month-title";
+    title.innerText = first.toLocaleString("default",{month:"short"});
+
+    let days = document.createElement("div");
+    days.className = "mini-days";
+
+    for(let i=1;i<=last;i++){
+      let d = document.createElement("div");
+      d.innerText = i;
+      days.appendChild(d);
+    }
+
+    // 🔥 click → open that month
+box.onclick = ()=>{
+
+  // month set
+  current = new Date(year, m, 1);
+
+  // today logic
+  let now = new Date();
+  if(m === now.getMonth() && year === now.getFullYear()){
+    selected = today();
+  } else {
+    selected = null;
+  }
+
+  // 🔥 views switch (IMPORTANT)
+  document.getElementById("yearView").style.display = "none";
+  document.getElementById("calendar").style.display = "grid"; // 🔥 not block
+
+  // 🔥 force refresh
+  setTimeout(()=>{
+    loadCalendar();
+    loadSummary();
+    updateLiveStrip();
+  }, 50);
+
+  // 🔥 scroll top
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+  setActiveNav(1);
+};
+    box.appendChild(title);
+    box.appendChild(days);
+    grid.appendChild(box);
+  }
+
+  setActiveNav(1);
 }
 
 function showInsights(){
@@ -1965,7 +2103,11 @@ document.body.classList.add("dark-mode");
 }
 
 
-
+function setActiveNav(index){
+  document.querySelectorAll(".nav-item").forEach((btn,i)=>{
+    btn.classList.toggle("active", i === index);
+  });
+}
 
 
 /* HOLIDAY POPUP */
