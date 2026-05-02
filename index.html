@@ -961,7 +961,7 @@ padding-bottom:95px;
   bottom:66px;
   left:50%;
   transform:translateX(-50%);
-  width:90%;
+  width:70%;
 
   overflow:hidden;
   border-radius:14px;
@@ -976,11 +976,12 @@ padding-bottom:95px;
 #liveText{
   display:inline-block;
   white-space:nowrap;
-  animation: scrollText 10s linear infinite;
+  padding-left:100%;   /* 🔥 start from right edge */
+  animation: scrollText 18s linear infinite;
 }
 
 @keyframes scrollText{
-  0%{ transform: translateX(100%); }
+  0%{ transform: translateX(0); }
   100%{ transform: translateX(-100%); }
 }
 
