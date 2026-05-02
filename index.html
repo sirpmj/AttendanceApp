@@ -975,7 +975,6 @@ padding-bottom:95px;
   bottom:66px;
   left:50%;
   transform:translateX(-50%);
-  width:30%;
 
   overflow:hidden;
   border-radius:14px;
@@ -986,18 +985,7 @@ padding-bottom:95px;
   font-size:12px;
 }
 
-/* scrolling text */
-#liveText{
-  display:inline-block;
-  white-space:nowrap;
-  padding-left:100%;   /* 🔥 start from right edge */
-  animation: scrollText 18s linear infinite;
-}
 
-@keyframes scrollText{
-  0%{ transform: translateX(0); }
-  100%{ transform: translateX(-100%); }
-}
 
 @media (max-width: 600px){
   #liveStrip{
