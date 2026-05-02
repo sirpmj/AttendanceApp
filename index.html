@@ -660,6 +660,18 @@ html, body{
   backdrop-filter: blur(6px);
 }
 
+/* mobile ke liye disable */
+@media(max-width:600px){
+  .day:hover{
+    box-shadow:none;
+    transform:none;
+  }
+
+  .topbar{
+    backdrop-filter:none;
+  }
+}
+
 .today{
   background:#DBEAFE; /* thoda darker blue */
   border:2px solid #2563EB;
@@ -1968,7 +1980,7 @@ setInterval(async ()=>{
     updateLiveStrip();
   }
 
-}, 5000);
+}, 30000);
 
 }
 
