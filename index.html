@@ -1805,6 +1805,19 @@ function launchConfetti(){
 
 function manualWish(name, phone){
 
+  if(!phone){
+    alert("Phone number missing!");
+    return;
+  }
+
+  // 🔥 clean number
+  phone = phone.toString().replace(/\D/g,"");
+
+  // add country code if missing
+  if(phone.length === 10){
+    phone = "91" + phone;
+  }
+
   let msg =
 `🎉 Happy Birthday 🎂
 
@@ -1812,11 +1825,9 @@ Dear ${name},
 
 Wishing you a fantastic year ahead! 🎊✨`;
 
-  let clean = formatPhone(phone);
+  let url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 
-  let url = clean
-    ? "https://wa.me/" + clean + "?text=" + encodeURIComponent(msg)
-    : "https://wa.me/?text=" + encodeURIComponent(msg);
+  console.log("Opening:", url); // debug
 
   window.open(url, "_blank");
 }
