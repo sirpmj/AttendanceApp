@@ -14,7 +14,9 @@
   font-family: system-ui, -apple-system, Arial;
 }
 
-
+#calendar{
+  contain: layout style paint;
+}
 
 /* TOP BAR */
 .topbar{
@@ -961,7 +963,7 @@ padding-bottom:95px;
   bottom:66px;
   left:50%;
   transform:translateX(-50%);
-  width:70%;
+  width:30%;
 
   overflow:hidden;
   border-radius:14px;
@@ -1266,6 +1268,14 @@ color:#fff !important;
   line-height:1.6;
   display:block;
 }
+
+.day{
+  will-change: transform;
+}
+
+#calendar{
+  contain: content;
+}
 </style>
 </head>
 
@@ -1559,7 +1569,7 @@ document.getElementById("app").style.display = "none";
 let lastSheetData = "";
 let clickTimer = null;
 let isYearMode = false;
-
+let snapTimer;
 
 async function loadSheetData(){
 
@@ -1605,8 +1615,8 @@ if(type === "holiday"){
 
 });
 
-console.log("Birthdays:", birthdayData);
-console.log("Holidays:", holidays);
+// console.log("Birthdays:", birthdayData);
+// console.log("Holidays:", holidays);
 
 }catch(e){
 console.log("Sheet fetch error",e);
@@ -1641,7 +1651,7 @@ function logout(){
   firebase.auth().signOut().then(()=>{
     document.getElementById("email").value = "";
     document.getElementById("password").value = "";
-    document.getElementById("msg").innerText = "Logged out";
+    document.getElementById("msg").textContent = "Logged out";
   });
 }
 
@@ -1655,7 +1665,7 @@ function toggleMode(){
   document.getElementById("signupBtn").style.display = isSignup ? "block" : "none";
   document.getElementById("loginBtn").style.display = isSignup ? "none" : "block";
 
-  document.getElementById("toggleText").innerText = 
+  document.getElementById("toggleText").textContent = 
     isSignup ? "Already have an account? Login" : "Don't have an account? Sign Up";
 
   // 👇 clear fields (अब सही जगह)
@@ -1672,7 +1682,7 @@ function handleAuth(){
   let msg = document.getElementById("msg");
 
   if(!email || !pass || (isSignup && !name)){
-    msg.innerText = "Please fill all fields";
+    msg.textContent = "Please fill all fields";
     return;
   }
 
@@ -1693,11 +1703,11 @@ function handleAuth(){
         email: email
       });
 
-      msg.innerText = "Account Created";
+      msg.textContent = "Account Created";
 
     })
     .catch(e=>{
-      msg.innerText = e.message;
+      msg.textContent = e.message;
     });
 
   }
@@ -1707,10 +1717,10 @@ function handleAuth(){
 
     auth.signInWithEmailAndPassword(email, pass)
     .then(()=>{
-      msg.innerText = "Login Success";
+      msg.textContent = "Login Success";
     })
     .catch(e=>{
-      msg.innerText = e.message;
+      msg.textContent = e.message;
     });
 
   }
@@ -1867,7 +1877,7 @@ function addBirthdayBadge(cell, date){
 
   if(list.length > 0){
     let badge = document.createElement("div");
-    badge.innerText = "🎂";
+    badge.textContent = "🎂";
     badge.style.position = "absolute";
     badge.style.top = "2px";
     badge.style.right = "4px";
@@ -1948,13 +1958,17 @@ async function initApp(){
   showBirthdayPopup();
 
   // 🔥 AUTO REFRESH EVERY 30 SEC
-  setInterval(async ()=>{
-    console.log("🔄 Syncing Sheet...");
-    await loadSheetData();
+setInterval(async ()=>{
 
+  let changed = await loadSheetData();
+
+  if(changed){
     loadCalendar();
     loadSummary();
-  }, 5000);
+    updateLiveStrip();
+  }
+
+}, 5000);
 
 }
 
@@ -2081,7 +2095,7 @@ function openYearView(){
 
     let title = document.createElement("div");
     title.className = "month-title";
-    title.innerText = first.toLocaleString("default",{month:"short"});
+    title.textContent = first.toLocaleString("default",{month:"short"});
 
     let days = document.createElement("div");
 let weekHeader = document.createElement("div");
@@ -2101,7 +2115,7 @@ for(let i=0;i<startDay;i++){
 }
     for(let i=1;i<=last;i++){
       let d = document.createElement("div");
-      d.innerText = i;
+      d.textContent = i;
 
 // 🔑 Date key
 let dateKey = year + "-" +
@@ -2408,7 +2422,7 @@ function updateLiveStrip(){
 let d = getData();
 
 if(!d.in && !d.out && !d.status){
-document.getElementById("liveText").innerText = txt;
+document.getElementById("liveText").textContent = txt;
 document.getElementById("liveStrip").style.background="#2563eb";
 return;
 }
@@ -2472,7 +2486,7 @@ extra;
 
 /* APPLY */
 let strip = document.getElementById("liveStrip");
-document.getElementById("liveText").innerText = txt;
+document.getElementById("liveText").textContent = txt;
 strip.style.background = color;
 
 }
@@ -2726,33 +2740,33 @@ auth.onAuthStateChanged(user=>{
     else if(hour < 18) greet = "Good Afternoon";
     else greet = "Good Evening";
 
-    document.getElementById("userWelcome").innerText = `${greet}, ${name}`;
+    document.getElementById("userWelcome").textContent = `${greet}, ${name}`;
 
     // 🔥 Firestore listener
 db.collection("users")
 .doc(user.uid)
 .collection("attendance")
-.onSnapshot(async(snapshot) => {
+.onSnapshot((snapshot) => {
 
-let all={};
+  let all = {};
 
-snapshot.forEach(doc=>{
-all[doc.id]=doc.data();
-});
+  snapshot.forEach(doc=>{
+    all[doc.id] = doc.data();
+  });
 
-window.firebaseCache=all;
+  clearTimeout(snapTimer);
 
-/* Birthday fetch */
-await loadSheetData();
+  snapTimer = setTimeout(()=>{
 
-loadCalendar();
-loadSummary();
+    window.firebaseCache = all;
 
-showBirthdayPopup();
+    requestAnimationFrame(()=>{   // 🔥 smooth UI
+      loadCalendar();
+      loadSummary();
+      updateLiveStrip();
+    });
 
-updateLiveStrip();
-
-showFirstTimePopup();
+  }, 150); // 🔥 batching
 
 });
 
@@ -2760,7 +2774,7 @@ showFirstTimePopup();
     document.getElementById("loginBox").style.display="flex";
     document.getElementById("app").style.display="none";
 
-    document.getElementById("userWelcome").innerText = "";
+    document.getElementById("userWelcome").textContent = "";
   }
 });
 
@@ -2878,7 +2892,7 @@ function getData(){
 let noteCallback = null;
 
 function openNoteModal(title, callback){
-  document.getElementById("noteTitle").innerText = title;
+  document.getElementById("noteTitle").textContent = title;
 
   let input = document.getElementById("noteInput");
   input.value = "";
@@ -2920,291 +2934,230 @@ updateLiveStrip();
 
 // calendar
 function loadCalendar(){
-  let cal=document.getElementById("calendar");
-  cal.innerHTML="";
+
+  let cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+
+  let fragment = document.createDocumentFragment(); // 🔥 FAST
 
   let year = current.getFullYear();
   let month = current.getMonth();
 
-  document.getElementById("monthTitle").innerText =
+  document.getElementById("monthTitle").textContent =
     current.toLocaleString('default',{month:'long',year:'numeric'});
 
   let firstDay = new Date(year, month, 1).getDay();
   let days = new Date(year, month+1,0).getDate();
 
+  let all = getAll(); // 🔥 once only
+
+  // empty boxes
   for(let i=0;i<firstDay;i++){
-    cal.appendChild(document.createElement("div"));
+    fragment.appendChild(document.createElement("div"));
   }
 
+  // days loop
   for(let i=1;i<=days;i++){
-    let date=new Date(year, month, i);
+
+    let date = new Date(year, month, i);
+
     let d = date.getFullYear() + "-" + 
-        String(date.getMonth()+1).padStart(2,'0') + "-" + 
-        String(date.getDate()).padStart(2,'0');
+      String(date.getMonth()+1).padStart(2,'0') + "-" + 
+      String(date.getDate()).padStart(2,'0');
 
-   let all = getAll();
-let old = all[d] || {};
+    let old = all[d] || {};
 
+    let isSunday = date.getDay() === 0;
 
-let isSunday = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  timeZone: "Asia/Kolkata"
-}).format(date) === "Sun";
+    let data = {
+      date: d,
+      in: old.in || "",
+      out: old.out || "",
+      status: old.status || "",
+      note: old.note || ""
+    };
 
-let data = {
-  date: d,
-  in: old.in || "",
-  out: old.out || "",
-  status: old.status || "",
-  note: old.note || ""
-};
+    if(isSunday && !data.status){
+      data.status = "Sunday";
+    }
 
-// 🔥 DEFAULT SUNDAY = OFF (auto save)
-if(isSunday && !data.status){
-  data.status = "Sunday"; // only UI
-}
+    if(holidays[d] && !old.manual){
+      data.status = "Holiday";
+      data.note = holidays[d];
+    }
 
-const ADMINS = [
-  "sbprajapati@suvidhigroup.com",
-  "mespmj@gmail.com"
-];
+    let cls = data.status ? data.status.toLowerCase() : "";
 
-function isAdmin(){
-  let user = firebase.auth().currentUser;
-  return user && ADMINS.includes(user.email);
-}
+    if(data.status === "Early" || data.early){
+      cls = "early";
+    }
 
-// ✅ Only apply holiday if NO manual data exists
-if(holidays[d] && !old.manual){
-  data.status = "Holiday";
-  data.note = holidays[d];
-}
+    let div = document.createElement("div");
+    div.classList.add("day");
 
+    // birthday
+    let bList = getBirthdayNames(formatDM(d));
+    let birthdayHtml = "";
 
-let cls = "";
+    if (bList.length) {
+      div.classList.add("birthday");
 
-if(data.status){
-  cls = data.status.toLowerCase();
-}
+      birthdayHtml = bList.map(x => {
+        return `
+          <div class="note">
+            ${x.name}
 
-// 🔥 FIX: EARLY detect by BOTH
-if(data.status === "Early" || data.early){
-  cls = "early";
-}
+            ${isAdmin() ? `
+              <button onclick="event.stopPropagation(); manualWish('${x.name}', '${x.phone}')">🎉</button>
+              <button onclick="event.stopPropagation(); sendCardWhatsApp('${x.name}')">🎁</button>
+            ` : ""}
+          </div>
+        `;
+      }).join("");
+    }
 
-let div = document.createElement("div");
+    if (cls) div.classList.add(cls);
+    if (d === today()) div.classList.add("today");
 
-// base class
-div.classList.add("day");
+    let inT = data.in ? `<div class="time in">⬇ ${data.in}</div>` : "";
+    let outT = data.out ? `<div class="time out">⬆ ${data.out}</div>` : "";
 
-// birthday check
-let bList = getBirthdayNames(formatDM(d));
+    let displayStatus = data.status;
+    if(data.early) displayStatus = "Early";
 
-let birthdayHtml = "";
+    let st = displayStatus
+      ? `<div style="font-size:9px;">${displayStatus}</div>`
+      : "";
 
-if (bList.length) {
-  div.classList.add("birthday");
+    let holidayText = (data.note || "").replace(/\s+/g,"<br>");
 
-  birthdayHtml = bList.map(x => {
-    return `
-      <div class="note">
-        ${x.name}
+    let holidayHtml = data.note
+      ? `<div class="note">${holidayText}</div>`
+      : "";
 
-        ${isAdmin() ? `
-          <button onclick="event.stopPropagation(); manualWish('${x.name}', '${x.phone}')">
-            🎉
-          </button>
+    div.innerHTML = `
+      <b class="date-num">${i}</b>
+      ${inT}
+      ${outT}
+      ${st}
+      ${holidayHtml}
+      ${birthdayHtml}
 
-          <button onclick="event.stopPropagation(); sendCardWhatsApp('${x.name}')">
-            🎁
-          </button>
-        ` : ""}
-
+      <div class="quick-actions">
+        <button class="mini-btn in-btn">↗ 09:00</button>
+        <button class="mini-btn out-btn">↘ 18:00</button>
       </div>
     `;
-  }).join("");
-}
 
-// status class
-if (cls) {
-  div.classList.add(cls);
-}
+    // prevent wish click bubble
+    div.querySelector(".wish-btn")?.addEventListener("click", function(e){
+      e.stopPropagation();
+    });
 
-// today highlight
-if (d === today()) {
-  div.classList.add("today");
-}
-
-
-let inT = data.in 
-  ? `<div class="time in">⬇ ${data.in}</div>` 
-  : "";
-
-let outT = data.out 
-  ? `<div class="time out">⬆ ${data.out}</div>` 
-  : "";
-let displayStatus = data.status;
-
-if(data.early){
-  displayStatus = "Early";
-}
-
-let st = displayStatus
-  ? `<div style="font-size:9px;">${displayStatus}</div>`
-  : "";
-
-// ✅ safe holiday text formatting
-let holidayText = data.note || "";
-
-// replace ALL spaces (not only first)
-holidayText = holidayText.replace(/\s+/g, "<br>");
-
-let holidayHtml = data.note
-  ? `<div class="note">${holidayText}</div>`
-  : "";
-
-div.innerHTML=`
-<b class="date-num">${i}</b>
-${inT}
-${outT}
-${st}
-${holidayHtml}
-${birthdayHtml}
-
-<div class="quick-actions">
-<button class="mini-btn in-btn">↗ 09:00</button>
-<button class="mini-btn out-btn">↘ 18:00</button>
-</div>
-`;
-
-
-div.querySelector(".wish-btn")?.addEventListener("click", function(e){
-  e.stopPropagation();
-});
     // right click
+    div.oncontextmenu = (e) => {
+      e.preventDefault();
+      selected = d;
+      showMenu(e.pageX, e.pageY, d);
+    };
 
-div.oncontextmenu = (e) => {
-  e.preventDefault();
-  selected = d;
-  showMenu(e.pageX, e.pageY, d);
-};
+    // double click
+    div.addEventListener("dblclick", function(e){
+      e.preventDefault();
+      selected = d;
+      showMenu(e.pageX, e.pageY, d);
+    });
 
-div.addEventListener("dblclick", function(e){
-  e.preventDefault();
+    // mobile double tap
+    let lastTap = 0;
 
-  selected = d;
+    div.addEventListener("touchend", function(e){
+      let currentTime = new Date().getTime();
+      let tapLength = currentTime - lastTap;
 
-  showMenu(
-    e.pageX,
-    e.pageY,
-    d
-  );
-});
+      if(tapLength < 300 && tapLength > 0){
+        selected = d;
 
+        showMenu(
+          e.changedTouches[0].pageX,
+          e.changedTouches[0].pageY,
+          d
+        );
 
-// 🔥 MOBILE LONG PRESS (ADD HERE)
-let lastTap = 0;
+        e.preventDefault();
 
-div.addEventListener("touchend", function(e){
+        if(navigator.vibrate){
+          navigator.vibrate(30);
+        }
+      }
 
-  let currentTime = new Date().getTime();
-  let tapLength = currentTime - lastTap;
+      lastTap = currentTime;
+    });
 
-  if(tapLength < 300 && tapLength > 0){
-    // ✅ DOUBLE TAP → MENU
-    selected = d;
+    // click select
+    div.addEventListener("click",function(e){
 
-    showMenu(
-      e.changedTouches[0].pageX,
-      e.changedTouches[0].pageY,
-      d
-    );
+      if(e.detail === 2) return;
 
-    // 🔥 prevent zoom
-    e.preventDefault();
+      if(
+        e.target.classList.contains("in-btn") ||
+        e.target.classList.contains("out-btn")
+      ){
+        return;
+      }
 
-    // 🔥 vibration (optional)
-    if(navigator.vibrate){
-      navigator.vibrate(30);
-    }
+      document.querySelectorAll(".day")
+        .forEach(x=>x.classList.remove("active"));
+
+      this.classList.add("active");
+      selected = d;
+
+    });
+
+    // IN button
+    div.querySelector(".in-btn").addEventListener("click",function(e){
+      e.stopPropagation();
+
+      let data = all[d] || {date:d};
+
+      if(!data.in){
+        data.in = getTime();
+        data = updateStatus(data);
+        save(data);
+      } else {
+        openTimeModal("Edit IN Time",(t)=>{
+          data.in = t;
+          data = updateStatus(data);
+          save(data);
+        });
+      }
+    });
+
+    // OUT button
+    div.querySelector(".out-btn").addEventListener("click",function(e){
+      e.stopPropagation();
+
+      let data = all[d] || {date:d};
+
+      if(!data.out){
+        data.out = getTime();
+        data = updateStatus(data);
+        save(data);
+      } else {
+        openTimeModal("Edit OUT Time",(t)=>{
+          data.out = t;
+          data = updateStatus(data);
+          save(data);
+        });
+      }
+    });
+
+    fragment.appendChild(div); // 🔥 no direct DOM hit
   }
 
-  lastTap = currentTime;
-});
+  cal.appendChild(fragment); // 🔥 single render
 
-// CLICK (IN / OUT)
-div.addEventListener("click",function(e){
-
-if(e.detail === 2) return; // 🔥 IMPORTANT
-
-if(
-e.target.classList.contains("in-btn") ||
-e.target.classList.contains("out-btn")
-){
-return;
-}
-
-document.querySelectorAll(".day")
-.forEach(x=>x.classList.remove("active"));
-
-this.classList.add("active");
-selected=d;
-
-});
-
-
-// IN button
-div.querySelector(".in-btn").addEventListener("click",function(e){
-e.stopPropagation();
-
-let data=getAll()[d] || {date:d};
-
-if(!data.in){
-  // ✅ FIRST TAP → AUTO TIME
-  data.in = getTime();
-  data = updateStatus(data);
-  save(data);
-} else {
-  // ✅ SECOND TAP → EDIT
-  openTimeModal("Edit IN Time",(t)=>{
-    data.in=t;
-    data=updateStatus(data);
-    save(data);
-  });
-}
-
-});
-
-
-// OUT button
-div.querySelector(".out-btn").addEventListener("click",function(e){
-e.stopPropagation();
-
-let data=getAll()[d] || {date:d};
-
-if(!data.out){
-  // ✅ FIRST TAP → AUTO TIME
-  data.out = getTime();
-  data = updateStatus(data);
-  save(data);
-} else {
-  // ✅ SECOND TAP → EDIT
-  openTimeModal("Edit OUT Time",(t)=>{
-    data.out=t;
-    data=updateStatus(data);
-    save(data);
-  });
-}
-
-});
-
-
-
-cal.appendChild(div);
-
-
-}
-autoHideFooterNote(); 
+  autoHideFooterNote();
 }
 
 
@@ -3444,16 +3397,16 @@ if(leaveMonthlyUsed > leaveMonthlyLimit){
 let working = p + l + totalHalf;
 let total = p + l + a + lv + totalHalf + o + holidayMonth;
 
-  document.getElementById("sumPresent").innerText=p;
-  document.getElementById("sumAbsent").innerText=a;
-document.getElementById("sumHalf").innerText = totalHalf;
-document.getElementById("sumWeekoff").innerText = weekoff;
-document.getElementById("holidayBox").innerText = 
+  document.getElementById("sumPresent").textContent=p;
+  document.getElementById("sumAbsent").textContent=a;
+document.getElementById("sumHalf").textContent = totalHalf;
+document.getElementById("sumWeekoff").textContent = weekoff;
+document.getElementById("holidayBox").textContent = 
   holidayMonth + " (" + holidayTillNow + "/" + holidayYear + ")";
-document.getElementById("sumPercent").innerText=
+document.getElementById("sumPercent").textContent=
     total?((working/total)*100).toFixed(1)+"%":"0%";
 
-document.getElementById("lateBox").innerText = 
+document.getElementById("lateBox").textContent = 
   l + " (" + lateUsed + "/" + lateLimit + ")" + (lateWarning ? " ⚠️" : "");
 
 let leave = getLeaveSummary();
@@ -3463,7 +3416,7 @@ document.getElementById("leaveBox").innerHTML =
 <span class="leave-break"></span>
 B:${leave.balance} | Y:${leave.usedYear}/${leave.yearlyLimit}`;
 
-document.getElementById("earlyUsed").innerText = 
+document.getElementById("earlyUsed").textContent = 
   earlyUsed + "/" + earlyLimit + (earlyWarning ? " ⚠️" : "");
 }
 
@@ -3831,7 +3784,7 @@ if(toMinutes(data.out) < toMinutes(officeOut)){
 let modalCallback = null;
 
 function openTimeModal(title, callback){
-  document.getElementById("modalTitle").innerText = title;
+  document.getElementById("modalTitle").textContent = title;
 
   let input = document.getElementById("modalTime");
 
