@@ -1276,6 +1276,29 @@ color:#fff !important;
 #calendar{
   contain: content;
 }
+
+.year-title{
+  text-align:center;     /* 🔥 center heading */
+  margin-bottom:8px;
+  font-size:14px;
+}
+
+.year-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;   /* 🔥 center chips */
+}
+
+.chip{
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  color:#fff;
+  white-space:nowrap;
+}
+
 </style>
 </head>
 
@@ -2285,19 +2308,23 @@ function loadYearSummary(){
   let working = (p+l+e+hf+lv+a);
   let percent = working ? Math.round((p/working)*100) : 0;
 
-  document.getElementById("yearSummary").innerHTML = `
-  <b>📊 Year Summary</b><br>
+document.getElementById("yearSummary").innerHTML = `
+  <div class="year-title"><b>📊 Year Summary</b></div>
 
-  🟢 Present: ${p}<br>
-  🟡 Late: ${l}<br>
-  🔵 Early: ${e}<br>
-  🟠 Half Day: ${hf}<br>
-  🔵 Leave: ${lv}<br>
-  🔴 Absent: ${a}<br>
-  ⚫ Week Off: ${w}<br>
-  🟣 Holiday: ${hol}<br><br>
-  <b>Attendance: ${percent}%</b>
-  `;
+  <div class="year-row">
+
+    <span class="chip present-icon">🟢 Present: ${p}</span>
+    <span class="chip late-icon">🟡 Late: ${l}</span>
+    <span class="chip early-icon">🔵 Early: ${e}</span>
+    <span class="chip half-icon">🟠 Half Day: ${hf}</span>
+    <span class="chip leave-icon">🟣 Leave: ${lv}</span>
+    <span class="chip absent-icon">🔴 Absent: ${a}</span>
+    <span class="chip weekoff-icon">⚫ Week Off: ${w}</span>
+    <span class="chip holiday-icon">🟤 Holiday: ${hol}</span>
+    <span class="chip percent-icon">📊 ${percent}%</span>
+
+  </div>
+`;
 }
 function showInsights(){
 document.getElementById("summaryBox")
