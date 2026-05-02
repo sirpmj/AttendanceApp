@@ -1569,6 +1569,13 @@ let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA3
 let res = await fetch(url,{cache:"no-store"});
 let text = await res.text();
 
+// 🔥 SAME DATA → SKIP
+if(text === lastSheetData){
+  return; // no update needed
+}
+
+lastSheetData = text;
+
 let rows = text.trim().split("\n");
 
 birthdayData = [];
