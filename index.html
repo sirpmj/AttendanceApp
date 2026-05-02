@@ -1560,62 +1560,52 @@ let clickTimer = null;
 let isYearMode = false;
 
 
-let lastSheetData = ""; // 🔥 global
-
 async function loadSheetData(){
 
-  try{
+try{
 
-    let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
+let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRdMkiYOdQ-eu2UeMcxA32EOXj9OiCP7CyCKAjQIp3s9ez-MoOAQRa6lExlBLLdmS5uTj2N9Oe0LYZi/pub?output=csv&t=" + Date.now();
 
-    let res = await fetch(url,{cache:"no-store"});
-    let text = await res.text();
+let res = await fetch(url,{cache:"no-store"});
+let text = await res.text();
 
-    // 🔥 SAME DATA → SKIP
-    if(text === lastSheetData){
-      return false; // no change
-    }
+let rows = text.trim().split("\n");
 
-    lastSheetData = text;
+birthdayData = [];
+holidays = {};
 
-    let rows = text.trim().split("\n");
+rows.slice(1).forEach(r=>{
 
-    birthdayData = [];
-    holidays = {};
+let c = r.split(",");
 
-    rows.slice(1).forEach(r=>{
+let type = (c[0]||"").trim().toLowerCase();
+let name = (c[1]||"").trim();
+let date = (c[2]||"").trim();
+let phone = (c[3]||"").trim();
 
-      // 🔥 FIX CSV SAFE SPLIT
-      let c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+if(type === "birthday"){
+  birthdayData.push({
+    name,
+    date,   // DD-MM
+    phone
+  });
+}
 
-      let type = (c[0]||"").trim().toLowerCase();
-      let name = (c[1]||"").replace(/"/g,"").trim();
-      let date = (c[2]||"").trim();
-      let phone = (c[3]||"").trim();
+if(type === "holiday"){
+  holidays[date] = name; // YYYY-MM-DD
+}
 
-      if(type === "birthday"){
-        birthdayData.push({
-          name,
-          date,
-          phone
-        });
-      }
+});
 
-      if(type === "holiday"){
-        holidays[date] = name;
-      }
+console.log("Birthdays:", birthdayData);
+console.log("Holidays:", holidays);
 
-    });
+}catch(e){
+console.log("Sheet fetch error",e);
+birthdayData=[];
+holidays={};
+}
 
-    console.log("✅ Sheet Updated");
-    return true; // changed
-
-  }catch(e){
-    console.log("Sheet fetch error",e);
-    birthdayData=[];
-    holidays={};
-    return false;
-  }
 }
 
 // 🔥 NEW SETTINGS
@@ -1950,17 +1940,15 @@ async function initApp(){
   showBirthdayPopup();
 
   // 🔥 AUTO REFRESH EVERY 30 SEC
-setInterval(async ()=>{
+  setInterval(async ()=>{
+    console.log("🔄 Syncing Sheet...");
+    await loadSheetData();
 
-  let changed = await loadSheetData();
-
-  if(changed){
     loadCalendar();
     loadSummary();
-    updateLiveStrip();
-  }
+  }, 5000);
 
-}, 5000);
+}
 
 
 function showUpcomingBirthdays(){
