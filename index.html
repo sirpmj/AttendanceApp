@@ -2070,61 +2070,55 @@ for(let i=0;i<startDay;i++){
 let dateKey = year + "-" +
   String(m+1).padStart(2,'0') + "-" +
   String(i).padStart(2,'0');
+let data = getAll()[dateKey] || {};
+let s = (data.status || "").toLowerCase();
 
-let data = getAll()[dateKey];
+// 🔥 1. Sunday (Week Off)
+if(new Date(year, m, i).getDay() === 0){
+  d.style.background = "#6b7280";
+  d.style.color = "#fff";
+}
 
-if(data){
+// 🔥 2. Holiday
+else if(holidays && holidays[dateKey]){
+  d.style.background = "#a855f7";
+  d.style.color = "#fff";
+}
 
-  let s = (data.status || "").toLowerCase();
+// 🔥 3. Present
+else if(s.includes("present")){
+  d.style.background = "#22c55e";
+  d.style.color = "#fff";
+}
 
-  // 🟢 Present
-  if(s.includes("present")){
-    d.style.background = "#22c55e";
-    d.style.color = "#fff";
-  }
+// 🟡 Late
+else if(s.includes("late")){
+  d.style.background = "#facc15";
+  d.style.color = "#000";
+}
 
-  // 🟡 Late
-  else if(s.includes("late")){
-    d.style.background = "#facc15";
-    d.style.color = "#000";
-  }
+// 🔵 Early
+else if(s.includes("early")){
+  d.style.background = "#38bdf8";
+  d.style.color = "#000";
+}
 
-  // 🔵 Early (different shade)
-  else if(s.includes("early")){
-    d.style.background = "#38bdf8";
-    d.style.color = "#000";
-  }
+// 🟠 Half Day
+else if(s.includes("half")){
+  d.style.background = "#fb923c";
+  d.style.color = "#000";
+}
 
-  // 🟠 Half Day
-  else if(s.includes("half")){
-    d.style.background = "#fb923c";
-    d.style.color = "#000";
-  }
+// 🔵 Leave
+else if(s.includes("leave")){
+  d.style.background = "#3b82f6";
+  d.style.color = "#fff";
+}
 
-  // 🔵 Leave
-  else if(s.includes("leave")){
-    d.style.background = "#3b82f6";
-    d.style.color = "#fff";
-  }
-
-  // 🔴 Absent
-  else if(s.includes("absent")){
-    d.style.background = "#ef4444";
-    d.style.color = "#fff";
-  }
-
-  // ⚫ Week Off
-  else if(s.includes("week")){
-    d.style.background = "#6b7280";
-    d.style.color = "#fff";
-  }
-
-  // 🟣 Holiday
-  else if(s.includes("holiday")){
-    d.style.background = "#a855f7";
-    d.style.color = "#fff";
-  }
-
+// 🔴 Absent
+else if(s.includes("absent")){
+  d.style.background = "#ef4444";
+  d.style.color = "#fff";
 }
       days.appendChild(d);
     }
