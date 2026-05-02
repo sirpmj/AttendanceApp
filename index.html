@@ -994,7 +994,8 @@ transform:translateX(-50%);
 font-size:11px;
 padding:6px 12px;
 z-index:9997;
-
+opacity:1;
+  transition:0.5s;
 white-space:nowrap;
 max-width:90%;
 overflow:hidden;
@@ -1246,6 +1247,16 @@ color:#fff !important;
   z-index:9999;
 }
 
+.year-summary{
+  margin:10px;
+  padding:10px;
+  background:#111;
+  color:#fff;
+  border-radius:10px;
+  font-size:13px;
+  line-height:1.6;
+  display:block;
+}
 </style>
 </head>
 
@@ -1327,6 +1338,7 @@ color:#fff !important;
 
 <div id="yearView" style="display:none;">
   <div class="year-grid" id="yearGrid"></div>
+<div id="yearSummary" class="year-summary"></div>
 </div>
 
 <div class="bottom-nav">
@@ -1336,7 +1348,7 @@ color:#fff !important;
   <small>Home</small>
 </button>
 
-<button class="nav-item" onclick="openYearView()">
+<button class="nav-item" onclick="toggleCalendarView()">
   <span>📅</span>
   <small>Calendar</small>
 </button>
@@ -1538,7 +1550,7 @@ document.getElementById("app").style.display = "none";
 
 
 let clickTimer = null;
-
+let isYearMode = false;
 
 
 async function loadSheetData(){
@@ -1978,47 +1990,44 @@ Wishing you a wonderful year ahead! 🎊`;
 
 function goHome(){
 
-  // 🔥 India current time
-  let now = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-  );
+  // 🔥 STEP 1: Exit year view properly
+  closeYearView();   // important
 
-  // 🔥 force reset month + year
+  // 🔥 STEP 2: Reset flags
+  isYearMode = false;
+
+  // 🔥 STEP 3: Reset date to current
+  let now = new Date();
   current = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  // 🔥 today select
   selected = today();
 
-  // 🔥 views reset (IMPORTANT)
-document.getElementById("yearView").style.display = "block";
-document.getElementById("calendar").style.display = "none";
-document.getElementById("insightScreen").style.display = "none";
-  // 🔥 reload everything
+  // 🔥 STEP 4: Reload everything
   loadCalendar();
   loadSummary();
   updateLiveStrip();
 
-  // 🔥 scroll top
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  // 🔥 STEP 5: Scroll top
+  window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // 🔥 nav active
+  // 🔥 STEP 6: Active nav reset
   setActiveNav(0);
 }
 
 function openYearView(){
 
-  // 🔥 hide other screens
-  document.getElementById("calendar").style.display = "none";
-  document.getElementById("insightScreen").style.display = "none";
-
-  // 🔥 show year view
+  // ✅ show year
   document.getElementById("yearView").style.display = "block";
 
-  // 🔥 hide topbar (IMPORTANT)
+  // ❌ hide बाकी UI
   document.querySelector(".topbar").style.display = "none";
+  document.querySelector(".action-bar").style.display = "none";
+  document.getElementById("summaryBox").style.display = "none";
+  document.getElementById("weekdays").style.display = "none";
+  document.getElementById("calendar").style.display = "none";
+  document.getElementById("liveStrip").style.display = "none";
+
+  // ✅ IMPORTANT: bottom nav visible रहेगा
+  document.querySelector(".bottom-nav").style.display = "flex";
 
   let grid = document.getElementById("yearGrid");
   grid.innerHTML = "";
@@ -2029,7 +2038,6 @@ function openYearView(){
 
     let first = new Date(year, m, 1);
     let last = new Date(year, m+1, 0).getDate();
-    let startDay = first.getDay(); // 🔥 weekday start
 
     let box = document.createElement("div");
     box.className = "month-box";
@@ -2038,68 +2046,196 @@ function openYearView(){
     title.className = "month-title";
     title.innerText = first.toLocaleString("default",{month:"short"});
 
-    // 🔥 WEEK HEADER
-    let week = document.createElement("div");
-    week.className = "mini-days week-head";
-
-    ["S","M","T","W","T","F","S"].forEach(d=>{
-      let w = document.createElement("div");
-      w.innerText = d;
-      week.appendChild(w);
-    });
-
     let days = document.createElement("div");
+let weekHeader = document.createElement("div");
+weekHeader.className = "mini-days";
+weekHeader.innerHTML = `
+<div>S</div><div>M</div><div>T</div>
+<div>W</div><div>T</div><div>F</div><div>S</div>
+`;
+
+box.appendChild(weekHeader);
     days.className = "mini-days";
+let startDay = new Date(year, m, 1).getDay();
 
-    // 🔥 EMPTY BOXES (alignment fix)
-    for(let i=0; i<startDay; i++){
-      let empty = document.createElement("div");
-      days.appendChild(empty);
-    }
-
-    // 🔥 DAYS
+for(let i=0;i<startDay;i++){
+  let empty = document.createElement("div");
+  days.appendChild(empty);
+}
     for(let i=1;i<=last;i++){
       let d = document.createElement("div");
       d.innerText = i;
+
+// 🔑 Date key
+let dateKey = year + "-" +
+  String(m+1).padStart(2,'0') + "-" +
+  String(i).padStart(2,'0');
+
+let data = getAll()[dateKey];
+
+if(data){
+
+  let s = (data.status || "").toLowerCase();
+
+  // 🟢 Present
+  if(s.includes("present")){
+    d.style.background = "#22c55e";
+    d.style.color = "#fff";
+  }
+
+  // 🟡 Late
+  else if(s.includes("late")){
+    d.style.background = "#facc15";
+    d.style.color = "#000";
+  }
+
+  // 🔵 Early (different shade)
+  else if(s.includes("early")){
+    d.style.background = "#38bdf8";
+    d.style.color = "#000";
+  }
+
+  // 🟠 Half Day
+  else if(s.includes("half")){
+    d.style.background = "#fb923c";
+    d.style.color = "#000";
+  }
+
+  // 🔵 Leave
+  else if(s.includes("leave")){
+    d.style.background = "#3b82f6";
+    d.style.color = "#fff";
+  }
+
+  // 🔴 Absent
+  else if(s.includes("absent")){
+    d.style.background = "#ef4444";
+    d.style.color = "#fff";
+  }
+
+  // ⚫ Week Off
+  else if(s.includes("week")){
+    d.style.background = "#6b7280";
+    d.style.color = "#fff";
+  }
+
+  // 🟣 Holiday
+  else if(s.includes("holiday")){
+    d.style.background = "#a855f7";
+    d.style.color = "#fff";
+  }
+
+}
       days.appendChild(d);
     }
 
-    // 🔥 click → open month
+    // 👉 month click → वापस calendar
     box.onclick = ()=>{
-
       current = new Date(year, m, 1);
-
-      let now = new Date();
-      if(m === now.getMonth() && year === now.getFullYear()){
-        selected = today();
-      } else {
-        selected = null;
-      }
-
-      // 🔥 show topbar again
-
-      document.getElementById("yearView").style.display = "none";
-      document.getElementById("calendar").style.display = "grid";
-
-      setTimeout(()=>{
-        loadCalendar();
-        loadSummary();
-        updateLiveStrip();
-      }, 50);
-
-      window.scrollTo({ top:0, behavior:"smooth" });
-
-      setActiveNav(1);
+      selected = today();
+      closeYearView();
     };
 
     box.appendChild(title);
-    box.appendChild(week); // 🔥 weekday added
     box.appendChild(days);
     grid.appendChild(box);
   }
+loadYearSummary();
+  setActiveNav(1); // highlight Calendar tab
+}
 
-  window.scrollTo({ top:0 });
-  setActiveNav(1);
+function closeYearView(){
+
+  // ❌ hide year
+  document.getElementById("yearView").style.display = "none";
+
+  // ✅ show back
+  document.querySelector(".topbar").style.display = "flex";
+  document.querySelector(".action-bar").style.display = "flex";
+  document.getElementById("summaryBox").style.display = "grid";
+  document.getElementById("weekdays").style.display = "grid";
+  document.getElementById("calendar").style.display = "grid";
+  document.getElementById("liveStrip").style.display = "block";
+
+  // bottom nav already visible रहेगा
+
+  loadCalendar();
+  loadSummary();
+  updateLiveStrip();
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  setActiveNav(0);
+}
+
+
+function toggleCalendarView(){
+
+  if(!isYearMode){
+
+    // 👉 Year View open
+    openYearView();
+    isYearMode = true;
+
+  } else {
+
+    // 👉 Back to Month View (RESET)
+    closeYearView();
+
+    let now = new Date();
+    current = new Date(now.getFullYear(), now.getMonth(), 1);
+    selected = today();
+
+    loadCalendar();
+    loadSummary();
+    updateLiveStrip();
+
+    isYearMode = false;
+  }
+}
+
+function loadYearSummary(){
+
+  let all = getAll();
+  let year = current.getFullYear();
+
+  let p=0,l=0,e=0,hf=0,lv=0,a=0,w=0,hol=0;
+
+  Object.keys(all).forEach(key=>{
+
+    let dt = new Date(key);
+
+    if(dt.getFullYear() === year){
+
+      let s = (all[key].status || "").toLowerCase();
+
+      if(s.includes("present")) p++;
+      else if(s.includes("late")) l++;
+      else if(s.includes("early")) e++;
+      else if(s.includes("half")) hf++;
+      else if(s.includes("leave")) lv++;
+      else if(s.includes("absent")) a++;
+      else if(s.includes("week")) w++;
+      else if(s.includes("holiday")) hol++;
+    }
+
+  });
+
+  let working = (p+l+e+hf+lv+a);
+  let percent = working ? Math.round((p/working)*100) : 0;
+
+  document.getElementById("yearSummary").innerHTML = `
+  <b>📊 Year Summary</b><br>
+  🟢 Present: ${p}<br>
+  🟡 Late: ${l}<br>
+  🔵 Early: ${e}<br>
+  🟠 Half Day: ${hf}<br>
+  🔵 Leave: ${lv}<br>
+  🔴 Absent: ${a}<br>
+  ⚫ Week Off: ${w}<br>
+  🟣 Holiday: ${hol}<br><br>
+  <b>Attendance: ${percent}%</b>
+  `;
 }
 
 function showInsights(){
@@ -2143,6 +2279,21 @@ function setActiveNav(index){
   });
 }
 
+function autoHideFooterNote(){
+
+  let note = document.querySelector(".footer-note");
+
+  if(!note) return;
+
+  // show (just in case)
+  note.style.opacity = "1";
+
+  // hide after 5 sec
+setTimeout(()=>{
+  note.style.opacity = "0";
+  note.style.display = "none";
+}, 5000);
+}
 
 /* HOLIDAY POPUP */
 function showHoliday(){
@@ -2992,7 +3143,8 @@ if(!data.out){
 cal.appendChild(div);
 
 
-} 
+}
+autoHideFooterNote(); 
 }
 
 
