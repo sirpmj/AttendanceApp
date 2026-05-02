@@ -2996,7 +2996,7 @@ div.classList.add("birthday");
         ${x.name}
 
         ${isAdmin() ? `
-          <button onclick="🎂manualWish('${x.name}', '${x.phone}')">
+          <button onclick="event.stopPropagation(); manualWish('${x.name}', '${x.phone}')">
             🎉
           </button>
 
