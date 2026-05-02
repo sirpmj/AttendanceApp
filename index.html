@@ -1803,16 +1803,20 @@ function launchConfetti(){
 
 
 
-function manualWish(names){
+function manualWish(name, phone){
 
   let msg =
 `🎉 Happy Birthday 🎂
 
-Dear ${names},
+Dear ${name},
 
 Wishing you a fantastic year ahead! 🎊✨`;
 
-  let url = "https://wa.me/?text=" + encodeURIComponent(msg);
+  let clean = formatPhone(phone);
+
+  let url = clean
+    ? "https://wa.me/" + clean + "?text=" + encodeURIComponent(msg)
+    : "https://wa.me/?text=" + encodeURIComponent(msg);
 
   window.open(url, "_blank");
 }
@@ -1914,10 +1918,17 @@ if(list.length>0){
 
 async function initApp(){
 
-await loadSheetData();
-showBirthdayPopup();
-birthdayEffect();
+  await loadSheetData();
+  showBirthdayPopup();
 
+  // 🔥 AUTO REFRESH EVERY 30 SEC
+  setInterval(async ()=>{
+    console.log("🔄 Syncing Sheet...");
+    await loadSheetData();
+
+    loadCalendar();
+    loadSummary();
+  }, 30000);
 
 }
 
@@ -2552,6 +2563,20 @@ function downloadReport() {
 
 
 
+function formatPhone(num){
+  if(!num) return "";
+
+  num = num.toString().replace(/\D/g,""); // remove all non-digits
+
+  // already 91 se start hai
+  if(num.startsWith("91")) return num;
+
+  // 10 digit hai → add 91
+  if(num.length === 10) return "91" + num;
+
+  return num;
+}
+
 function backupData() {
   let data = localStorage.getItem("attendanceData");
 
@@ -2960,7 +2985,7 @@ div.classList.add("birthday");
         ${x.name}
 
         ${isAdmin() ? `
-          <button onclick="manualWish('${x.name}')">
+          <button onclick="🎂manualWish('${x.name}', '${x.phone}')">
             🎉
           </button>
 
