@@ -2201,31 +2201,48 @@ function loadYearSummary(){
 
   let p=0,l=0,e=0,hf=0,lv=0,a=0,w=0,hol=0;
 
-  Object.keys(all).forEach(key=>{
+  // 🔥 FULL YEAR LOOP (365 days)
+  let start = new Date(year, 0, 1);
+  let end   = new Date(year, 11, 31);
 
-    let dt = new Date(key);
+  for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
 
-    if(dt.getFullYear() === year){
+    let key = d.getFullYear() + "-" +
+      String(d.getMonth()+1).padStart(2,'0') + "-" +
+      String(d.getDate()).padStart(2,'0');
 
-      let s = (all[key].status || "").toLowerCase();
+    let data = all[key] || {};
+    let s = (data.status || "").toLowerCase();
 
-      if(s.includes("present")) p++;
-      else if(s.includes("late")) l++;
-      else if(s.includes("early")) e++;
-      else if(s.includes("half")) hf++;
-      else if(s.includes("leave")) lv++;
-      else if(s.includes("absent")) a++;
-      else if(s.includes("week")) w++;
-      else if(s.includes("holiday")) hol++;
+    let day = d.getDay();
+
+    // ✅ Sunday (Week Off)
+    if(day === 0){
+      w++;
+      continue;
     }
 
-  });
+    // ✅ Holiday
+    if(holidays[key]){
+      hol++;
+      continue;
+    }
+
+    // ✅ बाकी status
+    if(s.includes("present")) p++;
+    else if(s.includes("late")) l++;
+    else if(s.includes("early")) e++;
+    else if(s.includes("half")) hf++;
+    else if(s.includes("leave")) lv++;
+    else if(s.includes("absent")) a++;
+  }
 
   let working = (p+l+e+hf+lv+a);
   let percent = working ? Math.round((p/working)*100) : 0;
 
   document.getElementById("yearSummary").innerHTML = `
   <b>📊 Year Summary</b><br>
+
   🟢 Present: ${p}<br>
   🟡 Late: ${l}<br>
   🔵 Early: ${e}<br>
@@ -2234,10 +2251,10 @@ function loadYearSummary(){
   🔴 Absent: ${a}<br>
   ⚫ Week Off: ${w}<br>
   🟣 Holiday: ${hol}<br><br>
+
   <b>Attendance: ${percent}%</b>
   `;
 }
-
 function showInsights(){
 document.getElementById("summaryBox")
 .scrollIntoView({behavior:"smooth"});
