@@ -2934,8 +2934,9 @@ updateLiveStrip();
 
 // calendar
 function loadCalendar(){
-  let cal=document.getElementById("calendar");
-  cal.innerHTML="";
+
+  let cal = document.getElementById("calendar");
+  cal.innerHTML = "";
 
   let year = current.getFullYear();
   let month = current.getMonth();
@@ -2946,279 +2947,205 @@ function loadCalendar(){
   let firstDay = new Date(year, month, 1).getDay();
   let days = new Date(year, month+1,0).getDate();
 
-  for(let i=0;i<firstDay;i++){
-    cal.appendChild(document.createElement("div"));
-  }
-   let all = getAll();
+  let all = getAll();
 
+  // 🔥 1. fragment create
+  let fragment = document.createDocumentFragment();
+
+  // empty cells
+  for(let i=0;i<firstDay;i++){
+    fragment.appendChild(document.createElement("div"));
+  }
+
+  // 🔥 ADMIN check OUTSIDE loop (big optimization)
+  const ADMINS = [
+    "sbprajapati@suvidhigroup.com",
+    "mespmj@gmail.com"
+  ];
+
+  let user = firebase.auth().currentUser;
+  let isAdminUser = user && ADMINS.includes(user.email);
+
+  // 🔥 main loop
   for(let i=1;i<=days;i++){
-    let date=new Date(year, month, i);
+
+    let date = new Date(year, month, i);
+
     let d = date.getFullYear() + "-" + 
         String(date.getMonth()+1).padStart(2,'0') + "-" + 
         String(date.getDate()).padStart(2,'0');
 
-let old = all[d] || {};
+    let old = all[d] || {};
 
+    let isSunday = date.getDay() === 0;
 
-let isSunday = date.getDay() === 0; // 🔥 super fast
+    let data = {
+      date: d,
+      in: old.in || "",
+      out: old.out || "",
+      status: old.status || "",
+      note: old.note || ""
+    };
 
-let data = {
-  date: d,
-  in: old.in || "",
-  out: old.out || "",
-  status: old.status || "",
-  note: old.note || ""
-};
+    if(isSunday && !data.status){
+      data.status = "Sunday";
+    }
 
-// 🔥 DEFAULT SUNDAY = OFF (auto save)
-if(isSunday && !data.status){
-  data.status = "Sunday"; // only UI
-}
+    if(holidays[d] && !old.manual){
+      data.status = "Holiday";
+      data.note = holidays[d];
+    }
 
-const ADMINS = [
-  "sbprajapati@suvidhigroup.com",
-  "mespmj@gmail.com"
-];
+    let cls = data.status ? data.status.toLowerCase() : "";
 
-function isAdmin(){
-  let user = firebase.auth().currentUser;
-  return user && ADMINS.includes(user.email);
-}
+    if(data.status === "Early" || data.early){
+      cls = "early";
+    }
 
-// ✅ Only apply holiday if NO manual data exists
-if(holidays[d] && !old.manual){
-  data.status = "Holiday";
-  data.note = holidays[d];
-}
+    let div = document.createElement("div");
+    div.classList.add("day");
 
+    // birthday
+    let bList = getBirthdayNames(formatDM(d));
+    let birthdayHtml = "";
 
-let cls = "";
+    if (bList.length) {
+      div.classList.add("birthday");
 
-if(data.status){
-  cls = data.status.toLowerCase();
-}
+      birthdayHtml = bList.map(x => `
+        <div class="note">
+          ${x.name}
+          ${isAdminUser ? `
+            <button onclick="event.stopPropagation(); manualWish('${x.name}', '${x.phone}')">🎉</button>
+            <button onclick="event.stopPropagation(); sendCardWhatsApp('${x.name}')">🎁</button>
+          ` : ""}
+        </div>
+      `).join("");
+    }
 
-// 🔥 FIX: EARLY detect by BOTH
-if(data.status === "Early" || data.early){
-  cls = "early";
-}
+    if (cls) div.classList.add(cls);
+    if (d === today()) div.classList.add("today");
 
-let div = document.createElement("div");
+    let inT = data.in ? `<div class="time in">⬇ ${data.in}</div>` : "";
+    let outT = data.out ? `<div class="time out">⬆ ${data.out}</div>` : "";
 
-// base class
-div.classList.add("day");
+    let displayStatus = data.early ? "Early" : data.status;
 
-// birthday check
-let bList = getBirthdayNames(formatDM(d));
+    let st = displayStatus
+      ? `<div style="font-size:9px;">${displayStatus}</div>`
+      : "";
 
-let birthdayHtml = "";
+    let holidayText = (data.note || "").replace(/\s+/g, "<br>");
 
-if (bList.length) {
-  div.classList.add("birthday");
+    let holidayHtml = data.note
+      ? `<div class="note">${holidayText}</div>`
+      : "";
 
-  birthdayHtml = bList.map(x => {
-    return `
-      <div class="note">
-        ${x.name}
+    div.innerHTML = `
+      <b class="date-num">${i}</b>
+      ${inT}
+      ${outT}
+      ${st}
+      ${holidayHtml}
+      ${birthdayHtml}
 
-        ${isAdmin() ? `
-          <button onclick="event.stopPropagation(); manualWish('${x.name}', '${x.phone}')">
-            🎉
-          </button>
-
-          <button onclick="event.stopPropagation(); sendCardWhatsApp('${x.name}')">
-            🎁
-          </button>
-        ` : ""}
-
+      <div class="quick-actions">
+        <button class="mini-btn in-btn">↗ 09:00</button>
+        <button class="mini-btn out-btn">↘ 18:00</button>
       </div>
     `;
-  }).join("");
-}
 
-// status class
-if (cls) {
-  div.classList.add(cls);
-}
+    // 👉 EVENTS SAME (unchanged)
+    div.oncontextmenu = (e) => {
+      e.preventDefault();
+      selected = d;
+      showMenu(e.pageX, e.pageY, d);
+    };
 
-// today highlight
-if (d === today()) {
-  div.classList.add("today");
-}
+    div.addEventListener("dblclick", function(e){
+      e.preventDefault();
+      selected = d;
+      showMenu(e.pageX, e.pageY, d);
+    });
 
+    let lastTap = 0;
+    div.addEventListener("touchend", function(e){
+      let currentTime = new Date().getTime();
+      let tapLength = currentTime - lastTap;
 
-let inT = data.in 
-  ? `<div class="time in">⬇ ${data.in}</div>` 
-  : "";
+      if(tapLength < 300 && tapLength > 0){
+        selected = d;
+        showMenu(
+          e.changedTouches[0].pageX,
+          e.changedTouches[0].pageY,
+          d
+        );
+        e.preventDefault();
+        if(navigator.vibrate) navigator.vibrate(30);
+      }
+      lastTap = currentTime;
+    });
 
-let outT = data.out 
-  ? `<div class="time out">⬆ ${data.out}</div>` 
-  : "";
-let displayStatus = data.status;
+    div.addEventListener("click",function(e){
+      if(e.detail === 2) return;
 
-if(data.early){
-  displayStatus = "Early";
-}
+      if(
+        e.target.classList.contains("in-btn") ||
+        e.target.classList.contains("out-btn")
+      ){
+        return;
+      }
 
-let st = displayStatus
-  ? `<div style="font-size:9px;">${displayStatus}</div>`
-  : "";
+      document.querySelectorAll(".day")
+      .forEach(x=>x.classList.remove("active"));
 
-// ✅ safe holiday text formatting
-let holidayText = data.note || "";
+      this.classList.add("active");
+      selected=d;
+    });
 
-// replace ALL spaces (not only first)
-holidayText = holidayText.replace(/\s+/g, "<br>");
+    div.querySelector(".in-btn").addEventListener("click",function(e){
+      e.stopPropagation();
+      let data=getAll()[d] || {date:d};
 
-let holidayHtml = data.note
-  ? `<div class="note">${holidayText}</div>`
-  : "";
+      if(!data.in){
+        data.in = getTime();
+        data = updateStatus(data);
+        save(data);
+      } else {
+        openTimeModal("Edit IN Time",(t)=>{
+          data.in=t;
+          data=updateStatus(data);
+          save(data);
+        });
+      }
+    });
 
-div.innerHTML=`
-<b class="date-num">${i}</b>
-${inT}
-${outT}
-${st}
-${holidayHtml}
-${birthdayHtml}
+    div.querySelector(".out-btn").addEventListener("click",function(e){
+      e.stopPropagation();
+      let data=getAll()[d] || {date:d};
 
-<div class="quick-actions">
-<button class="mini-btn in-btn">↗ 09:00</button>
-<button class="mini-btn out-btn">↘ 18:00</button>
-</div>
-`;
+      if(!data.out){
+        data.out = getTime();
+        data = updateStatus(data);
+        save(data);
+      } else {
+        openTimeModal("Edit OUT Time",(t)=>{
+          data.out=t;
+          data=updateStatus(data);
+          save(data);
+        });
+      }
+    });
 
-
-div.querySelector(".wish-btn")?.addEventListener("click", function(e){
-  e.stopPropagation();
-});
-    // right click
-
-div.oncontextmenu = (e) => {
-  e.preventDefault();
-  selected = d;
-  showMenu(e.pageX, e.pageY, d);
-};
-
-div.addEventListener("dblclick", function(e){
-  e.preventDefault();
-
-  selected = d;
-
-  showMenu(
-    e.pageX,
-    e.pageY,
-    d
-  );
-});
-
-
-// 🔥 MOBILE LONG PRESS (ADD HERE)
-let lastTap = 0;
-
-div.addEventListener("touchend", function(e){
-
-  let currentTime = new Date().getTime();
-  let tapLength = currentTime - lastTap;
-
-  if(tapLength < 300 && tapLength > 0){
-    // ✅ DOUBLE TAP → MENU
-    selected = d;
-
-    showMenu(
-      e.changedTouches[0].pageX,
-      e.changedTouches[0].pageY,
-      d
-    );
-
-    // 🔥 prevent zoom
-    e.preventDefault();
-
-    // 🔥 vibration (optional)
-    if(navigator.vibrate){
-      navigator.vibrate(30);
-    }
+    // 🔥 IMPORTANT CHANGE
+    fragment.appendChild(div);
   }
 
-  lastTap = currentTime;
-});
+  // 🔥 SINGLE DOM UPDATE (BIG BOOST)
+  cal.appendChild(fragment);
 
-// CLICK (IN / OUT)
-div.addEventListener("click",function(e){
-
-if(e.detail === 2) return; // 🔥 IMPORTANT
-
-if(
-e.target.classList.contains("in-btn") ||
-e.target.classList.contains("out-btn")
-){
-return;
+  autoHideFooterNote(); 
 }
-
-document.querySelectorAll(".day")
-.forEach(x=>x.classList.remove("active"));
-
-this.classList.add("active");
-selected=d;
-
-});
-
-
-// IN button
-div.querySelector(".in-btn").addEventListener("click",function(e){
-e.stopPropagation();
-
-let data=getAll()[d] || {date:d};
-
-if(!data.in){
-  // ✅ FIRST TAP → AUTO TIME
-  data.in = getTime();
-  data = updateStatus(data);
-  save(data);
-} else {
-  // ✅ SECOND TAP → EDIT
-  openTimeModal("Edit IN Time",(t)=>{
-    data.in=t;
-    data=updateStatus(data);
-    save(data);
-  });
-}
-
-});
-
-
-// OUT button
-div.querySelector(".out-btn").addEventListener("click",function(e){
-e.stopPropagation();
-
-let data=getAll()[d] || {date:d};
-
-if(!data.out){
-  // ✅ FIRST TAP → AUTO TIME
-  data.out = getTime();
-  data = updateStatus(data);
-  save(data);
-} else {
-  // ✅ SECOND TAP → EDIT
-  openTimeModal("Edit OUT Time",(t)=>{
-    data.out=t;
-    data=updateStatus(data);
-    save(data);
-  });
-}
-
-});
-
-
-
-cal.appendChild(div);
-
-
-}
-autoHideFooterNote(); 
-}
-
-
 
 // month change
 let isChangingMonth = false;
