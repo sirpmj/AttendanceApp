@@ -956,24 +956,32 @@ body{
 padding-bottom:95px;
 }
 
-/* live strip */
 #liveStrip{
-position:fixed;
-bottom:66px;
-left:50%;
-transform:translateX(-50%);
+  position:fixed;
+  bottom:66px;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
 
-padding:4px 10px;     /* was bigger */
-font-size:11px;       /* smaller */
-line-height:1.1;
-border-radius:14px;
-min-height:auto;
+  overflow:hidden;
+  border-radius:14px;
+  background:#2563eb;
+  color:#fff;
+
+  padding:6px 10px;
+  font-size:12px;
 }
 
-#liveStrip{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* scrolling text */
+#liveText{
+  display:inline-block;
+  white-space:nowrap;
+  animation: scrollText 10s linear infinite;
+}
+
+@keyframes scrollText{
+  0%{ transform: translateX(100%); }
+  100%{ transform: translateX(-100%); }
 }
 
 @media (max-width: 600px){
@@ -1372,9 +1380,8 @@ color:#fff !important;
 
 <!-- live status strip -->
 <div id="liveStrip">
-Today: Not Punched
+  <div id="liveText"></div>
 </div>
-
 
 <!-- Bottom Sheet -->
 <div id="moreSheet" class="sheet">
@@ -2393,7 +2400,7 @@ function updateLiveStrip(){
 let d = getData();
 
 if(!d.in && !d.out && !d.status){
-document.getElementById("liveStrip").innerText="🕒 Today Not Punched";
+document.getElementById("liveText").innerText = txt;
 document.getElementById("liveStrip").style.background="#2563eb";
 return;
 }
@@ -2457,7 +2464,7 @@ extra;
 
 /* APPLY */
 let strip = document.getElementById("liveStrip");
-strip.innerText = txt;
+document.getElementById("liveText").innerText = txt;
 strip.style.background = color;
 
 }
@@ -2983,14 +2990,14 @@ let div = document.createElement("div");
 div.classList.add("day");
 
 // birthday check
-let bList=getBirthdayNames(formatDM(d));
+let bList = getBirthdayNames(formatDM(d));
 
 let birthdayHtml = "";
 
-if(bList.length){
-div.classList.add("birthday");
-  birthdayHtml = bList.map(x=>{
+if (bList.length) {
+  div.classList.add("birthday");
 
+  birthdayHtml = bList.map(x => {
     return `
       <div class="note">
         ${x.name}
@@ -3000,14 +3007,13 @@ div.classList.add("birthday");
             🎉
           </button>
 
-          <button onclick="sendCardWhatsApp('${x.name}')">
+          <button onclick="event.stopPropagation(); sendCardWhatsApp('${x.name}')">
             🎁
           </button>
         ` : ""}
 
       </div>
     `;
-
   }).join("");
 }
 
