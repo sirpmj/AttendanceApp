@@ -1295,7 +1295,22 @@ color:#fff !important;
   white-space:nowrap;
 }
 
+
+.insight-box{
+  text-align:center;
+  font-size:12px;
+  padding:8px;
+}
+
+.insight-msg{
+  font-weight:600;
+  margin-bottom:4px;
+}
+
 </style>
+
+
+
 </head>
 
 <body>
@@ -1373,6 +1388,11 @@ color:#fff !important;
 <div class="footer-note">
   📅 Tap for punch • Double tap on Date for menu
 </div>
+
+<div id="summaryBox">
+  <div id="insights"></div>
+</div>
+
 
 <div id="yearView" style="display:none;">
   <div class="year-grid" id="yearGrid"></div>
@@ -2322,9 +2342,143 @@ document.getElementById("yearSummary").innerHTML = `
   </div>
 `;
 }
+let insightsOpen = false;
+
 function showInsights(){
-document.getElementById("summaryBox")
-.scrollIntoView({behavior:"smooth"});
+
+  let box = document.getElementById("summaryBox");
+  let main = document.querySelector(".main-content");
+
+  if(!insightsOpen){
+
+    // 🔥 OPEN
+    loadInsights();
+
+    box.style.display = "block";
+    main.style.display = "none";
+
+    box.scrollIntoView({behavior:"smooth"});
+
+    insightsOpen = true;
+
+  } else {
+
+    // 🔥 CLOSE
+    box.style.display = "none";
+    main.style.display = "block";
+
+    insightsOpen = false;
+  }
+}
+
+
+function loadInsights(){
+
+  let all = getAll();
+  let values = Object.values(all);
+
+  if(!values.length){
+    document.getElementById("insights").innerHTML = "No data";
+    return;
+  }
+
+  let present = 0, late = 0, absent = 0, leave = 0;
+  let totalMinutes = 0;
+
+  // 🔥 streak
+  let streak = 0;
+  let bestStreak = 0;
+  let currentStreak = 0;
+
+  // sort by date
+  let sorted = values.sort((a,b)=> a.date.localeCompare(b.date));
+
+  sorted.forEach(x => {
+
+    if(x.status === "Present") present++;
+    if(x.status === "Late") late++;
+    if(x.status === "Absent") absent++;
+    if(x.status === "Leave") leave++;
+
+    // 🔥 work time calc
+    if(x.in && x.out){
+      let t1 = x.in.split(":");
+      let t2 = x.out.split(":");
+
+      let min1 = (+t1[0])*60 + (+t1[1]);
+      let min2 = (+t2[0])*60 + (+t2[1]);
+
+      if(min2 > min1){
+        totalMinutes += (min2 - min1);
+      }
+    }
+
+    // 🔥 streak logic
+    if(x.status === "Present"){
+      currentStreak++;
+      if(currentStreak > bestStreak) bestStreak = currentStreak;
+    } else {
+      currentStreak = 0;
+    }
+
+  });
+
+  // latest streak (reverse check)
+  for(let i=sorted.length-1;i>=0;i--){
+    if(sorted[i].status === "Present"){
+      streak++;
+    } else break;
+  }
+
+  let total = values.length;
+
+  let percent = total 
+    ? Math.round((present / total) * 100)
+    : 0;
+
+  // 🔥 avg work time
+  let avgMin = present ? Math.round(totalMinutes / present) : 0;
+  let h = Math.floor(avgMin / 60);
+  let m = avgMin % 60;
+
+  // 🔥 SMART MESSAGE
+  let msg = "";
+
+  if(percent < 80){
+    msg = "⚠️ Attendance low hai";
+  }
+  else if(late > 5){
+    msg = "⏰ Late zyada ho raha hai";
+  }
+  else if(streak >= 7){
+    msg = "🔥 Great consistency!";
+  }
+  else{
+    msg = "👍 Good going";
+  }
+
+  // 🔥 FINAL UI
+  document.getElementById("insights").innerHTML = `
+    <div class="insight-box">
+
+      <div class="insight-msg">${msg}</div>
+
+      📊 ${percent}%  
+      | 🟢 ${present}  
+      | 🟡 ${late}  
+      | 🔴 ${absent}  
+      | 🟣 ${leave}
+
+      <br>
+
+      🔥 Streak: ${streak} | 🏆 Best: ${bestStreak}
+
+      <br>
+
+      🕒 Avg Work: ${h}h ${m}m
+
+    </div>
+  `;
 }
 
 /* MORE SHEET */
@@ -2785,6 +2939,7 @@ db.collection("users")
 
     requestAnimationFrame(()=>{   // 🔥 smooth UI
       loadCalendar();
+
       loadSummary();
       updateLiveStrip();
     });
