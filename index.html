@@ -2451,67 +2451,68 @@ function updateLiveStrip(){
 
 let d = getData();
 
+let txt = "";   // 🔥 पहले declare करो
+
 if(!d.in && !d.out && !d.status){
-document.getElementById("liveText").textContent = txt;
-document.getElementById("liveStrip").style.background="#2563eb";
-return;
+  txt = "📌 No record today";
+  document.getElementById("liveText").textContent = txt;
+  document.getElementById("liveStrip").style.background="#2563eb";
+  return;
 }
 
 let status = normalizeStatus(d.status);
-
-let txt = "";
 let color = getStatusColor(status);
 
 /* ABSENT */
 if(status === "Absent"){
-txt = "❌ Absent Today";
+  txt = "❌ Absent Today";
 }
 
 /* LEAVE */
 else if(status === "Leave"){
-txt = "📌Today on Leave ";
+  txt = "📌 Today on Leave";
 }
 
 /* HALF DAY */
 else if(status === "Half Day"){
-txt = "🟠 Today Half Day";
+  txt = "🟠 Today Half Day";
 }
 
 /* HOLIDAY / WEEK / SUNDAY */
 else if(status === "Holiday"){
-txt = "🎉 Today Holiday";
+  txt = "🎉 Today Holiday";
 }
 
 else if(status === "Week Off"){
-txt = "🛑 Week Off Today";
+  txt = "🛑 Week Off Today";
 }
 
 else if(status === "Sunday"){
-txt = "☀️ Sunday Off Today";
+  txt = "☀️ Sunday Off Today";
 }
 
 /* IN ONLY */
 else if(d.in && !d.out){
-txt =
-(status === "Late" ? "🟡 Late" : "🟢 " + status) +
-" | IN " + d.in +
-" | OUT Pending";
+  txt =
+    (status === "Late" ? "🟡 Late" : "🟢 " + status) +
+    " | IN " + d.in +
+    " | OUT Pending";
 }
 
 /* COMPLETE */
 else if(d.in && d.out){
 
-let extra = "";
+  let extra = "";
 
-let outMin = toMinutes(d.out);
+  let outMin = toMinutes(d.out);
 
-if(outMin < toMinutes("18:00")) extra += " • Early Out ⚠️";
-if(outMin > toMinutes("18:30")) extra += " • OT 🔥";
+  if(outMin < toMinutes("18:00")) extra += " • Early Out ⚠️";
+  if(outMin > toMinutes("18:30")) extra += " • OT 🔥";
 
-txt =
-"✓ " + status +
-" | " + d.in + " - " + d.out +
-extra;
+  txt =
+    "✓ " + status +
+    " | " + d.in + " - " + d.out +
+    extra;
 }
 
 /* APPLY */
@@ -2522,39 +2523,6 @@ strip.style.background = color;
 }
 
 
-function getStatusColor(status){
-  switch(status){
-    case "Present": return "#4CAF50";
-    case "Late": return "#f59e0b";
-    case "Early": return "#06b6d4";
-    case "Half Day": return "#ec4899";
-    case "Leave": return "#9C27B0";
-    case "Absent": return "#ef4444";
-    case "Week Off": return "#607D8B";
-    case "Holiday": return "#2196F3";
-    case "Sunday": return "#3b82f6";
-    default: return "#ef4444";
-  }
-}
-
-
-function normalizeStatus(s){
-if(!s) return "Absent";
-
-s = s.toLowerCase();
-
-if(s.includes("holiday")) return "Holiday";
-if(s.includes("week")) return "Week Off";
-if(s.includes("sunday")) return "Sunday";
-if(s.includes("leave")) return "Leave";
-if(s.includes("half")) return "Half Day";
-if(s.includes("absent")) return "Absent";
-if(s.includes("late")) return "Late";
-if(s.includes("early")) return "Early";
-if(s.includes("present")) return "Present";
-
-return "Present";
-}
 
 function downloadReport() {
   const { jsPDF } = window.jspdf;
