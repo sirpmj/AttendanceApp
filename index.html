@@ -1301,6 +1301,95 @@ color:#fff !important;
   100% { transform: scale(1); }
 animation: blink 1.5s infinite;
 }
+
+/* cards */
+.insight-cards{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+margin-bottom:15px;
+}
+
+.card-box{
+padding:14px;
+border-radius:14px;
+color:#fff;
+font-size:13px;
+box-shadow:0 6px 15px rgba(0,0,0,0.15);
+animation:fadeUp .4s ease;
+}
+
+.card-box b{
+display:block;
+font-size:20px;
+margin-top:5px;
+}
+
+/* colors */
+.green{background:#22c55e;}
+.yellow{background:#eab308;}
+.red{background:#ef4444;}
+.blue{background:#3b82f6;}
+
+/* graph */
+.graph-box{
+background:#fff;
+padding:10px;
+border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+#barGraph{
+display:flex;
+align-items:flex-end;
+justify-content:space-between;
+height:140px;
+margin-top:10px;
+}
+
+.bar{
+width:12%;
+background:#2563eb;
+border-radius:6px 6px 0 0;
+animation:grow .6s ease;
+}
+
+.percent-box{
+margin-top:20px;
+padding:15px;
+background:#fff;
+border-radius:15px;
+box-shadow:0 6px 15px rgba(0,0,0,0.1);
+text-align:center;
+}
+#insightBox{
+position:fixed;
+inset:0;
+background:#f8fafc;
+z-index:9999;
+overflow:auto;
+}
+.extra-card{
+background:#fff;
+padding:10px;
+border-radius:12px;
+margin-bottom:8px;
+font-size:13px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+animation:fadeUp .4s ease;
+}
+
+/* animations */
+@keyframes grow{
+from{height:0}
+to{height:100%}
+}
+
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
+}
+
 </style>
 </head>
 
@@ -1383,6 +1472,44 @@ animation: blink 1.5s infinite;
 <div id="yearView" style="display:none;">
   <div class="year-grid" id="yearGrid"></div>
 <div id="yearSummary" class="year-summary"></div>
+</div>
+
+
+<div id="insightBox" style="display:none; padding:12px;">
+
+  <!-- HEADER -->
+  <h2 style="margin-bottom:10px;">📊 Insights Dashboard</h2>
+
+
+
+  <!-- 🔥 FULL STATS -->
+  <div id="statsGrid" class="stats-grid"></div>
+
+  <!-- % CIRCLE -->
+  <div class="percent-box">
+    <div class="circle" id="percentCircle">0%</div>
+<p>This Month Score</p>
+  </div>
+
+  <!-- GRAPH -->
+  <div class="graph-box">
+    <h3>Last 7 Days</h3>
+    <div id="barGraph"></div>
+  </div>
+
+  <!-- 📈 LINE CHART -->
+  <div class="graph-box">
+    <h3>Monthly Trend</h3>
+    <canvas id="lineChart" height="150"></canvas>
+  </div>
+
+  <!-- 🧠 EXTRA INSIGHTS -->
+  <div id="extraInsights" style="margin-top:15px;">
+    <div class="extra-card" id="compareBox">📈 Comparing...</div>
+    <div class="extra-card" id="streakBox">🔥 Streak...</div>
+    <div class="extra-card" id="smartMsg">🧠 Loading...</div>
+  </div>
+
 </div>
 
 <div class="bottom-nav">
@@ -1596,6 +1723,8 @@ let clickTimer = null;
 let isYearMode = false;
 let snapTimer;
 let activeFilter = null;
+let isInsightsOpen = false;
+let globalPercent = 0;
 
 async function loadSheetData(){
 
@@ -2066,7 +2195,9 @@ Wishing you a wonderful year ahead! 🎊`;
 }
 
 function goHome(){
+  isInsightsOpen = false; // 🔥 MUST
 
+document.getElementById("insightBox").style.display = "none";
   // reset mode
   isYearMode = false;
 
@@ -2093,7 +2224,7 @@ function goHome(){
 }
 
 function openYearView(){
-
+document.getElementById("insightBox").style.display = "none";
   // ✅ show year
   document.getElementById("yearView").style.display = "block";
 
@@ -2267,7 +2398,9 @@ function closeYearView(){
 
 
 function toggleCalendarView(){
+  isInsightsOpen = false; // 🔥 MUST
 
+document.getElementById("insightBox").style.display = "none";
   if(isYearMode){
 
     // BACK TO MONTH
@@ -2374,10 +2507,269 @@ function applyYearFilter(type){
   openYearView(); // reload with highlight
 }
 
+function loadInsights(){
+
+let all = getCurrentMonthData();
+
+let present=0, late=0, absent=0;
+
+all.forEach(d=>{
+let s=(d.status||"").toLowerCase();
+
+if(s.includes("present")) present++;
+else if(s.includes("late")) late++;
+else if(s.includes("absent")) absent++;
+});
+
+let total = present + late + absent;
+
+globalPercent = total ? Math.round((present/total)*100) : 0;
+
+// UI
+
+
+// 🔥 GRAPH (last 7 days)
+let last7 = all.slice(-7);
+
+let graph = document.getElementById("barGraph");
+graph.innerHTML = "";
+
+last7.forEach(d=>{
+
+let val = 0;
+
+if((d.status||"").includes("Present")) val = 100;
+else if((d.status||"").includes("Late")) val = 70;
+else if((d.status||"").includes("Half")) val = 50;
+else val = 20;
+
+let bar = document.createElement("div");
+bar.className = "bar";
+bar.style.height = val + "%";
+
+graph.appendChild(bar);
+
+});
+}
+
+
+function drawLineChart(){
+
+let canvas = document.getElementById("lineChart");
+if(!canvas) return;
+
+let ctx = canvas.getContext("2d");
+
+let all = getCurrentMonthData();
+
+// 🔥 SAFE DATA MAP
+let dataMap = {};
+
+all.forEach(d=>{
+
+if(!d.date) return;
+
+let parts = d.date.split("-");
+if(parts.length < 3) return;
+
+let day = parseInt(parts[2]);
+
+let s = (d.status||"").toLowerCase();
+
+let val = 0;
+
+if(s.includes("present")) val = 100;
+else if(s.includes("late")) val = 70;
+else if(s.includes("half")) val = 50;
+else val = 20;
+
+dataMap[day] = val;
+
+});
+
+// 📊 days
+let daysInMonth = new Date(current.getFullYear(), current.getMonth()+1, 0).getDate();
+
+let points = [];
+
+for(let i=1;i<=daysInMonth;i++){
+points.push(dataMap[i] || 0);
+}
+
+// canvas size
+canvas.width = canvas.offsetWidth;
+canvas.height = 150;
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+// draw line
+ctx.beginPath();
+ctx.lineWidth = 2;
+ctx.strokeStyle = "#2563eb";
+
+points.forEach((val,i)=>{
+
+let x = (i/(points.length-1)) * canvas.width;
+let y = canvas.height - (val/100 * canvas.height);
+
+if(i===0) ctx.moveTo(x,y);
+else ctx.lineTo(x,y);
+
+});
+
+ctx.stroke();
+
+}
+
+function loadFullStats(){
+
+let all = getCurrentMonthData();
+
+let stats = {
+  present:0,
+  late:0,
+  early:0,
+  half:0,
+  leave:0,
+  absent:0,
+  weekoff:0,
+  holiday:0
+};
+
+// 🔢 COUNT
+all.forEach(d=>{
+
+let s = (d.status||"").toLowerCase();
+
+if(s.includes("present")) stats.present++;
+else if(s.includes("late")) stats.late++;
+else if(s.includes("early")) stats.early++;
+else if(s.includes("half")) stats.half++;
+else if(s.includes("leave")) stats.leave++;
+else if(s.includes("absent")) stats.absent++;
+else if(s.includes("week")) stats.weekoff++;
+else if(s.includes("holiday")) stats.holiday++;
+
+});
+
+// 📊 PERCENT (Present based)
+let workingDays = stats.present + stats.late + stats.half + stats.absent;
+
+let percent = workingDays ? Math.round((stats.present/workingDays)*100) : 0;
+
+
+// 🎨 UI RENDER
+let html = `
+<div class="stat green">🟢 <b>${stats.present}</b> Present</div>
+<div class="stat yellow">🟡 <b>${stats.late}</b> Late</div>
+<div class="stat blue">🔵 <b>${stats.early}</b> Early</div>
+<div class="stat orange">🟠 <b>${stats.half}</b> Half Day</div>
+
+<div class="stat purple">🟣 <b>${stats.leave}</b> Leave</div>
+<div class="stat red">🔴 <b>${stats.absent}</b> Absent</div>
+<div class="stat gray">⚫ <b>${stats.weekoff}</b> Week Off</div>
+<div class="stat brown">🟤 <b>${stats.holiday}</b> Holiday</div>
+`;
+
+document.getElementById("statsGrid").innerHTML = html;
+
+
+// 🔵 % CIRCLE
+let circle = document.getElementById("percentCircle");
+
+circle.textContent = percent + "%";
+
+circle.style.background =
+`conic-gradient(#22c55e 0% ${percent}%, #e5e7eb ${percent}%)`;
+
+}
 
 function showInsights(){
-document.getElementById("summaryBox")
-.scrollIntoView({behavior:"smooth"});
+
+let insight = document.getElementById("insightBox");
+
+// 🔥 USE STATE (not style check)
+if(!isInsightsOpen){
+
+  isInsightsOpen = true;
+
+  insight.style.display = "block";
+
+  // ❌ HIDE ALL
+  document.querySelector(".topbar").style.display = "none";
+  document.querySelector(".action-bar").style.display = "none";
+  document.getElementById("summaryBox").style.display = "none";
+  document.getElementById("calendar").style.display = "none";
+  document.getElementById("weekdays").style.display = "none";
+  document.getElementById("liveStrip").style.display = "none";
+  document.getElementById("yearView").style.display = "none";
+
+  loadInsights();
+  loadFullStats();
+  drawLineChart();
+  loadExtraInsights();
+
+  setActiveNav(3);
+
+} else {
+
+  isInsightsOpen = false;
+
+  insight.style.display = "none";
+
+  // ✅ SHOW NORMAL VIEW
+  document.querySelector(".topbar").style.display = "flex";
+  document.querySelector(".action-bar").style.display = "flex";
+  document.getElementById("summaryBox").style.display = "grid";
+  document.getElementById("calendar").style.display = "grid";
+  document.getElementById("weekdays").style.display = "grid";
+  document.getElementById("liveStrip").style.display = "block";
+
+  setActiveNav(0);
+}
+}
+
+
+function loadExtraInsights(){
+
+let all = getCurrentMonthData();
+
+// 🔥 STREAK
+let streak=0, best=0;
+
+all.forEach(d=>{
+let s=(d.status||"").toLowerCase();
+
+if(s.includes("present")){
+  streak++;
+  if(streak>best) best=streak;
+}else{
+  streak=0;
+}
+});
+
+document.getElementById("streakBox").textContent =
+`🔥 Best Streak: ${best} days`;
+
+
+// 📈 SIMPLE COMPARE (dummy safe)
+document.getElementById("compareBox").textContent =
+`📈 Total Present: ${all.filter(d=>(d.status||"").includes("Present")).length}`;
+
+
+// 🧠 MESSAGE
+let msg = "";
+
+if(globalPercent >= 90){
+  msg = "🔥 Excellent attendance!";
+}else if(globalPercent >= 75){
+  msg = "👍 Good job!";
+}else{
+  msg = "⚠ Improve attendance";
+}
+
+document.getElementById("smartMsg").textContent = msg;
+
 }
 
 /* MORE SHEET */
