@@ -1295,6 +1295,22 @@ color:#fff !important;
   white-space:nowrap;
 }
 
+@keyframes blink {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+animation: blink 1.5s infinite;
+}
+
+#insightsBox{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #f9fafb;
+  overflow-y: auto;
+  padding: 15px;
+}
+
 </style>
 </head>
 
@@ -1400,6 +1416,7 @@ color:#fff !important;
 <small>Insights</small>
 </button>
 
+
 <button class="nav-item" onclick="openMoreSheet()">
 <span>☰</span>
 <small>More</small>
@@ -1407,6 +1424,13 @@ color:#fff !important;
 
 </div>
 
+<div id="insightsBox" style="
+  display:none;
+  padding:15px;
+  height:100vh;
+  overflow:auto;
+  background:#f9fafb;
+"></div>
 
 <!-- live status strip -->
 <div id="liveStrip">
@@ -1496,6 +1520,7 @@ color:#fff !important;
 </div>
 
 <div id="calendar" class="calendar"></div>
+
 
 <!-- 🔥 Menu -->
 <div id="menu" class="context-menu">
@@ -1589,6 +1614,8 @@ let lastSheetData = "";
 let clickTimer = null;
 let isYearMode = false;
 let snapTimer;
+let activeFilter = null;
+let isInsightsMode = false;
 
 async function loadSheetData(){
 
@@ -2192,6 +2219,30 @@ else if(s.includes("absent")){
   d.style.background = "#ef4444";
   d.style.color = "#fff";
 }
+
+
+// 🔥 FILTER HIGHLIGHT (PASTE HERE)
+if(activeFilter){
+
+  let match = false;
+
+  if(activeFilter === "Present" && s.includes("present")) match = true;
+  if(activeFilter === "Late" && s.includes("late")) match = true;
+  if(activeFilter === "Early" && s.includes("early")) match = true;
+  if(activeFilter === "Half" && s.includes("half")) match = true;
+  if(activeFilter === "Leave" && s.includes("leave")) match = true;
+  if(activeFilter === "Absent" && s.includes("absent")) match = true;
+  if(activeFilter === "Holiday" && holidays[dateKey]) match = true;
+  if(activeFilter === "Week Off" && new Date(year, m, i).getDay() === 0) match = true;
+
+  if(match){
+    d.style.outline = "2px solid #000";
+    d.style.animation = "blink 1s infinite";
+  } else {
+    d.style.opacity = "0.25";
+  }
+
+}
       days.appendChild(d);
     }
 
@@ -2316,22 +2367,108 @@ document.getElementById("yearSummary").innerHTML = `
 
   <div class="year-row">
 
-    <span class="chip present-icon">🟢 Present: ${p}</span>
-    <span class="chip late-icon">🟡 Late: ${l}</span>
-    <span class="chip early-icon">🔵 Early: ${e}</span>
-    <span class="chip half-icon">🟠 Half Day: ${hf}</span>
-    <span class="chip leave-icon">🟣 Leave: ${lv}</span>
-    <span class="chip absent-icon">🔴 Absent: ${a}</span>
-    <span class="chip weekoff-icon">⚫ Week Off: ${w}</span>
-    <span class="chip holiday-icon">🟤 Holiday: ${hol}</span>
+<span class="chip present-icon" onclick="applyYearFilter('Present')">🟢 Present: ${p}</span>
+<span class="chip late-icon" onclick="applyYearFilter('Late')">🟡 Late: ${l}</span>
+<span class="chip early-icon" onclick="applyYearFilter('Early')">🔵 Early: ${e}</span>
+<span class="chip half-icon" onclick="applyYearFilter('Half')">🟠 Half Day: ${hf}</span>
+<span class="chip leave-icon" onclick="applyYearFilter('Leave')">🟣 Leave: ${lv}</span>
+<span class="chip absent-icon" onclick="applyYearFilter('Absent')">🔴 Absent: ${a}</span>
+<span class="chip weekoff-icon" onclick="applyYearFilter('Week Off')">⚫ Week Off: ${w}</span>
+<span class="chip holiday-icon" onclick="applyYearFilter('Holiday')">🟤 Holiday: ${hol}</span>
     <span class="chip percent-icon">📊 ${percent}%</span>
 
   </div>
 `;
 }
+
+
+function applyYearFilter(type){
+
+  // toggle OFF if same clicked
+  if(activeFilter === type){
+    activeFilter = null;
+  } else {
+    activeFilter = type;
+  }
+
+  openYearView(); // reload with highlight
+}
+
+
 function showInsights(){
-document.getElementById("summaryBox")
-.scrollIntoView({behavior:"smooth"});
+
+  if(isInsightsMode){
+    // 🔙 BACK TO CALENDAR
+    isInsightsMode = false;
+
+    document.getElementById("insightsBox").style.display = "none";
+
+    document.querySelector(".topbar").style.display = "flex";
+    document.querySelector(".action-bar").style.display = "flex";
+    document.getElementById("summaryBox").style.display = "grid";
+    document.getElementById("weekdays").style.display = "grid";
+    document.getElementById("calendar").style.display = "grid";
+    document.getElementById("liveStrip").style.display = "block";
+
+    setActiveNav(0);
+
+    return;
+  }
+
+  // 👉 OPEN INSIGHTS
+  isInsightsMode = true;
+
+  // ❌ hide all
+  document.querySelector(".topbar").style.display = "none";
+  document.querySelector(".action-bar").style.display = "none";
+  document.getElementById("summaryBox").style.display = "none";
+  document.getElementById("weekdays").style.display = "none";
+  document.getElementById("calendar").style.display = "none";
+  document.getElementById("liveStrip").style.display = "none";
+
+  // ✅ show insights
+  let box = document.getElementById("insightsBox");
+  box.style.display = "block";
+
+  // 🔥 DATA BUILD (same as before)
+  let all = getAll();
+
+  let p=0,l=0,e=0,h=0,lv=0,a=0;
+
+  Object.values(all).forEach(d=>{
+    let s = normalizeStatus(d.status);
+
+    if(s==="Present") p++;
+    else if(s==="Late") l++;
+    else if(s==="Early") e++;
+    else if(s==="Half Day") h++;
+    else if(s==="Leave") lv++;
+    else if(s==="Absent") a++;
+  });
+
+  box.innerHTML = `
+    <div style="padding:15px;">
+      <h2>📊 Insights Dashboard</h2>
+
+      <p>🟢 Present: ${p}</p>
+      <p>🟡 Late: ${l}</p>
+      <p>🔵 Early: ${e}</p>
+      <p>🟠 Half Day: ${h}</p>
+      <p>🟣 Leave: ${lv}</p>
+      <p>🔴 Absent: ${a}</p>
+
+      <hr>
+
+      <p>💡 ${
+        l > 3 ? "You are frequently late ⏰" :
+        lv > 5 ? "Too many leaves 📅" :
+        "Excellent attendance 🚀"
+      }</p>
+
+    </div>
+  `;
+
+  setActiveNav(2); // insights tab highlight
 }
 
 /* MORE SHEET */
