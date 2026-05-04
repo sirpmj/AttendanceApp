@@ -1516,7 +1516,6 @@ text-align:center;
 <div id="smartMsg" class="extra-card"></div>
     <div class="extra-card" id="compareBox">📈 Comparing...</div>
     <div class="extra-card" id="streakBox">🔥 Streak...</div>
-    <div class="extra-card" id="smartMsg">🧠 Loading...</div>
   </div>
 
 </div>
@@ -2631,6 +2630,12 @@ for(let i=1; i<=daysInMonth; i++){
     String(i).padStart(2,'0');
 
   let d = new Date(year, month, i);
+let today = new Date();
+
+// 🔥 future dates skip
+if(d > today){
+  continue;
+}
   let data = all[key] || {};
   let s = (data.status || "").toLowerCase();
 
@@ -2647,14 +2652,19 @@ for(let i=1; i<=daysInMonth; i++){
   }
 
   // ✅ बाकी status
-  if (s === "present") stats.present++;
-  else if (s === "late") stats.late++;
-  else if (s === "early") stats.early++;
-  else if (s === "half") stats.half++;
-  else if (s === "leave") stats.leave++;
-  else if (s === "holiday") stats.holiday++;
-  else stats.absent++;
-
+// ✅ only working days pe count
+if (s === "present") stats.present++;
+else if (s === "late") stats.late++;
+else if (s === "early") stats.early++;
+else if (s === "half") stats.half++;
+else if (s === "leave") stats.leave++;
+else if (s === "holiday") stats.holiday++;
+else {
+  // 🔥 sirf tab absent count karo jab koi status hi nahi
+  if(!s){
+    stats.absent++;
+  }
+}
 }
 
 // 🎯 percent same logic
