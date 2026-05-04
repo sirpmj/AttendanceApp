@@ -2657,38 +2657,45 @@ let stats = {
   holiday:0
 };
 
-all.forEach(d=>{
+all.forEach(d => {
 
   let s = (d.status || "").toLowerCase().trim();
 
-  // ✅ SAFE DATE
-  let [y, m, d2] = d.date.split("-").map(Number);
-  let day = new Date(y, m-1, d2).getDay();
+let dateObj = parseDate(d.date);
 
-  // MAIN STATUS
-  if(s.includes("present")) stats.present++;
-  else if(s.includes("late")) stats.late++;
-  else if(s.includes("early")) stats.early++;
-  else if(s.includes("half")) stats.half++;
-  else if(s.includes("leave")) stats.leave++;
-  else if(s.includes("absent")) stats.absent++;
+if(!dateObj || isNaN(dateObj.getTime())) return;
 
-  // 🔥 WEEK OFF (Sunday included)
-  if(day === 0 || s.includes("week")){
-    stats.weekoff++;
-  }
+if(dateObj.getDay() === 0){
+  stats.weekoff++;
+  return;
+}
 
-  // HOLIDAY
-  if(s.includes("holiday")){
-    stats.holiday++;
-  }
+  if (s === "present") stats.present++;
+  else if (s === "late") stats.late++;
+  else if (s === "early") stats.early++;
+  else if (s === "half") stats.half++;
+  else if (s === "leave") stats.leave++;
+  else if (s === "holiday") stats.holiday++;
+  else stats.absent++;
 
 });
 
 // 📊 PERCENT (Present based)
-let workingDays = stats.present + stats.late + stats.half + stats.absent;
+let totalDays =
+  stats.present +
+  stats.late +
+  stats.early +
+  stats.half +
+  stats.absent +
+  stats.leave +
+  stats.holiday +
+  stats.weekoff;
 
-let percent = workingDays ? Math.round((stats.present/workingDays)*100) : 0;
+let workingDays = totalDays - stats.weekoff - stats.holiday;
+
+let percent = workingDays
+  ? Math.round((stats.present / workingDays) * 100)
+  : 0;
 
 
 // 🎨 UI RENDER
@@ -2724,6 +2731,36 @@ circle.style.background =
 
 }
 
+
+
+function parseDate(str){
+
+  if(!str) return new Date(NaN);
+
+  str = str.replace(/\//g, "-"); // fix / format
+
+  let parts = str.split("-");
+
+  if(parts.length !== 3) return new Date(NaN);
+
+  // yyyy-mm-dd
+  if(parts[0].length === 4){
+    return new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2])
+    );
+  }
+
+  // dd-mm-yyyy
+  return new Date(
+    Number(parts[2]),
+    Number(parts[1]) - 1,
+    Number(parts[0])
+  );
+}
+
+
 function showInsights(){
 
 let insight = document.getElementById("insightBox");
@@ -2743,6 +2780,12 @@ if(!isInsightsOpen){
   document.getElementById("weekdays").style.display = "none";
   document.getElementById("liveStrip").style.display = "none";
   document.getElementById("yearView").style.display = "none";
+
+document.getElementById("monthTitle").textContent =
+current.toLocaleString('default', {
+  month: 'long',
+  year: 'numeric'
+});
 
   loadInsights();
   loadFullStats();
@@ -2798,24 +2841,29 @@ document.getElementById("compareBox").textContent =
 
 
 // 🧠 MESSAGE
+let leaveCount = all.filter(d =>
+  (d.status || "").toLowerCase().includes("leave")
+).length;
+
 let msg = "";
 
-if(globalPercent === 100){
-  msg = "🔥 Perfect! No leaves this month";
+if (leaveCount === 0 && globalPercent >= 95) {
+  msg = "🔥 Perfect attendance, no leaves!";
 }
-else if(globalPercent >= 90){
-  msg = "👍 Excellent attendance";
+else if (leaveCount <= 2 && globalPercent >= 90) {
+  msg = "👍 Excellent performance";
 }
-else if(globalPercent >= 75){
-  msg = "🙂 Good, but can improve";
+else if (globalPercent >= 75) {
+  msg = "🙂 Good, but improve consistency";
 }
-else{
-  msg = "⚠ Low attendance, ध्यान दो";
+else {
+  msg = "⚠ Attendance low, ध्यान दो";
 }
 
 document.getElementById("smartMsg").textContent = msg;
 
 }
+
 
 /* MORE SHEET */
 function openMoreSheet(){
