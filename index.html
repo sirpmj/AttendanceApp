@@ -779,6 +779,7 @@ button{
 #liveStrip{
   color:#fff;
   font-weight:600;
+transition: all 0.3s ease;
   text-shadow: 0 1px 3px rgba(0,0,0,0.4); /* 🔥 glow readability */
 }
 
@@ -1783,7 +1784,7 @@ holidays={};
 
 // 🔥 NEW SETTINGS
 const officeIn="09:00";
-const officeOut="18:00";
+const officeOut="17:50";
 const graceTime="09:15";
 const lateLimit=3;
 const earlyLimit=1;
@@ -2887,79 +2888,106 @@ alert("Already punched today");
 
 function updateLiveStrip(){
 
-let d = getData();
+let d = getData() || {};
 
-let txt = "";   // 🔥 पहले declare करो
+let strip = document.getElementById("liveStrip");
+let textEl = document.getElementById("liveText");
 
-if(!d.in && !d.out && !d.status){
-  txt = "📌 No record today";
-  document.getElementById("liveText").textContent = txt;
-  document.getElementById("liveStrip").style.background="#2563eb";
+if(!strip || !textEl) return;
+
+let txt = "";
+
+// ❌ NO DATA
+if(!d.status && !d.in && !d.out){
+  textEl.textContent = "📌 No record today";
+  strip.style.background = "#2563eb";
   return;
 }
 
-let status = normalizeStatus(d.status);
-let color = getStatusColor(status);
+// 🔥 SAFE STATUS
+let status = (d.status || "").toLowerCase();
 
-/* ABSENT */
-if(status === "Absent"){
-  txt = "❌ Absent Today";
+// 🎨 default color
+let color = "#2563eb";
+
+/* STATUS HANDLING */
+
+// 🔵 EARLY
+if(status.includes("early")){
+  txt = `🔵 Early | ${d.in || "--"} - ${d.out || "Pending"}`;
+  color = "#3b82f6";
 }
 
-/* LEAVE */
-else if(status === "Leave"){
-  txt = "📌 Today on Leave";
+// 🟡 LATE
+else if(status.includes("late")){
+  txt = d.out
+    ? `🟡 Late | ${d.in} - ${d.out}`
+    : `🟡 Late | IN ${d.in} | OUT Pending`;
+  color = "#eab308";
 }
 
-/* HALF DAY */
-else if(status === "Half Day"){
-  txt = "🟠 Today Half Day";
+// 🟢 PRESENT
+else if(status.includes("present")){
+  txt = d.out
+    ? `🟢 Present | ${d.in} - ${d.out}`
+    : `🟢 Present | IN ${d.in} | OUT Pending`;
+  color = "#22c55e";
 }
 
-/* HOLIDAY / WEEK / SUNDAY */
-else if(status === "Holiday"){
-  txt = "🎉 Today Holiday";
+// 🟠 HALF
+else if(status.includes("half")){
+  txt = "🟠 Half Day";
+  color = "#f97316";
 }
 
-else if(status === "Week Off"){
-  txt = "🛑 Week Off Today";
+// 🟣 LEAVE
+else if(status.includes("leave")){
+  txt = "🟣 On Leave";
+  color = "#a855f7";
 }
 
-else if(status === "Sunday"){
-  txt = "☀️ Sunday Off Today";
+// 🔴 ABSENT
+else if(status.includes("absent")){
+  txt = "🔴 Absent";
+  color = "#ef4444";
 }
 
-/* IN ONLY */
-else if(d.in && !d.out){
-  txt =
-    (status === "Late" ? "🟡 Late" : "🟢 " + status) +
-    " | IN " + d.in +
-    " | OUT Pending";
+// ⚫ WEEK OFF
+else if(status.includes("week")){
+  txt = "⚫ Week Off";
+  color = "#6b7280";
 }
 
-/* COMPLETE */
-else if(d.in && d.out){
+// 🟤 HOLIDAY
+else if(status.includes("holiday")){
+  txt = "🟤 Holiday";
+  color = "#92400e";
+}
 
-  let extra = "";
+// fallback
+else{
+  txt = `${d.status || "Unknown"} | ${d.in || "--"} - ${d.out || "--"}`;
+}
+
+// 🔥 EXTRA INFO (only if complete)
+if(d.in && d.out){
 
   let outMin = toMinutes(d.out);
 
-  if(outMin < toMinutes("18:00")) extra += " • Early Out ⚠️";
-  if(outMin > toMinutes("18:30")) extra += " • OT 🔥";
+  if(outMin < toMinutes("17:50")){
+    txt += " • Early Out ⚠️";
+  }
 
-  txt =
-    "✓ " + status +
-    " | " + d.in + " - " + d.out +
-    extra;
+  if(outMin > toMinutes("18:30")){
+    txt += " • OT 🔥";
+  }
 }
 
-/* APPLY */
-let strip = document.getElementById("liveStrip");
-document.getElementById("liveText").textContent = txt;
+// APPLY
+textEl.textContent = txt;
 strip.style.background = color;
 
 }
-
 
 
 function downloadReport() {
