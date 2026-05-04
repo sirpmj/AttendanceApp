@@ -2896,26 +2896,24 @@ let textEl = document.getElementById("liveText");
 if(!strip || !textEl) return;
 
 let txt = "";
+let color = "#2563eb"; // default
 
-// ❌ NO DATA
+// ❌ no data
 if(!d.status && !d.in && !d.out){
   textEl.textContent = "📌 No record today";
-  strip.style.background = "#2563eb";
+  strip.style.background = color;
   return;
 }
 
-// 🔥 SAFE STATUS
+// 🔥 DIRECT STATUS (no normalize function)
 let status = (d.status || "").toLowerCase();
 
-// 🎨 default color
-let color = "#2563eb";
-
-/* STATUS HANDLING */
-
-// 🔵 EARLY
-if(status.includes("early")){
-  txt = `🔵 Early | ${d.in || "--"} - ${d.out || "Pending"}`;
-  color = "#3b82f6";
+// 🟢 PRESENT
+if(status.includes("present")){
+  txt = d.out
+    ? `🟢 Present | ${d.in} - ${d.out}`
+    : `🟢 Present | IN ${d.in} | OUT Pending`;
+  color = "#22c55e";
 }
 
 // 🟡 LATE
@@ -2926,12 +2924,10 @@ else if(status.includes("late")){
   color = "#eab308";
 }
 
-// 🟢 PRESENT
-else if(status.includes("present")){
-  txt = d.out
-    ? `🟢 Present | ${d.in} - ${d.out}`
-    : `🟢 Present | IN ${d.in} | OUT Pending`;
-  color = "#22c55e";
+// 🔵 EARLY
+else if(status.includes("early")){
+  txt = `🔵 Early | ${d.in} - ${d.out || "Pending"}`;
+  color = "#3b82f6";
 }
 
 // 🟠 HALF
@@ -2966,15 +2962,15 @@ else if(status.includes("holiday")){
 
 // fallback
 else{
-  txt = `${d.status || "Unknown"} | ${d.in || "--"} - ${d.out || "--"}`;
+  txt = `${d.status} | ${d.in || "--"} - ${d.out || "--"}`;
 }
 
-// 🔥 EXTRA INFO (only if complete)
+// 🔥 extra info
 if(d.in && d.out){
 
   let outMin = toMinutes(d.out);
 
-  if(outMin < toMinutes("17:50")){
+  if(outMin < toMinutes("18:00")){
     txt += " • Early Out ⚠️";
   }
 
@@ -2988,7 +2984,6 @@ textEl.textContent = txt;
 strip.style.background = color;
 
 }
-
 
 function downloadReport() {
   const { jsPDF } = window.jspdf;
