@@ -1498,8 +1498,15 @@ text-align:center;
 <div id="insightBox" style="display:none; padding:12px;">
 
   <!-- HEADER -->
-  <h2 style="margin-bottom:10px;">📊 Insights Dashboard</h2>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
 
+  <button onclick="changeMonth(-1); refreshInsights()" class="nav-btn prev"></button>
+
+  <h2 id="insightMonthTitle">📊 Insights</h2>
+
+  <button onclick="changeMonth(1); refreshInsights()" class="nav-btn next"></button>
+
+</div>
 
 
   <!-- 🔥 FULL STATS -->
@@ -2791,7 +2798,7 @@ current.toLocaleString('default', {
   loadFullStats();
   drawLineChart();
   loadExtraInsights();
-
+refreshInsights();
   setActiveNav(3);
 
 } else {
@@ -2864,6 +2871,21 @@ document.getElementById("smartMsg").textContent = msg;
 
 }
 
+function refreshInsights(){
+
+  // 🔄 Month title update
+  document.getElementById("insightMonthTitle").textContent =
+    "📊 " + current.toLocaleString('default',{
+      month:'long',
+      year:'numeric'
+    });
+
+  // 🔄 Reload data
+  loadInsights();
+  loadFullStats();
+  drawLineChart();
+  loadExtraInsights();
+}
 
 /* MORE SHEET */
 function openMoreSheet(){
