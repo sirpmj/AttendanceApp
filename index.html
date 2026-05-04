@@ -1516,6 +1516,10 @@ text-align:center;
 <div id="smartMsg" class="extra-card"></div>
     <div class="extra-card" id="compareBox">📈 Comparing...</div>
     <div class="extra-card" id="streakBox">🔥 Streak...</div>
+<div class="extra-card" id="workingBox"></div>
+<div class="extra-card" id="alertBox"></div>
+<div class="extra-card" id="goalBox"></div>
+<div class="extra-card" id="disciplineBox"></div>
   </div>
 
 </div>
@@ -2786,6 +2790,44 @@ document.getElementById("statsGrid").innerHTML =
   row("Absent", stats.absent, "#ef4444", "🔴") +
   row("Week Off", stats.weekoff, "#6b7280", "⚫") +
   row("Holiday", stats.holiday, "#92400e", "🟤");
+
+// 📅 WORKING DAYS
+let working = daysInMonth - stats.weekoff - stats.holiday;
+
+document.getElementById("workingBox").textContent =
+  `📅 ${stats.present}/${working} days attended`;
+
+
+// 🚨 ABSENCE ALERT
+let alertMsg = "";
+
+if(stats.absent >= 3){
+  alertMsg = "🚨 Too many absences!";
+}
+else if(stats.absent > 0){
+  alertMsg = "⚠️ Few absences recorded";
+}
+else{
+  alertMsg = "✅ No absences!";
+}
+
+document.getElementById("alertBox").textContent = alertMsg;
+
+
+// 🎯 GOAL TRACKER
+let goal = 90;
+
+document.getElementById("goalBox").textContent =
+  percent >= goal
+  ? "🎯 Goal Achieved!"
+  : `🎯 ${goal - percent}% more to reach goal`;
+
+
+// ⏰ DISCIPLINE SCORE
+let discipline = 100 - (stats.late * 5);
+
+document.getElementById("disciplineBox").textContent =
+  `⏰ Discipline Score: ${discipline}%`;
 }
 
 
