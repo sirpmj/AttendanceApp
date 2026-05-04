@@ -1356,12 +1356,21 @@ animation:grow .6s ease;
 }
 
 .percent-box{
-margin-top:20px;
-padding:15px;
-background:#fff;
-border-radius:15px;
-box-shadow:0 6px 15px rgba(0,0,0,0.1);
 text-align:center;
+margin-top:20px;
+}
+
+.circle{
+width:120px;
+height:120px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+font-weight:bold;
+margin:auto;
+background:conic-gradient(#22c55e 0% 0%, #e5e7eb 0%);
 }
 #insightBox{
 position:fixed;
@@ -1389,6 +1398,16 @@ to{height:100%}
 @keyframes fadeUp{
 from{opacity:0;transform:translateY(10px)}
 to{opacity:1;transform:translateY(0)}
+}
+
+.extra-card{
+background:#fff;
+padding:10px;
+border-radius:12px;
+margin-top:10px;
+font-size:13px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+text-align:center;
 }
 
 </style>
@@ -1489,7 +1508,7 @@ to{opacity:1;transform:translateY(0)}
   <!-- % CIRCLE -->
   <div class="percent-box">
     <div class="circle" id="percentCircle">0%</div>
-<p>This Month Score</p>
+<p>Selected Month Score</p>
   </div>
 
   <!-- GRAPH -->
@@ -1506,6 +1525,7 @@ to{opacity:1;transform:translateY(0)}
 
   <!-- 🧠 EXTRA INSIGHTS -->
   <div id="extraInsights" style="margin-top:15px;">
+<div id="smartMsg" class="extra-card"></div>
     <div class="extra-card" id="compareBox">📈 Comparing...</div>
     <div class="extra-card" id="streakBox">🔥 Streak...</div>
     <div class="extra-card" id="smartMsg">🧠 Loading...</div>
@@ -2637,19 +2657,31 @@ let stats = {
   holiday:0
 };
 
-// 🔢 COUNT
 all.forEach(d=>{
 
-let s = (d.status||"").toLowerCase();
+  let s = (d.status || "").toLowerCase().trim();
 
-if(s.includes("present")) stats.present++;
-else if(s.includes("late")) stats.late++;
-else if(s.includes("early")) stats.early++;
-else if(s.includes("half")) stats.half++;
-else if(s.includes("leave")) stats.leave++;
-else if(s.includes("absent")) stats.absent++;
-else if(s.includes("week")) stats.weekoff++;
-else if(s.includes("holiday")) stats.holiday++;
+  // ✅ SAFE DATE
+  let [y, m, d2] = d.date.split("-").map(Number);
+  let day = new Date(y, m-1, d2).getDay();
+
+  // MAIN STATUS
+  if(s.includes("present")) stats.present++;
+  else if(s.includes("late")) stats.late++;
+  else if(s.includes("early")) stats.early++;
+  else if(s.includes("half")) stats.half++;
+  else if(s.includes("leave")) stats.leave++;
+  else if(s.includes("absent")) stats.absent++;
+
+  // 🔥 WEEK OFF (Sunday included)
+  if(day === 0 || s.includes("week")){
+    stats.weekoff++;
+  }
+
+  // HOLIDAY
+  if(s.includes("holiday")){
+    stats.holiday++;
+  }
 
 });
 
@@ -2668,7 +2700,9 @@ let html = `
 
 <div class="stat purple">🟣 <b>${stats.leave}</b> Leave</div>
 <div class="stat red">🔴 <b>${stats.absent}</b> Absent</div>
-<div class="stat gray">⚫ <b>${stats.weekoff}</b> Week Off</div>
+<div class="stat gray">
+⚫ <b>${stats.weekoff}</b> Week Off <small>(incl. Sunday)</small>
+</div>
 <div class="stat brown">🟤 <b>${stats.holiday}</b> Holiday</div>
 `;
 
@@ -2680,8 +2714,13 @@ let circle = document.getElementById("percentCircle");
 
 circle.textContent = percent + "%";
 
+let color = "#22c55e";
+
+if(percent < 75) color = "#ef4444";
+else if(percent < 90) color = "#eab308";
+
 circle.style.background =
-`conic-gradient(#22c55e 0% ${percent}%, #e5e7eb ${percent}%)`;
+`conic-gradient(${color} 0% ${percent}%, #e5e7eb ${percent}%)`;
 
 }
 
@@ -2761,12 +2800,17 @@ document.getElementById("compareBox").textContent =
 // 🧠 MESSAGE
 let msg = "";
 
-if(globalPercent >= 90){
-  msg = "🔥 Excellent attendance!";
-}else if(globalPercent >= 75){
-  msg = "👍 Good job!";
-}else{
-  msg = "⚠ Improve attendance";
+if(globalPercent === 100){
+  msg = "🔥 Perfect! No leaves this month";
+}
+else if(globalPercent >= 90){
+  msg = "👍 Excellent attendance";
+}
+else if(globalPercent >= 75){
+  msg = "🙂 Good, but can improve";
+}
+else{
+  msg = "⚠ Low attendance, ध्यान दो";
 }
 
 document.getElementById("smartMsg").textContent = msg;
@@ -2896,27 +2940,55 @@ let textEl = document.getElementById("liveText");
 if(!strip || !textEl) return;
 
 let txt = "";
-let color = "#2563eb"; // default
+let color = "#2563eb";
 
-// ❌ no data
-if(!d.status && !d.in && !d.out){
-  textEl.textContent = "📌 No record today";
-  strip.style.background = color;
-  return;
-}
-
-// 🔥 DIRECT STATUS (no normalize function)
 let status = (d.status || "").toLowerCase();
 
-// 🟢 PRESENT
-if(status.includes("present")){
-  txt = d.out
-    ? `🟢 Present | ${d.in} - ${d.out}`
-    : `🟢 Present | IN ${d.in} | OUT Pending`;
-  color = "#22c55e";
+// ✅ 1. SAVED STATUS FIRST (highest priority)
+
+// ☀️ Sunday (saved)
+if(status.includes("sunday")){
+  txt = "☀️ Sunday Off";
+  color = "#f59e0b";
 }
 
-// 🟡 LATE
+// 🛑 Week Off
+else if(status.includes("week")){
+  txt = "🛑 Week Off";
+  color = "#6b7280";
+}
+
+// 🎉 Holiday
+else if(status.includes("holiday")){
+  txt = "🎉 Holiday";
+  color = "#16a34a";
+}
+
+// 🔴 Absent
+else if(status.includes("absent")){
+  txt = "❌ Absent";
+  color = "#ef4444";
+}
+
+// 🟣 Leave
+else if(status.includes("leave")){
+  txt = "🟣 On Leave";
+  color = "#a855f7";
+}
+
+// 🟠 Half Day
+else if(status.includes("half")){
+  txt = "🟠 Half Day";
+  color = "#f97316";
+}
+
+// 🔵 Early
+else if(status.includes("early")){
+  txt = `🔵 Early | ${d.in || "--"} - ${d.out || "Pending"}`;
+  color = "#3b82f6";
+}
+
+// 🟡 Late
 else if(status.includes("late")){
   txt = d.out
     ? `🟡 Late | ${d.in} - ${d.out}`
@@ -2924,59 +2996,39 @@ else if(status.includes("late")){
   color = "#eab308";
 }
 
-// 🔵 EARLY
-else if(status.includes("early")){
-  txt = `🔵 Early | ${d.in} - ${d.out || "Pending"}`;
-  color = "#3b82f6";
+// 🟢 Present
+else if(status.includes("present")){
+  txt = d.out
+    ? `🟢 Present | ${d.in} - ${d.out}`
+    : `🟢 Present | IN ${d.in} | OUT Pending`;
+  color = "#22c55e";
 }
 
-// 🟠 HALF
-else if(status.includes("half")){
-  txt = "🟠 Half Day";
-  color = "#f97316";
-}
+// ✅ 2. NO DATA → AUTO SUNDAY CHECK
+else if(!d.status && !d.in && !d.out){
 
-// 🟣 LEAVE
-else if(status.includes("leave")){
-  txt = "🟣 On Leave";
-  color = "#a855f7";
-}
+  let day = new Date(today()).getDay();
 
-// 🔴 ABSENT
-else if(status.includes("absent")){
-  txt = "🔴 Absent";
-  color = "#ef4444";
-}
-
-// ⚫ WEEK OFF
-else if(status.includes("week")){
-  txt = "⚫ Week Off";
-  color = "#6b7280";
-}
-
-// 🟤 HOLIDAY
-else if(status.includes("holiday")){
-  txt = "🟤 Holiday";
-  color = "#92400e";
+  if(day === 0){
+    txt = "☀️ Today Sunday";
+    color = "#f59e0b";
+  } else {
+    txt = "📌 No record today";
+    color = "#2563eb";
+  }
 }
 
 // fallback
 else{
-  txt = `${d.status} | ${d.in || "--"} - ${d.out || "--"}`;
+  txt = `${d.status || "Unknown"} | ${d.in || "--"} - ${d.out || "--"}`;
 }
 
 // 🔥 extra info
 if(d.in && d.out){
-
   let outMin = toMinutes(d.out);
 
-  if(outMin < toMinutes("18:00")){
-    txt += " • Early Out ⚠️";
-  }
-
-  if(outMin > toMinutes("18:30")){
-    txt += " • OT 🔥";
-  }
+  if(outMin < toMinutes("18:00")) txt += " • Early Out ⚠️";
+  if(outMin > toMinutes("18:30")) txt += " • OT 🔥";
 }
 
 // APPLY
@@ -2984,7 +3036,6 @@ textEl.textContent = txt;
 strip.style.background = color;
 
 }
-
 function downloadReport() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
