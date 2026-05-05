@@ -2900,6 +2900,8 @@ for(let i=1; i<=daysInMonth; i++){
   let data = all[key] || {};
   let s = (data.status || "").toLowerCase().trim();
 
+let isSunday = new Date(year, month, i).getDay() === 0;
+
 if(s === "present" || s === "late" || s === "early"){
   tempStreak++;
   if(tempStreak > maxStreak){
@@ -2907,12 +2909,12 @@ if(s === "present" || s === "late" || s === "early"){
   }
 }
 
-else if(s === "weekoff" || s === "holiday"){
-  continue; // ➖ ignore
+else if(isSunday || s === "weekoff" || s === "holiday"){
+  continue;
 }
 
-else {
-  tempStreak = 0; // ❌ break (leave / absent / empty)
+else{
+  tempStreak = 0;
 }
 
   // ➖ ignore (leave / holiday / weekoff / empty)
@@ -2933,14 +2935,17 @@ for(let i=daysInMonth; i>=1; i--){
   let d = new Date(year, month, i);
   if(d > new Date()) continue;
 
+  let isSunday = d.getDay() === 0;
+
   let data = all[key] || {};
   let s = (data.status || "").toLowerCase().trim();
 
-  // ❗ skip ignore + empty
-  if(s === "weekoff" || s === "holiday"){
-  continue; // only ignore these
-}
+  // ✅ ONLY ignore Sunday + holiday + weekoff
+  if(isSunday || s === "weekoff" || s === "holiday"){
+    continue;
+  }
 
+  // ❌ DO NOT ignore empty or leave
   startIndex = i;
   break;
 }
@@ -2956,6 +2961,9 @@ if(startIndex !== null){
       String(month+1).padStart(2,'0') + "-" +
       String(i).padStart(2,'0');
 
+    let d = new Date(year, month, i);
+    let isSunday = d.getDay() === 0;
+
     let data = all[key] || {};
     let s = (data.status || "").toLowerCase().trim();
 
@@ -2964,12 +2972,12 @@ if(startIndex !== null){
       currentStreak++;
     }
 
-    // ➖ ignore only weekend + holiday
-    else if(s === "weekoff" || s === "holiday"){
+    // ➖ ignore Sunday + holiday
+    else if(isSunday || s === "weekoff" || s === "holiday"){
       continue;
     }
 
-    // ❌ break on everything else
+    // ❌ break
     else {
       break;
     }
