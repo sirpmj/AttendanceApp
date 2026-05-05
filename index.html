@@ -2885,7 +2885,9 @@ let currentStreak = 0;
 let maxStreak = 0;
 let tempStreak = 0;
 
-// ✅ MAX STREAK (forward loop)
+// =======================
+// ✅ MAX STREAK (MONTH)
+// =======================
 for(let i=1; i<=daysInMonth; i++){
 
   let key = year + "-" +
@@ -2896,19 +2898,32 @@ for(let i=1; i<=daysInMonth; i++){
   if(d > new Date()) continue;
 
   let data = all[key] || {};
-  let s = (data.status || "").toLowerCase();
+  let s = (data.status || "").toLowerCase().trim();
 
-  if(s === "present"){
-    tempStreak++;
-    if(tempStreak > maxStreak){
-      maxStreak = tempStreak;
-    }
-  } else {
-    tempStreak = 0;
+if(s === "present" || s === "late" || s === "early"){
+  tempStreak++;
+  if(tempStreak > maxStreak){
+    maxStreak = tempStreak;
   }
 }
 
-// ✅ CURRENT STREAK (reverse loop)
+else if(s === "weekoff" || s === "holiday"){
+  continue; // ➖ ignore
+}
+
+else {
+  tempStreak = 0; // ❌ break (leave / absent / empty)
+}
+
+  // ➖ ignore (leave / holiday / weekoff / empty)
+}
+// =======================
+// ✅ CURRENT STREAK (FIXED)
+// =======================
+
+// 🔹 STEP 1: last valid working day find karo
+let startIndex = null;
+
 for(let i=daysInMonth; i>=1; i--){
 
   let key = year + "-" +
@@ -2919,15 +2934,51 @@ for(let i=daysInMonth; i>=1; i--){
   if(d > new Date()) continue;
 
   let data = all[key] || {};
-  let s = (data.status || "").toLowerCase();
+  let s = (data.status || "").toLowerCase().trim();
 
-  if(s === "present"){
-    currentStreak++;
-  } else {
-    break; // 🔥 break on first non-present
+  // ❗ skip ignore + empty
+  if(s === "weekoff" || s === "holiday"){
+  continue; // only ignore these
+}
+
+  startIndex = i;
+  break;
+}
+
+// 🔹 STEP 2: streak calculate karo
+currentStreak = 0;
+
+if(startIndex !== null){
+
+  for(let i=startIndex; i>=1; i--){
+
+    let key = year + "-" +
+      String(month+1).padStart(2,'0') + "-" +
+      String(i).padStart(2,'0');
+
+    let data = all[key] || {};
+    let s = (data.status || "").toLowerCase().trim();
+
+    // ✅ count
+    if(s === "present" || s === "late" || s === "early"){
+      currentStreak++;
+    }
+
+    // ➖ ignore only weekend + holiday
+    else if(s === "weekoff" || s === "holiday"){
+      continue;
+    }
+
+    // ❌ break on everything else
+    else {
+      break;
+    }
   }
 }
 
+// =======================
+// ✅ ALL TIME BEST STREAK
+// =======================
 let allData = getAll();
 let dates = Object.keys(allData).sort();
 
@@ -2935,17 +2986,26 @@ let bestAllTime = 0;
 let temp = 0;
 
 dates.forEach(k => {
-  let s = (allData[k].status || "").toLowerCase();
 
-  if(s === "present"){
+  let s = (allData[k].status || "").toLowerCase().trim();
+
+  if(s === "present" || s === "late" || s === "early"){
     temp++;
     if(temp > bestAllTime){
       bestAllTime = temp;
     }
-  } else {
-    temp = 0;
   }
+
+else if(s === "weekoff" || s === "holiday"){
+  // ignore
+}
+else{
+  temp = 0; // break (leave / absent / empty)
+}
+
+  // ➖ ignore leave/holiday/weekoff
 });
+
 
 // 📆 CONSISTENCY SCORE
 
@@ -2965,7 +3025,7 @@ document.getElementById("streakBox").innerHTML = `
   <div class="label">🔥 Streak</div>
   <div class="value">
     ${currentStreak} days 
-    (Best: ${bestAllTime})
+    (Best: ${maxStreak} | Overall: ${bestAllTime})
   </div>
 `;
 
