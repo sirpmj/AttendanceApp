@@ -1398,7 +1398,7 @@ margin-top:20px;
 
 #extraInsights{
   display:grid;
-  grid-template-columns: repeat(4, 1fr); /* desktop */
+  grid-template-columns: repeat(3, 1fr); /* desktop */
   gap:10px;
 }
 
@@ -1410,12 +1410,35 @@ margin-top:20px;
 }
 
 
+/* 🧠 Insight */
+#smartMsg{  background:#fee2e2;   /* soft red */
+  color:#991b1b;
+}
 
-#alertBox{ background:#fee2e2; }
-#goalBox{ background:#e0f2fe; }
-#rankBox{ background:#ecfdf5; }
-#trendBox{ background:#fef3c7; }
-#bestStreakBox{ background:#f3e8ff; }
+/* 🚨 Status */
+#alertBox{  background:#ffedd5;   /* orange */
+  color:#9a3412;
+}
+
+/* 🎯 Goal */
+#goalBox{  background:#e0f2fe;   /* blue */
+  color:#075985;
+}
+
+/* 🔥 Streak */
+#streakBox{  background:#dcfce7;   /* green */
+  color:#065f46;
+}
+
+/* 📅 Attendance */
+#workingBox{  background:#fef9c3;   /* yellow */
+  color:#854d0e;
+}
+
+/* ⏰ Discipline */
+#disciplineBox{  background:#f3e8ff;   /* purple */
+  color:#6b21a8;
+}
 
 /* animations */
 @keyframes grow{
@@ -1546,23 +1569,15 @@ to{opacity:1;transform:translateY(0)}
 
 
   <!-- 🧠 EXTRA INSIGHTS -->
-<!-- 🧠 EXTRA INSIGHTS -->
 <div id="extraInsights" style="margin-top:15px;">
 
   <div id="smartMsg" class="extra-card"></div>
-  <div id="compareBox" class="extra-card"></div>
-  <div id="streakBox" class="extra-card"></div>
-  <div id="bestStreakBox" class="extra-card"></div>
 
+  <div id="streakBox" class="extra-card"></div>
   <div id="workingBox" class="extra-card"></div>
   <div id="alertBox" class="extra-card"></div>
   <div id="goalBox" class="extra-card"></div>
   <div id="disciplineBox" class="extra-card"></div>
-
-  <div id="rankBox" class="extra-card"></div>
-  <div id="tipBox" class="extra-card"></div>
-  <div id="consistencyBox" class="extra-card"></div>
-  <div id="trendBox" class="extra-card"></div>
 
 </div>
 
@@ -2842,7 +2857,6 @@ document.getElementById("statsGrid").innerHTML =
 // 📅 WORKING DAYS
 let working = daysInMonth - stats.weekoff - stats.holiday;
 
-document.getElementById("workingBox").textContent =
   `📅 ${stats.present}/${working} days attended`;
 
 
@@ -2859,78 +2873,79 @@ else{
   alertMsg = "✅ No absences!";
 }
 
-document.getElementById("alertBox").textContent = alertMsg;
-
-
-// 🎯 GOAL TRACKER
-let goal = 90;
-
-document.getElementById("goalBox").textContent =
-  percent >= goal
-  ? "🎯 Goal Achieved!"
-  : `🎯 ${goal - percent}% more to reach goal`;
-
 
 // ⏰ DISCIPLINE SCORE
 let discipline = 100 - (stats.late * 5);
 
-document.getElementById("disciplineBox").textContent =
   `⏰ Discipline Score: ${discipline}%`;
 
 // 🏆 BEST STREAK EVER
 
-let allData = getAll();
-let dates = Object.keys(allData).sort();
-
-let maxStreak = 0;
 let currentStreak = 0;
+let maxStreak = 0;
+let tempStreak = 0;
 
-dates.forEach(k=>{
-  let s = (allData[k].status || "").toLowerCase();
+// ✅ MAX STREAK (forward loop)
+for(let i=1; i<=daysInMonth; i++){
+
+  let key = year + "-" +
+    String(month+1).padStart(2,'0') + "-" +
+    String(i).padStart(2,'0');
+
+  let d = new Date(year, month, i);
+  if(d > new Date()) continue;
+
+  let data = all[key] || {};
+  let s = (data.status || "").toLowerCase();
+
+  if(s === "present"){
+    tempStreak++;
+    if(tempStreak > maxStreak){
+      maxStreak = tempStreak;
+    }
+  } else {
+    tempStreak = 0;
+  }
+}
+
+// ✅ CURRENT STREAK (reverse loop)
+for(let i=daysInMonth; i>=1; i--){
+
+  let key = year + "-" +
+    String(month+1).padStart(2,'0') + "-" +
+    String(i).padStart(2,'0');
+
+  let d = new Date(year, month, i);
+  if(d > new Date()) continue;
+
+  let data = all[key] || {};
+  let s = (data.status || "").toLowerCase();
 
   if(s === "present"){
     currentStreak++;
-    if(currentStreak > maxStreak){
-      maxStreak = currentStreak;
+  } else {
+    break; // 🔥 break on first non-present
+  }
+}
+
+let allData = getAll();
+let dates = Object.keys(allData).sort();
+
+let bestAllTime = 0;
+let temp = 0;
+
+dates.forEach(k => {
+  let s = (allData[k].status || "").toLowerCase();
+
+  if(s === "present"){
+    temp++;
+    if(temp > bestAllTime){
+      bestAllTime = temp;
     }
   } else {
-    currentStreak = 0;
+    temp = 0;
   }
 });
-
-document.getElementById("bestStreakBox").textContent =
-  `🏆 Best Streak: ${maxStreak} days`;
-
-
-// 📊 RANK SYSTEM
-
-let rank = "";
-
-if(percent >= 95) rank = "🏆 Elite";
-else if(percent >= 85) rank = "💪 Strong";
-else if(percent >= 70) rank = "🙂 Average";
-else rank = "⚠️ Weak";
-
-document.getElementById("rankBox").textContent =
-  `📊 Rank: ${rank}`;
-
-
-// 📉 IMPROVEMENT SUGGESTION
-
-let tip = "";
-
-if(stats.absent > 0){
-  tip = "❗ Reduce absences";
-}
-else if(stats.late > 0){
-  tip = "⏰ Improve timing";
-}
-else{
-  tip = "✅ Keep it up!";
-}
-
-document.getElementById("tipBox").textContent =
-  `💡 ${tip}`;
 
 // 📆 CONSISTENCY SCORE
 
@@ -2942,45 +2957,16 @@ let consistency = consistencyTotal
   ? Math.round((stats.present / consistencyTotal) * 100)
   : 0;
 
-document.getElementById("consistencyBox").textContent =
   `📆 Consistency: ${consistency}%`;
 
-// 📈 TREND
 
-// 📈 TREND (SMART)
-
-let trend = "";
-
-if(percent >= 95) trend = "🚀 Excellent growth";
-else if(percent >= 85) trend = "📈 Improving";
-else if(percent >= 70) trend = "🙂 Stable";
-else trend = "📉 Needs focus";
-
-document.getElementById("trendBox").textContent = trend;
-
-// 🧠 SMART MSG
-document.getElementById("smartMsg").innerHTML = `
-  <div class="label">🧠 Insight</div>
-  <div class="value">${msg}</div>
-`;
-
-// 📈 COMPARE (dummy if not defined)
-let compareText = "Same as last month";
-document.getElementById("compareBox").innerHTML = `
-  <div class="label">📈 Compare</div>
-  <div class="value">${compareText}</div>
-`;
-
-// 🔥 CURRENT STREAK
+// 🔥 STREAK (already calculated above)
 document.getElementById("streakBox").innerHTML = `
-  <div class="label">🔥 Current Streak</div>
-  <div class="value">${currentStreak || 0} days</div>
-`;
-
-// 🏆 BEST STREAK
-document.getElementById("bestStreakBox").innerHTML = `
-  <div class="label">🏆 Best Streak</div>
-  <div class="value">${maxStreak} days</div>
+  <div class="label">🔥 Streak</div>
+  <div class="value">
+    ${currentStreak} days 
+    (Best: ${bestAllTime})
+  </div>
 `;
 
 // 📅 ATTENDANCE
@@ -2989,7 +2975,7 @@ document.getElementById("workingBox").innerHTML = `
   <div class="value">${stats.present} / ${working}</div>
 `;
 
-// 🚨 ALERT
+// 🚨 STATUS
 document.getElementById("alertBox").innerHTML = `
   <div class="label">🚨 Status</div>
   <div class="value">${alertMsg}</div>
@@ -2998,7 +2984,7 @@ document.getElementById("alertBox").innerHTML = `
 // 🎯 GOAL
 document.getElementById("goalBox").innerHTML = `
   <div class="label">🎯 Goal</div>
-  <div class="value">${percent >= 90 ? "Achieved" : percent + "%"}</div>
+  <div class="value">${percent >= 90 ? "Achieved 🚀" : percent + "%"}</div>
 `;
 
 // ⏰ DISCIPLINE
@@ -3007,29 +2993,27 @@ document.getElementById("disciplineBox").innerHTML = `
   <div class="value">${discipline}%</div>
 `;
 
-// 📊 RANK
-document.getElementById("rankBox").innerHTML = `
-  <div class="label">📊 Rank</div>
-  <div class="value">${rank}</div>
+// 🧠 SMART MESSAGE (DEFINE HERE ONLY)
+let msg = "";
+
+if(stats.absent === 0 && percent >= 95){
+  msg = "🔥 Perfect attendance!";
+}
+else if(percent >= 85){
+  msg = "👍 Excellent performance";
+}
+else if(percent >= 70){
+  msg = "🙂 Good, improve consistency";
+}
+else{
+  msg = "⚠️ Attendance low";
+}
+
+document.getElementById("smartMsg").innerHTML = `
+  <div class="label">🧠 Insight</div>
+  <div class="value">${msg}</div>
 `;
 
-// 💡 TIP
-document.getElementById("tipBox").innerHTML = `
-  <div class="label">💡 Suggestion</div>
-  <div class="value">${tip}</div>
-`;
-
-// 📆 CONSISTENCY
-document.getElementById("consistencyBox").innerHTML = `
-  <div class="label">📆 Consistency</div>
-  <div class="value">${consistency}%</div>
-`;
-
-// 📉 TREND
-document.getElementById("trendBox").innerHTML = `
-  <div class="label">📉 Trend</div>
-  <div class="value">${trend}</div>
-`;
 }
 
 
@@ -3114,67 +3098,9 @@ refreshInsights();
 }
 
 
-function loadExtraInsights(){
-
-let all = getCurrentMonthData();
-
-// 🔥 STREAK
-let streak=0, best=0;
-
-all.forEach(d=>{
-let s=(d.status||"").toLowerCase();
-
-if(s.includes("present")){
-  streak++;
-  if(streak>best) best=streak;
-}else{
-  streak=0;
-}
-});
-
-document.getElementById("streakBox").innerHTML = `
-  <div class="label">🔥 Current Streak</div>
-  <div class="value">${best} days</div>
-`;
 
 
-let totalPresent = all.filter(d =>
-  (d.status || "").toLowerCase().includes("present")
-).length;
 
-document.getElementById("compareBox").innerHTML = `
-  <div class="label">📈 Total Present</div>
-  <div class="value">${totalPresent}</div>
-`;
-
-
-// 🧠 MESSAGE
-let leaveCount = all.filter(d =>
-  (d.status || "").toLowerCase().includes("leave")
-).length;
-
-let msg = "";
-
-if (leaveCount === 0 && globalPercent >= 95) {
-  msg = "🔥 Perfect attendance, no leaves!";
-}
-else if (leaveCount <= 2 && globalPercent >= 90) {
-  msg = "👍 Excellent performance";
-}
-else if (globalPercent >= 75) {
-  msg = "🙂 Good, but improve consistency";
-}
-else {
-  msg = "⚠ Attendance low, ध्यान दो";
-}
-
-document.getElementById("smartMsg").innerHTML = `
-  <div class="label">🧠 Insight</div>
-  <div class="value">${msg}</div>
-`;
-
-
-}
 
 function refreshInsights(){
 
