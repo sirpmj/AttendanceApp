@@ -1360,21 +1360,64 @@ margin-top:20px;
   margin:auto;
 }
 #insightBox{
-position:fixed;
-inset:0;
-background:#f8fafc;
-z-index:9999;
-overflow:auto;
+  position:fixed;
+  inset:0;
+  background:#f8fafc;
+  z-index:9999;
+  overflow:auto;
+  padding:15px;
 }
 .extra-card{
-background:#fff;
-padding:10px;
-border-radius:12px;
-margin-bottom:8px;
-font-size:13px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-animation:fadeUp .4s ease;
+  background:#ffffff;
+  padding:14px;
+  border-radius:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  font-size:14px;
+  font-weight:600;
+  text-align:center;
+  transition:0.3s ease;
+  animation:fadeUp 0.4s ease;
 }
+
+.extra-card:hover{
+  transform:translateY(-4px) scale(1.02);
+  box-shadow:0 8px 18px rgba(0,0,0,0.15);
+}
+
+#extraInsights{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr); /* 🔥 5 per row */
+  gap:10px;
+}
+
+.label{
+  font-size:12px;
+  opacity:0.7;
+  margin-bottom:4px;
+}
+
+.value{
+  font-size:18px;
+  font-weight:bold;
+}
+
+@media(max-width:768px){
+  #extraInsights{
+    grid-template-columns: repeat(2, 1fr); /* 2 per row */
+  }
+}
+
+@media(max-width:480px){
+  #extraInsights{
+    grid-template-columns: 1fr; /* 1 per row */
+  }
+}
+
+#alertBox{ background:#fee2e2; }
+#goalBox{ background:#e0f2fe; }
+#rankBox{ background:#ecfdf5; }
+#trendBox{ background:#fef3c7; }
+#bestStreakBox{ background:#f3e8ff; }
 
 /* animations */
 @keyframes grow{
@@ -1387,15 +1430,8 @@ from{opacity:0;transform:translateY(10px)}
 to{opacity:1;transform:translateY(0)}
 }
 
-.extra-card{
-background:#fff;
-padding:10px;
-border-radius:12px;
-margin-top:10px;
-font-size:13px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-text-align:center;
-}
+
+
 
 </style>
 </head>
@@ -1512,15 +1548,25 @@ text-align:center;
 
 
   <!-- 🧠 EXTRA INSIGHTS -->
-  <div id="extraInsights" style="margin-top:15px;">
-<div id="smartMsg" class="extra-card"></div>
-    <div class="extra-card" id="compareBox">📈 Comparing...</div>
-    <div class="extra-card" id="streakBox">🔥 Streak...</div>
-<div class="extra-card" id="workingBox"></div>
-<div class="extra-card" id="alertBox"></div>
-<div class="extra-card" id="goalBox"></div>
-<div class="extra-card" id="disciplineBox"></div>
-  </div>
+<!-- 🧠 EXTRA INSIGHTS -->
+<div id="extraInsights" style="margin-top:15px;">
+
+  <div id="smartMsg" class="extra-card"></div>
+  <div id="compareBox" class="extra-card"></div>
+  <div id="streakBox" class="extra-card"></div>
+  <div id="bestStreakBox" class="extra-card"></div>
+
+  <div id="workingBox" class="extra-card"></div>
+  <div id="alertBox" class="extra-card"></div>
+  <div id="goalBox" class="extra-card"></div>
+  <div id="disciplineBox" class="extra-card"></div>
+
+  <div id="rankBox" class="extra-card"></div>
+  <div id="tipBox" class="extra-card"></div>
+  <div id="consistencyBox" class="extra-card"></div>
+  <div id="trendBox" class="extra-card"></div>
+
+</div>
 
 </div>
 
@@ -2672,7 +2718,11 @@ else {
 }
 
 // 🎯 percent same logic
-let workingDays = daysInMonth - stats.weekoff - stats.holiday;
+let countedDays =
+stats.present + stats.late + stats.early +
+stats.half + stats.leave + stats.absent;
+
+let workingDays = countedDays;
 
 let percent = workingDays
   ? Math.round((stats.present / workingDays) * 100)
@@ -2828,7 +2878,162 @@ let discipline = 100 - (stats.late * 5);
 
 document.getElementById("disciplineBox").textContent =
   `⏰ Discipline Score: ${discipline}%`;
+
+// 🏆 BEST STREAK EVER
+
+let allData = getAll();
+let dates = Object.keys(allData).sort();
+
+let maxStreak = 0;
+let currentStreak = 0;
+
+dates.forEach(k=>{
+  let s = (allData[k].status || "").toLowerCase();
+
+  if(s === "present"){
+    currentStreak++;
+    if(currentStreak > maxStreak){
+      maxStreak = currentStreak;
+    }
+  } else {
+    currentStreak = 0;
+  }
+});
+
+document.getElementById("bestStreakBox").textContent =
+  `🏆 Best Streak: ${maxStreak} days`;
+
+
+// 📊 RANK SYSTEM
+
+let rank = "";
+
+if(percent >= 95) rank = "🏆 Elite";
+else if(percent >= 85) rank = "💪 Strong";
+else if(percent >= 70) rank = "🙂 Average";
+else rank = "⚠️ Weak";
+
+document.getElementById("rankBox").textContent =
+  `📊 Rank: ${rank}`;
+
+
+// 📉 IMPROVEMENT SUGGESTION
+
+let tip = "";
+
+if(stats.absent > 0){
+  tip = "❗ Reduce absences";
 }
+else if(stats.late > 0){
+  tip = "⏰ Improve timing";
+}
+else{
+  tip = "✅ Keep it up!";
+}
+
+document.getElementById("tipBox").textContent =
+  `💡 ${tip}`;
+
+// 📆 CONSISTENCY SCORE
+
+let consistencyTotal =
+stats.present + stats.absent + stats.leave +
+stats.late + stats.half;
+
+let consistency = consistencyTotal
+  ? Math.round((stats.present / consistencyTotal) * 100)
+  : 0;
+
+document.getElementById("consistencyBox").textContent =
+  `📆 Consistency: ${consistency}%`;
+
+// 📈 TREND
+
+// 📈 TREND (SMART)
+
+let trend = "";
+
+if(percent >= 95) trend = "🚀 Excellent growth";
+else if(percent >= 85) trend = "📈 Improving";
+else if(percent >= 70) trend = "🙂 Stable";
+else trend = "📉 Needs focus";
+
+document.getElementById("trendBox").textContent = trend;
+
+// 🧠 SMART MSG
+document.getElementById("smartMsg").innerHTML = `
+  <div class="label">🧠 Insight</div>
+  <div class="value">${msg}</div>
+`;
+
+// 📈 COMPARE (dummy if not defined)
+let compareText = "Same as last month";
+document.getElementById("compareBox").innerHTML = `
+  <div class="label">📈 Compare</div>
+  <div class="value">${compareText}</div>
+`;
+
+// 🔥 CURRENT STREAK
+document.getElementById("streakBox").innerHTML = `
+  <div class="label">🔥 Current Streak</div>
+  <div class="value">${currentStreak || 0} days</div>
+`;
+
+// 🏆 BEST STREAK
+document.getElementById("bestStreakBox").innerHTML = `
+  <div class="label">🏆 Best Streak</div>
+  <div class="value">${maxStreak} days</div>
+`;
+
+// 📅 ATTENDANCE
+document.getElementById("workingBox").innerHTML = `
+  <div class="label">📅 Attendance</div>
+  <div class="value">${stats.present} / ${working}</div>
+`;
+
+// 🚨 ALERT
+document.getElementById("alertBox").innerHTML = `
+  <div class="label">🚨 Status</div>
+  <div class="value">${alertMsg}</div>
+`;
+
+// 🎯 GOAL
+document.getElementById("goalBox").innerHTML = `
+  <div class="label">🎯 Goal</div>
+  <div class="value">${percent >= 90 ? "Achieved" : percent + "%"}</div>
+`;
+
+// ⏰ DISCIPLINE
+document.getElementById("disciplineBox").innerHTML = `
+  <div class="label">⏰ Discipline</div>
+  <div class="value">${discipline}%</div>
+`;
+
+// 📊 RANK
+document.getElementById("rankBox").innerHTML = `
+  <div class="label">📊 Rank</div>
+  <div class="value">${rank}</div>
+`;
+
+// 💡 TIP
+document.getElementById("tipBox").innerHTML = `
+  <div class="label">💡 Suggestion</div>
+  <div class="value">${tip}</div>
+`;
+
+// 📆 CONSISTENCY
+document.getElementById("consistencyBox").innerHTML = `
+  <div class="label">📆 Consistency</div>
+  <div class="value">${consistency}%</div>
+`;
+
+// 📉 TREND
+document.getElementById("trendBox").innerHTML = `
+  <div class="label">📉 Trend</div>
+  <div class="value">${trend}</div>
+`;
+}
+
 
 
 
@@ -2929,13 +3134,20 @@ if(s.includes("present")){
 }
 });
 
-document.getElementById("streakBox").textContent =
-`🔥 Best Streak: ${best} days`;
+document.getElementById("streakBox").innerHTML = `
+  <div class="label">🔥 Current Streak</div>
+  <div class="value">${best} days</div>
+`;
 
 
-// 📈 SIMPLE COMPARE (dummy safe)
-document.getElementById("compareBox").textContent =
-`📈 Total Present: ${all.filter(d=>(d.status||"").includes("Present")).length}`;
+let totalPresent = all.filter(d =>
+  (d.status || "").toLowerCase().includes("present")
+).length;
+
+document.getElementById("compareBox").innerHTML = `
+  <div class="label">📈 Total Present</div>
+  <div class="value">${totalPresent}</div>
+`;
 
 
 // 🧠 MESSAGE
@@ -2958,7 +3170,11 @@ else {
   msg = "⚠ Attendance low, ध्यान दो";
 }
 
-document.getElementById("smartMsg").textContent = msg;
+document.getElementById("smartMsg").innerHTML = `
+  <div class="label">🧠 Insight</div>
+  <div class="value">${msg}</div>
+`;
+
 
 }
 
