@@ -1384,11 +1384,6 @@ margin-top:20px;
   box-shadow:0 8px 18px rgba(0,0,0,0.15);
 }
 
-#extraInsights{
-  display:grid;
-  grid-template-columns: repeat(4, 1fr); /* 🔥 5 per row */
-  gap:10px;
-}
 
 .label{
   font-size:12px;
@@ -1401,17 +1396,20 @@ margin-top:20px;
   font-weight:bold;
 }
 
+#extraInsights{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr); /* desktop */
+  gap:10px;
+}
+
+/* 📱 Tablet + Mobile → 2 cards */
 @media(max-width:768px){
   #extraInsights{
-    grid-template-columns: repeat(2, 1fr); /* 2 per row */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media(max-width:480px){
-  #extraInsights{
-    grid-template-columns: 1fr; /* 1 per row */
-  }
-}
+
 
 #alertBox{ background:#fee2e2; }
 #goalBox{ background:#e0f2fe; }
