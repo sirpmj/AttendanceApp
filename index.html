@@ -2352,21 +2352,38 @@ function generateCard(name){
 
   ctx.shadowBlur=0;
 
-  // ======================
-  // 👤 NAME
-  // ======================
+// ======================
+// 👤 NAME FIXED
+// ======================
 
-  ctx.fillStyle="white";
+ctx.textAlign = "center";
 
-  ctx.font="bold 55px sans-serif";
+// प्रिय
+ctx.fillStyle = "white";
 
-  ctx.fillText("प्रिय",530,450);
+ctx.font = "bold 55px sans-serif";
 
-  ctx.fillStyle="yellow";
+ctx.fillText("प्रिय",700,450);
 
-  ctx.font="bold 78px sans-serif";
+// name
+ctx.fillStyle = "yellow";
 
-  ctx.fillText(name + ",",850,450);
+ctx.font = "bold 78px sans-serif";
+
+// 🔥 auto fit name
+let maxWidth = 700;
+
+while(ctx.measureText(name).width > maxWidth){
+
+  let size =
+    parseInt(ctx.font.match(/\d+/)[0]);
+
+  size -= 2;
+
+  ctx.font = `bold ${size}px sans-serif`;
+}
+
+ctx.fillText(name + ",",700,540);
 
   // ======================
   // 💌 MESSAGE BOX
