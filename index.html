@@ -2070,22 +2070,26 @@ function manualWish(name, phone){
   }
 
   let msg =
-`🎉 Happy Birthday 🎂
+`🎉 जन्मदिन की हार्दिक शुभकामनाएँ 🎂
 
-Dear ${name},
+प्रिय ${name},
 
-Wishing you a fantastic year ahead! 🎊✨`;
+आपको जन्मदिन की ढेर सारी शुभकामनाएँ! 🌟🎈
+ईश्वर आपको हमेशा खुशियाँ, सफलता, अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे। 😊✨
+
+शुभकामनाओं सहित,
+Suresh B Prajapati 💐`;
 
   let url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 
-  console.log("Opening:", url); // debug
+  console.log("Opening:", url);
 
   window.open(url, "_blank");
 }
 
 
-
 function autoWishAll(){
+
   let list = todayBirthdays();
 
   if(list.length === 0) return;
@@ -2097,85 +2101,173 @@ function autoWishAll(){
   }
 }
 
+
+// 🎂 Calendar Badge
 function addBirthdayBadge(cell, date){
 
   let list = birthdayData.filter(b => b.date === date);
 
   if(list.length > 0){
+
     let badge = document.createElement("div");
-    badge.textContent = "🎂";
+
+    badge.innerHTML = "🎂";
+
     badge.style.position = "absolute";
     badge.style.top = "2px";
     badge.style.right = "4px";
-    badge.style.fontSize = "12px";
+    badge.style.fontSize = "14px";
+    badge.style.animation = "bounce 1s infinite";
 
     cell.style.position = "relative";
+
     cell.appendChild(badge);
   }
 }
 
+
+// 🎨 Birthday Card Generator
 function generateCard(name){
 
   let canvas = document.createElement("canvas");
-  canvas.width = 500;
-  canvas.height = 300;
+
+  canvas.width = 700;
+  canvas.height = 400;
 
   let ctx = canvas.getContext("2d");
 
-  // background gradient
-  let grad = ctx.createLinearGradient(0,0,500,300);
-  grad.addColorStop(0,"#ff7eb3");
-  grad.addColorStop(1,"#ff758c");
+  // 🌈 Background Gradient
+  let grad = ctx.createLinearGradient(0,0,700,400);
+
+  grad.addColorStop(0,"#ff6a88");
+  grad.addColorStop(1,"#ff99ac");
 
   ctx.fillStyle = grad;
-  ctx.fillRect(0,0,500,300);
+  ctx.fillRect(0,0,700,400);
 
-  // text
+  // ✨ Decorative circles
+  for(let i=0;i<20;i++){
+
+    ctx.beginPath();
+
+    ctx.arc(
+      Math.random()*700,
+      Math.random()*400,
+      Math.random()*15+5,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.fill();
+  }
+
+  // 🎉 Title
   ctx.fillStyle = "white";
   ctx.textAlign = "center";
 
-  ctx.font = "28px Arial";
-  ctx.fillText("🎉 Happy Birthday 🎉", 250, 100);
+  ctx.font = "bold 42px Arial";
+  ctx.fillText("🎉 जन्मदिन की शुभकामनाएँ! 🎂", 350, 100);
 
-  ctx.font = "32px Arial";
-  ctx.fillText(name, 250, 160);
+  // 👤 Name
+  ctx.font = "bold 38px Arial";
+  ctx.fillText(name, 350, 180);
 
-  ctx.font = "16px Arial";
-  ctx.fillText("Wishing you a wonderful year ahead!", 250, 220);
+  // 💌 Message
+  ctx.font = "24px Arial";
+  ctx.fillText("आपका जीवन खुशियों से भरा रहे ✨", 350, 250);
+
+  // 👋 From
+  ctx.font = "20px Arial";
+  ctx.fillText("— Suresh B Prajapati 💐", 350, 330);
 
   return canvas.toDataURL("image/png");
 }
 
 
+// 📥 Download Card
 function shareBirthdayCard(name){
 
   let img = generateCard(name);
 
   let a = document.createElement("a");
+
   a.href = img;
+
   a.download = name + "_birthday.png";
+
   a.click();
 }
 
 
+// 📲 WhatsApp Wish
+function sendWhatsAppWish(name, phone){
+
+  if(!phone){
+    alert("Phone number missing!");
+    return;
+  }
+
+  // clean number
+  phone = phone.toString().replace(/\D/g,"");
+
+  // add India code
+  if(phone.length === 10){
+    phone = "91" + phone;
+  }
+
+  let msg =
+`🎉 जन्मदिन की हार्दिक शुभकामनाएँ 🎂
+
+प्रिय ${name},
+
+आपको जन्मदिन की ढेर सारी शुभकामनाएँ! 🌟🎈
+
+ईश्वर आपको हमेशा खुशियाँ, सफलता,
+अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे। 😊✨
+
+शुभकामनाओं सहित,
+Suresh B Prajapati 💐`;
+
+  let url =
+`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+  window.open(url, "_blank");
+}
+
+
+// 🚀 Init
 function initBirthdaySystem(){
 
-loadBirthdays().then(()=>{
+  loadBirthdays().then(()=>{
 
-showBirthdayPopup();
+    showBirthdayPopup();
 
-let list=todayBirthdays();
+    let list = todayBirthdays();
 
-if(list.length>0){
+    if(list.length > 0){
 
-// optional auto WhatsApp
-// autoWishAll();
+      // optional auto WhatsApp
+      // autoWishAll();
 
+    }
+
+  });
 }
 
-});
 
+// 🔥 Bounce Animation
+const style = document.createElement("style");
+
+style.innerHTML = `
+@keyframes bounce{
+  0%{transform:translateY(0);}
+  50%{transform:translateY(-3px);}
+  100%{transform:translateY(0);}
 }
+`;
+
+document.head.appendChild(style);
 
 
 async function initApp(){
