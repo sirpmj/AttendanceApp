@@ -2129,36 +2129,40 @@ function addBirthdayBadge(cell, date){
 // 🎨 Birthday Card Generator
 function generateCard(name){
 
-  let canvas = document.createElement("canvas");
+  const canvas = document.createElement("canvas");
 
+  // HD Size
   canvas.width = 1400;
   canvas.height = 1000;
 
-  let ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d");
+
+  // 🔥 Better rendering
+  ctx.imageSmoothingEnabled = true;
 
   // ======================
   // 🌈 BACKGROUND
   // ======================
 
-  let grad = ctx.createLinearGradient(0,0,1400,1000);
+  let bg = ctx.createLinearGradient(0,0,1400,1000);
 
-  grad.addColorStop(0,"#b4004e");
-  grad.addColorStop(1,"#ff2f75");
+  bg.addColorStop(0,"#b30059");
+  bg.addColorStop(1,"#ff2e7a");
 
-  ctx.fillStyle = grad;
+  ctx.fillStyle = bg;
   ctx.fillRect(0,0,1400,1000);
 
   // border
   ctx.strokeStyle = "rgba(255,215,0,0.4)";
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 4;
 
-  roundRect(ctx,10,10,1380,980,20,false,true);
+  ctx.strokeRect(10,10,1380,980);
 
   // ======================
   // 🎊 CONFETTI
   // ======================
 
-  for(let i=0;i<180;i++){
+  for(let i=0;i<150;i++){
 
     ctx.fillStyle =
       `hsl(${Math.random()*360},100%,70%)`;
@@ -2179,16 +2183,26 @@ function generateCard(name){
 
     ctx.beginPath();
 
-    ctx.fillStyle=color;
+    ctx.fillStyle = color;
 
-    ctx.ellipse(x,y,60,85,0,0,Math.PI*2);
+    ctx.ellipse(x,y,55,80,0,0,Math.PI*2);
 
     ctx.fill();
 
+    // shine
     ctx.beginPath();
 
-    ctx.moveTo(x,y+80);
-    ctx.lineTo(x,y+170);
+    ctx.fillStyle="rgba(255,255,255,0.3)";
+
+    ctx.ellipse(x-15,y-20,12,25,0,0,Math.PI*2);
+
+    ctx.fill();
+
+    // string
+    ctx.beginPath();
+
+    ctx.moveTo(x,y+75);
+    ctx.lineTo(x,y+160);
 
     ctx.strokeStyle="gold";
     ctx.lineWidth=2;
@@ -2196,12 +2210,12 @@ function generateCard(name){
     ctx.stroke();
   }
 
-  balloon(80,250,"orange");
-  balloon(140,140,"purple");
+  balloon(90,250,"orange");
+  balloon(160,140,"purple");
 
   balloon(1260,240,"hotpink");
   balloon(1320,500,"dodgerblue");
-  balloon(1280,820,"deeppink");
+  balloon(1270,820,"deeppink");
 
   // ======================
   // 🎉 FLAGS
@@ -2222,8 +2236,8 @@ function generateCard(name){
 
     ctx.stroke();
 
-    ctx.fillStyle=
-      ["orange","hotpink","dodgerblue","gold"][i%4];
+    ctx.fillStyle =
+      ["orange","hotpink","deepskyblue","gold"][i%4];
 
     ctx.beginPath();
 
@@ -2239,23 +2253,23 @@ function generateCard(name){
   // ======================
 
   // plate
-  ctx.fillStyle="#f6e7d4";
+  ctx.fillStyle="#f5e6d2";
 
   ctx.beginPath();
 
-  ctx.ellipse(230,820,260,60,0,0,Math.PI*2);
+  ctx.ellipse(240,820,260,55,0,0,Math.PI*2);
 
   ctx.fill();
 
   // cake body
-  ctx.fillStyle="#f8d5b0";
+  ctx.fillStyle="#f8d4ae";
 
-  roundRect(ctx,40,520,380,260,40,true,false);
+  roundRect(ctx,50,520,380,260,40,true,false);
 
-  // chocolate
-  ctx.fillStyle="#5a2400";
+  // chocolate top
+  ctx.fillStyle="#5c2605";
 
-  roundRect(ctx,40,470,380,90,40,true,false);
+  roundRect(ctx,50,470,380,90,40,true,false);
 
   // cream top
   ctx.fillStyle="#fff0d0";
@@ -2264,29 +2278,29 @@ function generateCard(name){
 
     ctx.beginPath();
 
-    ctx.arc(55+i*24,470,18,0,Math.PI*2);
+    ctx.arc(65+i*24,470,18,0,Math.PI*2);
 
     ctx.fill();
   }
 
-  // bottom cream
+  // cream bottom
   for(let i=0;i<16;i++){
 
     ctx.beginPath();
 
-    ctx.arc(55+i*24,770,18,0,Math.PI*2);
+    ctx.arc(65+i*24,770,18,0,Math.PI*2);
 
     ctx.fill();
   }
 
   // candles
-  let candleColors=["skyblue","pink","orange","red"];
+  let colors=["skyblue","pink","orange","red"];
 
   for(let i=0;i<4;i++){
 
-    let x=110+i*70;
+    let x = 120 + i*70;
 
-    ctx.fillStyle=candleColors[i];
+    ctx.fillStyle = colors[i];
 
     ctx.fillRect(x,320,22,150);
 
@@ -2299,8 +2313,8 @@ function generateCard(name){
     ctx.moveTo(x,340);
     ctx.lineTo(x+22,370);
 
-    ctx.moveTo(x,380);
-    ctx.lineTo(x+22,410);
+    ctx.moveTo(x,390);
+    ctx.lineTo(x+22,420);
 
     ctx.stroke();
 
@@ -2315,33 +2329,28 @@ function generateCard(name){
   }
 
   // ======================
-  // 🎉 HEADING
+  // 🎉 TITLE
   // ======================
 
   ctx.textAlign="center";
 
+  // shadow
+  ctx.shadowColor="rgba(0,0,0,0.4)";
+  ctx.shadowBlur=10;
+
   ctx.fillStyle="#ffe28a";
 
-  ctx.font="bold 110px Arial";
+  ctx.font="bold 100px sans-serif";
 
   ctx.fillText("🎉 जन्मदिन 🎂",760,170);
 
   ctx.fillStyle="white";
 
-  ctx.font="bold 70px Arial";
+  ctx.font="bold 65px sans-serif";
 
   ctx.fillText("की हार्दिक शुभकामनाएँ!",760,280);
 
-  // decorative line
-  ctx.strokeStyle="gold";
-  ctx.lineWidth=3;
-
-  ctx.beginPath();
-
-  ctx.moveTo(500,340);
-  ctx.lineTo(1020,340);
-
-  ctx.stroke();
+  ctx.shadowBlur=0;
 
   // ======================
   // 👤 NAME
@@ -2349,15 +2358,15 @@ function generateCard(name){
 
   ctx.fillStyle="white";
 
-  ctx.font="bold 60px Arial";
+  ctx.font="bold 55px sans-serif";
 
-  ctx.fillText("प्रिय",540,470);
+  ctx.fillText("प्रिय",530,450);
 
   ctx.fillStyle="yellow";
 
-  ctx.font="bold 80px Arial";
+  ctx.font="bold 78px sans-serif";
 
-  ctx.fillText(name + ",",850,470);
+  ctx.fillText(name + ",",850,450);
 
   // ======================
   // 💌 MESSAGE BOX
@@ -2365,33 +2374,33 @@ function generateCard(name){
 
   ctx.fillStyle="rgba(120,0,50,0.55)";
 
-  roundRect(ctx,500,530,700,250,35,true,false);
+  roundRect(ctx,500,520,700,240,35,true,false);
 
-  ctx.strokeStyle="rgba(255,215,0,0.5)";
+  ctx.strokeStyle="rgba(255,215,0,0.6)";
   ctx.lineWidth=2;
 
-  roundRect(ctx,500,530,700,250,35,false,true);
+  roundRect(ctx,500,520,700,240,35,false,true);
 
   ctx.fillStyle="white";
 
-  ctx.font="bold 34px Arial";
+  ctx.font="bold 32px sans-serif";
 
   ctx.fillText(
     "आपको जन्मदिन की ढेर सारी शुभकामनाएँ! 🎂🎈",
     850,
-    610
+    600
   );
 
   ctx.fillText(
     "ईश्वर आपको हमेशा खुशियाँ, सफलता,",
     850,
-    680
+    670
   );
 
   ctx.fillText(
     "अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे 😊✨",
     850,
-    740
+    730
   );
 
   // ======================
@@ -2400,13 +2409,13 @@ function generateCard(name){
 
   ctx.fillStyle="white";
 
-  ctx.font="bold 42px Arial";
+  ctx.font="bold 42px sans-serif";
 
   ctx.fillText("शुभकामनाओं सहित,",850,860);
 
   ctx.fillStyle="yellow";
 
-  ctx.font="bold 65px Arial";
+  ctx.font="bold 65px sans-serif";
 
   ctx.fillText("Suresh B Prajapati 💐",850,940);
 
