@@ -2132,28 +2132,28 @@ function generateCard(name){
   let canvas = document.createElement("canvas");
 
   canvas.width = 1200;
-  canvas.height = 700;
+  canvas.height = 800;
 
   let ctx = canvas.getContext("2d");
 
-  // 🌈 Background Gradient
-  let grad = ctx.createLinearGradient(0,0,1200,700);
+  // 🌈 Background
+  let grad = ctx.createLinearGradient(0,0,1200,800);
 
-  grad.addColorStop(0,"#c8005a");
+  grad.addColorStop(0,"#c4005c");
   grad.addColorStop(1,"#ff2d75");
 
   ctx.fillStyle = grad;
-  ctx.fillRect(0,0,1200,700);
+  ctx.fillRect(0,0,1200,800);
 
   // ✨ Confetti
-  for(let i=0;i<120;i++){
+  for(let i=0;i<150;i++){
 
     ctx.fillStyle =
       `hsl(${Math.random()*360},100%,70%)`;
 
     ctx.fillRect(
       Math.random()*1200,
-      Math.random()*700,
+      Math.random()*800,
       10,
       10
     );
@@ -2163,31 +2163,35 @@ function generateCard(name){
   function balloon(x,y,color){
 
     ctx.beginPath();
+
     ctx.fillStyle = color;
 
     ctx.ellipse(x,y,45,60,0,0,Math.PI*2);
+
     ctx.fill();
 
     ctx.beginPath();
+
     ctx.moveTo(x,y+60);
     ctx.lineTo(x,y+120);
 
     ctx.strokeStyle="white";
     ctx.lineWidth=2;
+
     ctx.stroke();
   }
 
-  balloon(100,170,"orange");
-  balloon(180,120,"purple");
+  balloon(100,180,"orange");
+  balloon(190,130,"purple");
 
   balloon(1050,180,"hotpink");
-  balloon(1120,300,"dodgerblue");
-  balloon(1080,520,"deeppink");
+  balloon(1120,320,"dodgerblue");
+  balloon(1080,560,"deeppink");
 
-  // 🎊 Top Flags
+  // 🎊 Flags
   for(let i=0;i<12;i++){
 
-    let x = i * 110;
+    let x = i*110;
 
     ctx.beginPath();
 
@@ -2197,6 +2201,7 @@ function generateCard(name){
 
     ctx.strokeStyle="white";
     ctx.lineWidth=3;
+
     ctx.stroke();
 
     ctx.fillStyle =
@@ -2211,104 +2216,101 @@ function generateCard(name){
     ctx.fill();
   }
 
-  // 🎂 Cake
-  ctx.fillStyle="#f5d6b4";
+  // 🎂 Cake Base
+  ctx.fillStyle="#f7d7b5";
+  ctx.fillRect(70,470,300,180);
 
-  ctx.fillRect(70,420,300,180);
-
+  // 🍫 Chocolate Top
   ctx.fillStyle="#5b2c06";
+  ctx.fillRect(70,430,300,70);
 
-  ctx.fillRect(70,390,300,70);
-
-  // cake cream
+  // 🍦 Cream
   ctx.fillStyle="#fff2d5";
 
   for(let i=0;i<15;i++){
 
     ctx.beginPath();
 
-    ctx.arc(85+i*20,390,15,0,Math.PI*2);
+    ctx.arc(85+i*20,430,15,0,Math.PI*2);
 
     ctx.fill();
   }
 
-  // candles
-  let candleColors=["skyblue","pink","orange","red"];
+  // 🕯 Candles
+  let colors=["skyblue","pink","orange","red"];
 
   for(let i=0;i<4;i++){
 
-    let x = 120 + i*55;
+    let x=120+i*55;
 
-    ctx.fillStyle=candleColors[i];
+    ctx.fillStyle=colors[i];
 
-    ctx.fillRect(x,280,18,110);
+    ctx.fillRect(x,320,18,110);
 
     // flame
     ctx.beginPath();
 
     ctx.fillStyle="gold";
 
-    ctx.arc(x+9,265,12,0,Math.PI*2);
+    ctx.arc(x+9,305,12,0,Math.PI*2);
 
     ctx.fill();
   }
 
   // 🎉 Heading
-  ctx.fillStyle="gold";
-
-  ctx.font="bold 75px Arial";
   ctx.textAlign="center";
+
+  ctx.fillStyle="gold";
+  ctx.font="bold 80px Arial";
 
   ctx.fillText("🎉 जन्मदिन",650,140);
 
   ctx.fillStyle="white";
-
-  ctx.font="bold 55px Arial";
+  ctx.font="bold 60px Arial";
 
   ctx.fillText("की हार्दिक शुभकामनाएँ!",650,220);
 
   // 👤 Name
   ctx.fillStyle="yellow";
-
-  ctx.font="bold 70px Arial";
+  ctx.font="bold 72px Arial";
 
   ctx.fillText(name + ",",760,360);
 
   // 💌 Message Box
   ctx.fillStyle="rgba(0,0,0,0.20)";
 
-  roundRect(ctx,420,400,520,180,25,true,false);
+  roundRect(ctx,420,420,600,210,30,true,false);
 
   ctx.fillStyle="white";
 
   ctx.font="bold 34px Arial";
 
-  ctx.fillText("आपको जन्मदिन की ढेर सारी शुभकामनाएँ! 🎂",680,470);
+  ctx.fillText("आपको जन्मदिन की ढेर सारी शुभकामनाएँ! 🎂",720,490);
 
   ctx.font="30px Arial";
 
-  ctx.fillText("ईश्वर आपको हमेशा खुशियाँ, सफलता,",680,530);
+  ctx.fillText("ईश्वर आपको हमेशा खुशियाँ, सफलता,",720,550);
 
-  ctx.fillText("अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे 😊✨",680,580);
+  ctx.fillText("अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे 😊✨",720,600);
 
   // 👋 From
   ctx.fillStyle="white";
 
-  ctx.font="bold 38px Arial";
+  ctx.font="bold 40px Arial";
 
-  ctx.fillText("शुभकामनाओं सहित,",720,650);
+  ctx.fillText("शुभकामनाओं सहित,",720,710);
 
   ctx.fillStyle="yellow";
 
-  ctx.font="bold 50px Arial";
+  ctx.font="bold 55px Arial";
 
-  ctx.fillText("Suresh B Prajapati 💐",760,710);
+  ctx.fillText("Suresh B Prajapati 💐",720,770);
 
   return canvas.toDataURL("image/png");
 }
 
 
-// 🔥 Rounded Box
+// 🔥 Rounded Rectangle
 function roundRect(ctx,x,y,width,height,radius,fill,stroke){
 
   ctx.beginPath();
@@ -2347,7 +2349,6 @@ function roundRect(ctx,x,y,width,height,radius,fill,stroke){
 
   if(stroke) ctx.stroke();
 }
-
 
 // 📥 Download Card
 function shareBirthdayCard(name){
