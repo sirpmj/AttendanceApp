@@ -2131,57 +2131,221 @@ function generateCard(name){
 
   let canvas = document.createElement("canvas");
 
-  canvas.width = 700;
-  canvas.height = 400;
+  canvas.width = 1200;
+  canvas.height = 700;
 
   let ctx = canvas.getContext("2d");
 
   // 🌈 Background Gradient
-  let grad = ctx.createLinearGradient(0,0,700,400);
+  let grad = ctx.createLinearGradient(0,0,1200,700);
 
-  grad.addColorStop(0,"#ff6a88");
-  grad.addColorStop(1,"#ff99ac");
+  grad.addColorStop(0,"#c8005a");
+  grad.addColorStop(1,"#ff2d75");
 
   ctx.fillStyle = grad;
-  ctx.fillRect(0,0,700,400);
+  ctx.fillRect(0,0,1200,700);
 
-  // ✨ Decorative circles
-  for(let i=0;i<20;i++){
+  // ✨ Confetti
+  for(let i=0;i<120;i++){
+
+    ctx.fillStyle =
+      `hsl(${Math.random()*360},100%,70%)`;
+
+    ctx.fillRect(
+      Math.random()*1200,
+      Math.random()*700,
+      10,
+      10
+    );
+  }
+
+  // 🎈 Balloons
+  function balloon(x,y,color){
+
+    ctx.beginPath();
+    ctx.fillStyle = color;
+
+    ctx.ellipse(x,y,45,60,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(x,y+60);
+    ctx.lineTo(x,y+120);
+
+    ctx.strokeStyle="white";
+    ctx.lineWidth=2;
+    ctx.stroke();
+  }
+
+  balloon(100,170,"orange");
+  balloon(180,120,"purple");
+
+  balloon(1050,180,"hotpink");
+  balloon(1120,300,"dodgerblue");
+  balloon(1080,520,"deeppink");
+
+  // 🎊 Top Flags
+  for(let i=0;i<12;i++){
+
+    let x = i * 110;
 
     ctx.beginPath();
 
-    ctx.arc(
-      Math.random()*700,
-      Math.random()*400,
-      Math.random()*15+5,
-      0,
-      Math.PI*2
-    );
+    ctx.moveTo(x,0);
+    ctx.lineTo(x+55,60);
+    ctx.lineTo(x+110,0);
 
-    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.strokeStyle="white";
+    ctx.lineWidth=3;
+    ctx.stroke();
+
+    ctx.fillStyle =
+      ["orange","deepskyblue","hotpink","gold"][i%4];
+
+    ctx.beginPath();
+
+    ctx.moveTo(x+25,0);
+    ctx.lineTo(x+55,55);
+    ctx.lineTo(x+85,0);
+
     ctx.fill();
   }
 
-  // 🎉 Title
-  ctx.fillStyle = "white";
-  ctx.textAlign = "center";
+  // 🎂 Cake
+  ctx.fillStyle="#f5d6b4";
 
-  ctx.font = "bold 42px Arial";
-  ctx.fillText("🎉 जन्मदिन की शुभकामनाएँ! 🎂", 350, 100);
+  ctx.fillRect(70,420,300,180);
+
+  ctx.fillStyle="#5b2c06";
+
+  ctx.fillRect(70,390,300,70);
+
+  // cake cream
+  ctx.fillStyle="#fff2d5";
+
+  for(let i=0;i<15;i++){
+
+    ctx.beginPath();
+
+    ctx.arc(85+i*20,390,15,0,Math.PI*2);
+
+    ctx.fill();
+  }
+
+  // candles
+  let candleColors=["skyblue","pink","orange","red"];
+
+  for(let i=0;i<4;i++){
+
+    let x = 120 + i*55;
+
+    ctx.fillStyle=candleColors[i];
+
+    ctx.fillRect(x,280,18,110);
+
+    // flame
+    ctx.beginPath();
+
+    ctx.fillStyle="gold";
+
+    ctx.arc(x+9,265,12,0,Math.PI*2);
+
+    ctx.fill();
+  }
+
+  // 🎉 Heading
+  ctx.fillStyle="gold";
+
+  ctx.font="bold 75px Arial";
+  ctx.textAlign="center";
+
+  ctx.fillText("🎉 जन्मदिन",650,140);
+
+  ctx.fillStyle="white";
+
+  ctx.font="bold 55px Arial";
+
+  ctx.fillText("की हार्दिक शुभकामनाएँ!",650,220);
 
   // 👤 Name
-  ctx.font = "bold 38px Arial";
-  ctx.fillText(name, 350, 180);
+  ctx.fillStyle="yellow";
 
-  // 💌 Message
-  ctx.font = "24px Arial";
-  ctx.fillText("आपका जीवन खुशियों से भरा रहे ✨", 350, 250);
+  ctx.font="bold 70px Arial";
+
+  ctx.fillText(name + ",",760,360);
+
+  // 💌 Message Box
+  ctx.fillStyle="rgba(0,0,0,0.20)";
+
+  roundRect(ctx,420,400,520,180,25,true,false);
+
+  ctx.fillStyle="white";
+
+  ctx.font="bold 34px Arial";
+
+  ctx.fillText("आपको जन्मदिन की ढेर सारी शुभकामनाएँ! 🎂",680,470);
+
+  ctx.font="30px Arial";
+
+  ctx.fillText("ईश्वर आपको हमेशा खुशियाँ, सफलता,",680,530);
+
+  ctx.fillText("अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे 😊✨",680,580);
 
   // 👋 From
-  ctx.font = "20px Arial";
-  ctx.fillText("— Suresh B Prajapati 💐", 350, 330);
+  ctx.fillStyle="white";
+
+  ctx.font="bold 38px Arial";
+
+  ctx.fillText("शुभकामनाओं सहित,",720,650);
+
+  ctx.fillStyle="yellow";
+
+  ctx.font="bold 50px Arial";
+
+  ctx.fillText("Suresh B Prajapati 💐",760,710);
 
   return canvas.toDataURL("image/png");
+}
+
+
+// 🔥 Rounded Box
+function roundRect(ctx,x,y,width,height,radius,fill,stroke){
+
+  ctx.beginPath();
+
+  ctx.moveTo(x+radius,y);
+
+  ctx.lineTo(x+width-radius,y);
+
+  ctx.quadraticCurveTo(x+width,y,x+width,y+radius);
+
+  ctx.lineTo(x+width,y+height-radius);
+
+  ctx.quadraticCurveTo(
+    x+width,
+    y+height,
+    x+width-radius,
+    y+height
+  );
+
+  ctx.lineTo(x+radius,y+height);
+
+  ctx.quadraticCurveTo(
+    x,
+    y+height,
+    x,
+    y+height-radius
+  );
+
+  ctx.lineTo(x,y+radius);
+
+  ctx.quadraticCurveTo(x,y,x+radius,y);
+
+  ctx.closePath();
+
+  if(fill) ctx.fill();
+
+  if(stroke) ctx.stroke();
 }
 
 
