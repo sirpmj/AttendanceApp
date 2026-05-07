@@ -2353,37 +2353,46 @@ function generateCard(name){
   ctx.shadowBlur=0;
 
 // ======================
-// 👤 NAME FIXED
+// 👤 PERFECT NAME SECTION
 // ======================
 
 ctx.textAlign = "center";
 
-// प्रिय
+// 🔥 PRIYA
 ctx.fillStyle = "white";
 
-ctx.font = "bold 55px sans-serif";
+ctx.font = "bold 50px sans-serif";
 
-ctx.fillText("प्रिय",700,450);
+ctx.fillText("प्रिय",850,430);
 
-// name
+
+// 🔥 NAME
+let fontSize = 78;
+
 ctx.fillStyle = "yellow";
 
-ctx.font = "bold 78px sans-serif";
+ctx.font = `bold ${fontSize}px sans-serif`;
 
-// 🔥 auto fit name
-let maxWidth = 700;
+// auto shrink long names
+while(
+  ctx.measureText(name).width > 800
+){
 
-while(ctx.measureText(name).width > maxWidth){
+  fontSize -= 2;
 
-  let size =
-    parseInt(ctx.font.match(/\d+/)[0]);
+  ctx.font =
+    `bold ${fontSize}px sans-serif`;
 
-  size -= 2;
-
-  ctx.font = `bold ${size}px sans-serif`;
 }
 
-ctx.fillText(name + ",",700,540);
+// shadow
+ctx.shadowColor = "rgba(0,0,0,0.5)";
+ctx.shadowBlur = 8;
+
+// name proper centered
+ctx.fillText(name + ",",850,530);
+
+ctx.shadowBlur = 0;
 
   // ======================
   // 💌 MESSAGE BOX
