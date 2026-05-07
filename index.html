@@ -2353,8 +2353,18 @@ function generateCard(name){
   ctx.shadowBlur=0;
 
 // ======================
-// 👤 PERFECT NAME SECTION
+// 👤 NAME UPPER POSITION
 // ======================
+
+ctx.textAlign = "center";
+
+// 🔥 प्रिय
+ctx.fillStyle = "white";
+
+ctx.font = "bold 50px sans-serif";
+
+ctx.fillText("Dear",850,360);
+
 
 // 🔥 NAME
 let fontSize = 78;
@@ -2363,24 +2373,23 @@ ctx.fillStyle = "yellow";
 
 ctx.font = `bold ${fontSize}px sans-serif`;
 
-// auto shrink long names
+// auto fit long names
 while(
-  ctx.measureText(name).width > 800
+  ctx.measureText(name).width > 820
 ){
 
   fontSize -= 2;
 
   ctx.font =
     `bold ${fontSize}px sans-serif`;
-
 }
 
 // shadow
 ctx.shadowColor = "rgba(0,0,0,0.5)";
 ctx.shadowBlur = 8;
 
-// name proper centered
-ctx.fillText(name + ",",850,530);
+// 🔥 NAME UPPER
+ctx.fillText(name + ",",850,470);
 
 ctx.shadowBlur = 0;
 
