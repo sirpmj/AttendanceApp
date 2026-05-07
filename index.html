@@ -2069,35 +2069,24 @@ function manualWish(name, phone){
     phone = "91" + phone;
   }
 
-  // 🔥 logged-in user name
-  let currentUser =
-    firebase.auth().currentUser;
-
-  let senderName =
-    currentUser?.displayName ||
-    localStorage.getItem("userName") ||
-    "Best Wishes";
-
   let msg =
 `🎉 जन्मदिन की हार्दिक शुभकामनाएँ 🎂
 
 प्रिय ${name},
 
 आपको जन्मदिन की ढेर सारी शुभकामनाएँ! 🌟🎈
-
-ईश्वर आपको हमेशा खुशियाँ, सफलता,
-अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे। 😊✨
+ईश्वर आपको हमेशा खुशियाँ, सफलता, अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे। 😊✨
 
 शुभकामनाओं सहित,
-${senderName} 💐`;
+Suresh B Prajapati 💐`;
 
-  let url =
-`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  let url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 
   console.log("Opening:", url);
 
   window.open(url, "_blank");
 }
+
 
 function autoWishAll(){
 
@@ -2443,28 +2432,22 @@ ctx.shadowBlur = 0;
   // 👋 FOOTER
   // ======================
 
-// 👋 FOOTER
+  ctx.fillStyle="white";
 
-let currentUser =
-  firebase.auth().currentUser;
+  ctx.font="bold 42px sans-serif";
 
-let footerName =
-  currentUser?.displayName ||
-  localStorage.getItem("userName") ||
-  "Best Wishes";
+  ctx.fillText("शुभकामनाओं सहित,",850,860);
 
-ctx.fillStyle="white";
+  ctx.fillStyle="yellow";
 
-ctx.font="bold 42px sans-serif";
+  ctx.font="bold 65px sans-serif";
 
-ctx.fillText("शुभकामनाओं सहित,",850,860);
+  ctx.fillText("Suresh B Prajapati 💐",850,940);
 
-ctx.fillStyle="yellow";
-
-ctx.font="bold 65px sans-serif";
-
-ctx.fillText(footerName + " 💐",850,940);
+  return canvas.toDataURL("image/png");
 }
+
+
 // ======================
 // 🔥 ROUND RECT
 // ======================
@@ -2562,15 +2545,6 @@ function sendWhatsAppWish(name, phone){
     phone = "91" + phone;
   }
 
-  // 🔥 logged in user name
-  let currentUser =
-    firebase.auth().currentUser;
-
-  let senderName =
-    currentUser?.displayName ||
-    localStorage.getItem("userName") ||
-    "Best Wishes";
-
   let msg =
 `🎉 जन्मदिन की हार्दिक शुभकामनाएँ 🎂
 
@@ -2582,7 +2556,7 @@ function sendWhatsAppWish(name, phone){
 अच्छा स्वास्थ्य और लंबी उम्र प्रदान करे। 😊✨
 
 शुभकामनाओं सहित,
-${senderName} 💐`;
+Suresh B Prajapati 💐`;
 
   let url =
 `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
