@@ -1452,7 +1452,53 @@ to{opacity:1;transform:translateY(0)}
 }
 
 
+.settings-box{
+    width:360px;
+    max-width:95%;
+    padding:16px 18px;
+}
 
+.settings-box h3{
+    text-align:center;
+    margin:0 0 10px;
+    font-size:20px;
+}
+
+.setting-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:6px;   /* ↓ Reduced */
+}
+
+.setting-row label{
+    width:45%;
+    font-weight:600;
+    color:#333;
+    font-size:14px;
+    margin:0;
+}
+
+.setting-row .note-input{
+    width:55%;
+    height:32px;         /* ↓ Compact height */
+    padding:4px 8px;
+    font-size:14px;
+    box-sizing:border-box;
+}
+
+.modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:10px;     /* ↓ Reduced */
+}
+
+.modal-actions button{
+    min-width:85px;
+    height:34px;
+}
 
 </style>
 </head>
@@ -5427,54 +5473,59 @@ await loadSheetData();
 </script>
 <div id="settingsModal" class="modal">
 
-<div class="modal-box">
+  <div class="modal-box settings-box">
 
-<h3>User Settings</h3>
+    <h3>⚙️ User Settings</h3>
 
-<label>Financial Year</label>
+    <div class="setting-row">
+      <label>Financial Year</label>
+      <select id="financialYearType" class="note-input">
+        <option value="jan">Jan - Dec</option>
+        <option value="apr">Apr - Mar</option>
+      </select>
+    </div>
 
-<select id="financialYearType" class="note-select">
+    <div class="setting-row">
+      <label>Office In</label>
+      <input type="time" id="setOfficeIn" class="note-input">
+    </div>
 
-<option value="jan">Jan - Dec</option>
+    <div class="setting-row">
+      <label>Office Out</label>
+      <input type="time" id="setOfficeOut" class="note-input">
+    </div>
 
-<option value="apr">Apr - Mar</option>
+    <div class="setting-row">
+      <label>Grace Time</label>
+      <input type="time" id="setGrace" class="note-input">
+    </div>
 
-</select>
+    <div class="setting-row">
+      <label>Late Limit</label>
+      <input type="number" id="setLate" class="note-input">
+    </div>
 
-<label>Office In</label>
-<input type="time" id="setOfficeIn" class="note-input">
+    <div class="setting-row">
+      <label>Early Limit</label>
+      <input type="number" id="setEarly" class="note-input">
+    </div>
 
-<label>Office Out</label>
-<input type="time" id="setOfficeOut" class="note-input">
+    <div class="setting-row">
+      <label>Monthly Leave</label>
+      <input type="number" id="setMonthlyLeave" class="note-input">
+    </div>
 
-<label>Grace Time</label>
-<input type="time" id="setGrace" class="note-input">
+    <div class="setting-row">
+      <label>Yearly Leave</label>
+      <input type="number" id="setYearlyLeave" class="note-input">
+    </div>
 
-<label>Late Limit</label>
-<input type="number" id="setLate" class="note-input">
+    <div class="modal-actions">
+      <button onclick="closeSettings()">Cancel</button>
+      <button onclick="saveSettings()">Save</button>
+    </div>
 
-<label>Early Limit</label>
-<input type="number" id="setEarly" class="note-input">
-
-<label>Monthly Leave</label>
-<input type="number" id="setMonthlyLeave" class="note-input">
-
-<label>Yearly Leave</label>
-<input type="number" id="setYearlyLeave" class="note-input">
-
-<div class="modal-actions">
-
-<button onclick="closeSettings()">
-Cancel
-</button>
-
-<button onclick="saveSettings()">
-Save
-</button>
-
-</div>
-
-</div>
+  </div>
 
 </div>
 
