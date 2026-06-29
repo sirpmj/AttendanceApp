@@ -1636,6 +1636,9 @@ to{opacity:1;transform:translateY(0)}
   <input type="file" onchange="restoreData(event)">
 </label>
 
+<button onclick="openSettings()">
+⚙️ Settings
+</button>
 
 <button onclick="showHoliday()">
 🎉 Upcoming Holidays
@@ -1853,13 +1856,15 @@ holidays={};
 }
 
 // 🔥 NEW SETTINGS
-const officeIn="09:00";
-const officeOut="17:50";
-const graceTime="09:15";
-const lateLimit=3;
-const earlyLimit=1;
-const leaveMonthlyLimit = 2;
-const leaveYearlyLimit = 25;
+let officeIn="09:00";
+let officeOut="17:50";
+let graceTime="09:15";
+let lateLimit=3;
+let earlyLimit=1;
+let leaveMonthlyLimit=2;
+let leaveYearlyLimit=25;
+
+let financialYearType="jan";
 
 
 
@@ -3587,7 +3592,145 @@ refreshInsights();
 
 
 
+async function saveSettings(){
 
+let uid=auth.currentUser.uid;
+
+let data={
+
+financialYearType:
+document.getElementById("financialYearType").value,
+
+officeIn:
+document.getElementById("setOfficeIn").value,
+
+officeOut:
+document.getElementById("setOfficeOut").value,
+
+graceTime:
+document.getElementById("setGrace").value,
+
+lateLimit:Number(
+document.getElementById("setLate").value),
+
+earlyLimit:Number(
+document.getElementById("setEarly").value),
+
+leaveMonthlyLimit:Number(
+document.getElementById("setMonthlyLeave").value),
+
+leaveYearlyLimit:Number(
+document.getElementById("setYearlyLeave").value)
+
+};
+
+await db.collection("users")
+.doc(uid)
+.collection("settings")
+.doc("config")
+.set(data);
+
+alert("Settings Saved");
+
+closeSettings();
+
+loadSettings();
+
+}
+
+
+
+async function loadSettings(uid){
+
+  try{
+
+    let doc = await db
+      .collection("users")
+      .doc(uid)
+      .collection("settings")
+      .doc("config")
+      .get();
+
+    if(!doc.exists) return;
+
+    let s = doc.data();
+
+    financialYearType = s.financialYearType || "jan";
+
+    officeIn = s.officeIn || "09:00";
+    officeOut = s.officeOut || "17:50";
+    graceTime = s.graceTime || "09:15";
+
+    lateLimit = s.lateLimit ?? 3;
+    earlyLimit = s.earlyLimit ?? 1;
+
+    leaveMonthlyLimit = s.leaveMonthlyLimit ?? 2;
+    leaveYearlyLimit = s.leaveYearlyLimit ?? 25;
+
+  }catch(err){
+
+    console.error("Settings Load Error:", err);
+
+  }
+
+}
+
+
+function openSettings(){
+
+document.getElementById("settingsModal").style.display="flex";
+
+document.getElementById("financialYearType").value=financialYearType;
+
+document.getElementById("setOfficeIn").value=officeIn;
+
+document.getElementById("setOfficeOut").value=officeOut;
+
+document.getElementById("setGrace").value=graceTime;
+
+document.getElementById("setLate").value=lateLimit;
+
+document.getElementById("setEarly").value=earlyLimit;
+
+document.getElementById("setMonthlyLeave").value=leaveMonthlyLimit;
+
+document.getElementById("setYearlyLeave").value=leaveYearlyLimit;
+
+}
+
+
+function closeSettings(){
+
+document.getElementById("settingsModal").style.display="none";
+
+}
+
+
+function getFinancialYear(){
+
+let d=new Date();
+
+let y=d.getFullYear();
+
+if(financialYearType=="jan"){
+
+return y;
+
+}
+
+let m=d.getMonth()+1;
+
+if(m>=4){
+
+return y+"-"+(y+1);
+
+}else{
+
+return (y-1)+"-"+y;
+
+}
+
+}
 
 
 function refreshInsights(){
@@ -4012,17 +4155,22 @@ document.getElementById("moreSheet").addEventListener("click", function(e){
 
 });
 
-auth.onAuthStateChanged(user=>{
+auth.onAuthStateChanged(async (user)=>{
+
   if(user){
+
     document.getElementById("loginBox").style.display="none";
     document.getElementById("app").style.display="block";
+
+    // ✅ Load User Settings
+    await loadSettings(user.uid);
 
     // ✅ SAFE NAME LOGIC
     let name = "User";
 
     if(user.displayName && user.displayName.trim() !== ""){
       name = user.displayName;
-    } else if(user.email){
+    }else if(user.email){
       name = user.email.split("@")[0];
     }
 
@@ -4033,47 +4181,61 @@ auth.onAuthStateChanged(user=>{
     let hour = new Date().getHours();
     let greet = "Welcome";
 
-    if(hour < 12) greet = "Good Morning";
-    else if(hour < 18) greet = "Good Afternoon";
-    else greet = "Good Evening";
+    if(hour < 12){
+      greet = "Good Morning";
+    }else if(hour < 18){
+      greet = "Good Afternoon";
+    }else{
+      greet = "Good Evening";
+    }
 
-    document.getElementById("userWelcome").textContent = `${greet}, ${name}`;
+    document.getElementById("userWelcome").textContent =
+      `${greet}, ${name}`;
 
     // 🔥 Firestore listener
-db.collection("users")
-.doc(user.uid)
-.collection("attendance")
-.onSnapshot((snapshot) => {
+    db.collection("users")
+      .doc(user.uid)
+      .collection("attendance")
+      .onSnapshot((snapshot)=>{
 
-  let all = {};
+        let all = {};
 
-  snapshot.forEach(doc=>{
-    all[doc.id] = doc.data();
-  });
+        snapshot.forEach(doc=>{
+          all[doc.id] = doc.data();
+        });
 
-  clearTimeout(snapTimer);
+        clearTimeout(snapTimer);
 
-  snapTimer = setTimeout(()=>{
+        snapTimer = setTimeout(()=>{
 
-    window.firebaseCache = all;
+          window.firebaseCache = all;
 
-    requestAnimationFrame(()=>{   // 🔥 smooth UI
-      loadCalendar();
-      loadSummary();
-      updateLiveStrip();
-    });
+          requestAnimationFrame(()=>{
 
-  }, 150); // 🔥 batching
+            loadCalendar();
+            loadSummary();
+            updateLiveStrip();
 
-});
+          });
 
-  } else {
+        },150);
+
+      });
+
+  }else{
+
     document.getElementById("loginBox").style.display="flex";
     document.getElementById("app").style.display="none";
 
-    document.getElementById("userWelcome").textContent = "";
+    document.getElementById("userWelcome").textContent="";
+
   }
+
 });
+
+
+
+
 
 
 let current = new Date(
@@ -5187,6 +5349,59 @@ await loadSheetData();
 }, 15000);
 
 </script>
+<div id="settingsModal" class="modal">
+
+<div class="modal-box">
+
+<h3>User Settings</h3>
+
+<label>Financial Year</label>
+
+<select id="financialYearType" class="note-select">
+
+<option value="jan">Jan - Dec</option>
+
+<option value="apr">Apr - Mar</option>
+
+</select>
+
+<label>Office In</label>
+<input type="time" id="setOfficeIn" class="note-input">
+
+<label>Office Out</label>
+<input type="time" id="setOfficeOut" class="note-input">
+
+<label>Grace Time</label>
+<input type="time" id="setGrace" class="note-input">
+
+<label>Late Limit</label>
+<input type="number" id="setLate" class="note-input">
+
+<label>Early Limit</label>
+<input type="number" id="setEarly" class="note-input">
+
+<label>Monthly Leave</label>
+<input type="number" id="setMonthlyLeave" class="note-input">
+
+<label>Yearly Leave</label>
+<input type="number" id="setYearlyLeave" class="note-input">
+
+<div class="modal-actions">
+
+<button onclick="closeSettings()">
+Cancel
+</button>
+
+<button onclick="saveSettings()">
+Save
+</button>
+
+</div>
+
+</div>
+
+</div>
+
 </body>
 
 </html>
