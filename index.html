@@ -3594,47 +3594,51 @@ refreshInsights();
 
 async function saveSettings(){
 
-let uid=auth.currentUser.uid;
+  try{
 
-let data={
+    let uid = auth.currentUser.uid;
 
-financialYearType:
-document.getElementById("financialYearType").value,
+    let data = {
 
-officeIn:
-document.getElementById("setOfficeIn").value,
+      financialYearType: document.getElementById("financialYearType").value,
 
-officeOut:
-document.getElementById("setOfficeOut").value,
+      officeIn: document.getElementById("setOfficeIn").value,
 
-graceTime:
-document.getElementById("setGrace").value,
+      officeOut: document.getElementById("setOfficeOut").value,
 
-lateLimit:Number(
-document.getElementById("setLate").value),
+      graceTime: document.getElementById("setGrace").value,
 
-earlyLimit:Number(
-document.getElementById("setEarly").value),
+      lateLimit: Number(document.getElementById("setLate").value),
 
-leaveMonthlyLimit:Number(
-document.getElementById("setMonthlyLeave").value),
+      earlyLimit: Number(document.getElementById("setEarly").value),
 
-leaveYearlyLimit:Number(
-document.getElementById("setYearlyLeave").value)
+      leaveMonthlyLimit: Number(document.getElementById("setMonthlyLeave").value),
 
-};
+      leaveYearlyLimit: Number(document.getElementById("setYearlyLeave").value)
 
-await db.collection("users")
-.doc(uid)
-.collection("settings")
-.doc("config")
-.set(data);
+    };
 
-alert("Settings Saved");
+    console.log("UID:", uid);
+    console.log("DATA:", data);
 
-closeSettings();
+    await db.collection("users")
+      .doc(uid)
+      .collection("settings")
+      .doc("config")
+      .set(data);
 
-loadSettings();
+    alert("Settings Saved");
+
+    await loadSettings(uid);
+
+    closeSettings();
+
+  }catch(err){
+
+    console.error("SAVE ERROR:", err);
+    alert(err.message);
+
+  }
 
 }
 
