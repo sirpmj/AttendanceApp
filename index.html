@@ -4239,7 +4239,22 @@ auth.onAuthStateChanged(async (user)=>{
 
 
 
+function isInFinancialYear(dateStr){
 
+  let d = new Date(dateStr);
+
+  let selectedYear = current.getFullYear();
+
+  if(financialYearType === "jan"){
+    return d.getFullYear() === selectedYear;
+  }
+
+  // Apr–Mar
+  let fyStart = new Date(selectedYear, 3, 1); // 1 April
+  let fyEnd = new Date(selectedYear + 1, 2, 31, 23, 59, 59);
+
+  return d >= fyStart && d <= fyEnd;
+}
 
 
 let current = new Date(
@@ -4261,14 +4276,29 @@ function today(){
 }
 
 function getCurrentYearData(){
+
   let all = getAll();
   let y = current.getFullYear();
 
   return Object.values(all).filter(d=>{
+
     if(!d.date) return false;
+
     let dt = new Date(d.date);
-    return dt.getFullYear() === y;
+
+    // ✅ Jan - Dec
+    if(financialYearType === "jan"){
+      return dt.getFullYear() === y;
+    }
+
+    // ✅ Apr - Mar
+    let fyStart = new Date(y, 3, 1);      // 1 Apr
+    let fyEnd   = new Date(y + 1, 2, 31); // 31 Mar next year
+
+    return dt >= fyStart && dt <= fyEnd;
+
   });
+
 }
 
 function getTime(){
@@ -4767,56 +4797,98 @@ monthData.forEach(d=>{
 function getLeaveSummary(){
 
   let all = getAll();
-  let year = current.getFullYear();
   let month = current.getMonth();
 
   let monthUsed = 0;
   let yearUsed = 0;
 
-  Object.values(all).forEach(d => {
+  // Financial Year Range
+  let fyStart, fyEnd;
+
+  if(financialYearType === "apr"){
+
+    let y = current.getFullYear();
+
+    fyStart = new Date(y, 3, 1);          // 1 Apr
+    fyEnd   = new Date(y + 1, 2, 31);     // 31 Mar next year
+
+  }
+
+  Object.values(all).forEach(d=>{
+
     if(!d.date) return;
 
     let dt = new Date(d.date);
-    if(dt.getFullYear() !== year) return;
 
-    // 🔥 FULL LEAVE
-    if(d.status === "Leave"){
-      yearUsed += 1;
+    // Year Filter
+    if(financialYearType === "jan"){
 
-      if(dt.getMonth() === month){
-        monthUsed += 1;
-      }
+      if(dt.getFullYear() !== current.getFullYear()) return;
+
+    }else{
+
+      if(dt < fyStart || dt > fyEnd) return;
+
     }
 
-    // 🔥 HALF DAY
+    // Full Leave
+    if(d.status === "Leave"){
+
+      yearUsed++;
+
+      if(dt.getMonth() === month){
+        monthUsed++;
+      }
+
+    }
+
+    // Half Leave
     if(d.status === "Half"){
+
       yearUsed += 0.5;
 
       if(dt.getMonth() === month){
         monthUsed += 0.5;
       }
+
     }
+
   });
 
-  let monthlyLimit = leaveMonthlyLimit; // e.g. 2
-  let yearlyLimit = leaveYearlyLimit;   // e.g. 25
+  let monthlyLimit = leaveMonthlyLimit;
+  let yearlyLimit = leaveYearlyLimit;
 
-let currentMonth = current.getMonth() + 1;
+  // Carry Forward
+  let currentMonth;
 
-let allowedTillNow = currentMonth * monthlyLimit;
+  if(financialYearType === "jan"){
 
-let carryForward = allowedTillNow - yearUsed;
+    currentMonth = current.getMonth() + 1;
 
-let balance = yearlyLimit - yearUsed;
+  }else{
 
-  return {
+    // Apr=1 ... Mar=12
+    currentMonth = ((current.getMonth()+12-3)%12)+1;
+
+  }
+
+  let allowedTillNow = currentMonth * monthlyLimit;
+
+  let carryForward = Math.max(0, allowedTillNow - yearUsed);
+
+  let balance = yearlyLimit - yearUsed;
+
+  return{
+
     usedMonth: monthUsed,
-    monthlyLimit: monthlyLimit,
-    carryForward: carryForward,
-    balance: balance,
+    monthlyLimit,
+    carryForward,
+    balance,
     usedYear: yearUsed,
-    yearlyLimit: yearlyLimit
+    yearlyLimit
+
   };
+
 }
 
 
