@@ -4844,31 +4844,33 @@ function getLeaveSummary(){
 
   let all = getAll();
 
-  let month = current.getMonth();
+  let monthlyLimit = leaveMonthlyLimit;
+  let yearlyLimit  = leaveYearlyLimit;
 
   let monthUsed = 0;
   let yearUsed = 0;
+  let carryForward = 0;
 
-  let fyStart, fyEnd;
+  let fyStart, fyEnd, fyYear;
 
-  // Financial Year
-  if(financialYearType === "jan"){
+  if(financialYearType==="jan"){
 
     fyStart = new Date(current.getFullYear(),0,1);
     fyEnd   = new Date(current.getFullYear(),11,31,23,59,59);
+    fyYear  = current.getFullYear();
 
   }else{
 
-    let fyYear =
-      current.getMonth() >= 3
+    fyYear = current.getMonth() >= 3
       ? current.getFullYear()
       : current.getFullYear()-1;
 
-    fyStart = new Date(fyYear,3,1);               // 1 Apr
-    fyEnd   = new Date(fyYear+1,2,31,23,59,59);   // 31 Mar
+    fyStart = new Date(fyYear,3,1);
+    fyEnd   = new Date(fyYear+1,2,31,23,59,59);
 
   }
 
+  // Year Used
   Object.values(all).forEach(d=>{
 
     if(!d.date) return;
@@ -4877,52 +4879,86 @@ function getLeaveSummary(){
 
     if(dt < fyStart || dt > fyEnd) return;
 
-    // Leave
-    if(d.status==="Leave"){
+    if(d.status==="Leave") yearUsed++;
 
-      yearUsed++;
+    if(d.status==="Half") yearUsed += 0.5;
 
-      if(dt.getMonth()===month &&
-         dt.getFullYear()===current.getFullYear()){
-        monthUsed++;
-      }
+  });
 
-    }
+  // Current month leave
+  Object.values(all).forEach(d=>{
 
-    // Half Day
-    if(d.status==="Half"){
+    if(!d.date) return;
 
-      yearUsed += 0.5;
+    let dt = new Date(d.date);
 
-      if(dt.getMonth()===month &&
-         dt.getFullYear()===current.getFullYear()){
-        monthUsed += 0.5;
-      }
+    if(
+      dt.getMonth()===current.getMonth() &&
+      dt.getFullYear()===current.getFullYear()
+    ){
+
+      if(d.status==="Leave") monthUsed++;
+
+      if(d.status==="Half") monthUsed += 0.5;
 
     }
 
   });
 
-  let monthlyLimit = leaveMonthlyLimit;
-  let yearlyLimit  = leaveYearlyLimit;
+  // Carry Forward (Unused only)
+  let monthsCompleted =
+    financialYearType==="jan"
+      ? current.getMonth()+1
+      : ((current.getMonth()-3+12)%12)+1;
 
-  // Month number inside FY
-  let currentMonth;
+  carryForward = 0;
 
-  if(financialYearType==="jan"){
+  for(let i=0;i<monthsCompleted-1;i++){
 
-    currentMonth = current.getMonth()+1;
+    let monthIndex =
+      financialYearType==="jan"
+      ? i
+      : (3+i)%12;
 
-  }else{
+    let used = 0;
 
-    // Apr=1 ... Mar=12
-    currentMonth = ((current.getMonth()-3+12)%12)+1;
+    Object.values(all).forEach(d=>{
+
+      if(!d.date) return;
+
+      let dt = new Date(d.date);
+
+      let yearMatch =
+        financialYearType==="jan"
+          ? dt.getFullYear()===fyYear
+          : (
+              (dt >= fyStart && dt <= fyEnd)
+            );
+
+      if(!yearMatch) return;
+
+      if(dt.getMonth()!==monthIndex) return;
+
+      if(d.status==="Leave") used++;
+
+      if(d.status==="Half") used += 0.5;
+
+    });
+
+    let available = monthlyLimit + carryForward;
+
+    if(used <= available){
+
+      carryForward = available - used;
+
+    }else{
+
+      // Extra leave expires
+      carryForward = 0;
+
+    }
 
   }
-
-  let allowedTillNow = currentMonth * monthlyLimit;
-
-  let carryForward = Math.max(0, allowedTillNow-yearUsed);
 
   let balance = Math.max(0, yearlyLimit-yearUsed);
 
