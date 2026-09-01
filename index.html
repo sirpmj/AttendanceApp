@@ -283,16 +283,10 @@ gap:3px;
 .holiday{background:#C4B5FD;}     /* deeper purple */
 .weekoff{background:#A5B4FC;}     /* indigo mid */
 
-/* 🔥 NOTE / REMARK highlight (works on top of any status color) */
+/* 📝 NOTE / REMARK — poore date ka color change (status color override) */
 .day.has-note{
-  box-shadow: inset 0 0 0 2px #db2777, 0 1px 4px rgba(0,0,0,.08);
-}
-.day.has-note.today{
-  box-shadow: inset 0 0 0 2px #db2777, 0 0 0 2px #2563eb;
-}
-/* plain note (no status set) gets its own soft background */
-.day.has-note:not(.present):not(.late):not(.early):not(.absent):not(.leave):not(.half):not(.sunday):not(.holiday):not(.weekoff){
-  background:#FBCFE8;
+  background:#F472B6 !important;
+  color:#000;
 }
 
 #weekdays{
@@ -394,6 +388,8 @@ padding:6px 0;
 .gray{background:#6b7280;}
 .black{background:#000;}
 .purple{background:#8b5cf6;}
+.pink{background:#F472B6;}
+.indigo{background:#6366f1;}
 
 /* MODAL BACKDROP */
 .modal{
@@ -1769,9 +1765,9 @@ to{opacity:1;transform:translateY(0)}
 <div onclick="menuAction(()=>setWithNote('Absent'))"><span class="dot red"></span> Absent</div>
 <div onclick="menuAction(()=>setWithNote('Leave'))"><span class="dot blue"></span> Leave</div>
 <div onclick="menuAction(()=>setWithNote('Half'))"><span class="dot orange"></span> Half Day</div>
-<div onclick="menuAction(()=>quickSet('Weekoff'))"> <span class="dot purple"></span> Weekly Off</div>
+<div onclick="menuAction(()=>quickSet('Weekoff'))"> <span class="dot indigo"></span> Weekly Off</div>
 <div onclick="menuAction(()=>setWithNote('Holiday'))"><span class="dot purple"></span> Holiday</div>
-<div onclick="menuAction(()=>addRemark())"><span class="dot gray"></span> Note / Remark</div>
+<div onclick="menuAction(()=>addRemark())"><span class="dot pink"></span> Note / Remark</div>
 <div onclick="menuAction(()=>clearDay())"><span class="dot black"></span> Clear</div>
 
 </div>
@@ -2888,15 +2884,10 @@ else if(s.includes("absent")){
   d.style.color = "#fff";
 }
 
-// 📝 NOTE / REMARK highlight (year view)
-if(data.note){
-  d.style.boxShadow = "inset 0 0 0 2px #db2777";
-
-  // agar koi status/holiday/sunday color pehle se laga hua nahi hai to soft pink bg do
-  if(!s && !(holidays && holidays[dateKey]) && new Date(year, m, i).getDay() !== 0){
-    d.style.background = "#FBCFE8";
-    d.style.color = "#000";
-  }
+// 📝 NOTE / REMARK — poore date ka color change (status color override)
+if(data.remark){
+  d.style.background = "#F472B6";
+  d.style.color = "#000";
 }
 
 
@@ -4475,14 +4466,14 @@ function closeNoteModal(){
 }
 
 
-// 🔥 Plain note/remark on any date (status/in/out untouched)
+// 🔥 Plain note/remark on any date (status/in/out untouched, alag field)
 function addRemark(){
   let d = getData();
 
-  openNoteModal("Add Note / Remark", (note)=>{
+  openNoteModal("Add Note / Remark", (remark)=>{
 
     let dd = getData();
-    dd.note = note;
+    dd.remark = remark;
 
     save(dd);
 
@@ -4491,12 +4482,12 @@ function addRemark(){
     updateLiveStrip();
   });
 
-  // agar pehle se note hai to usko custom box me pre-fill kar do (edit ke liye)
+  // agar pehle se remark hai to usko custom box me pre-fill kar do (edit ke liye)
   setTimeout(()=>{
-    if(d.note){
+    if(d.remark){
       document.getElementById("noteInput").value = "custom";
       let custom = document.getElementById("customNote");
-      custom.value = d.note;
+      custom.value = d.remark;
       custom.style.display = "block";
     }
   }, 0);
@@ -4575,7 +4566,8 @@ function loadCalendar(){
       in: old.in || "",
       out: old.out || "",
       status: old.status || "",
-      note: old.note || ""
+      note: old.note || "",
+      remark: old.remark || ""
     };
 
     if(isSunday && !data.status){
@@ -4615,7 +4607,7 @@ function loadCalendar(){
     }
 
     if (cls) div.classList.add(cls);
-    if (data.note) div.classList.add("has-note");
+    if (data.remark) div.classList.add("has-note");
     if (d === today()) div.classList.add("today");
 
     let inT = data.in ? `<div class="time in">⬇ ${data.in}</div>` : "";
@@ -4633,12 +4625,19 @@ function loadCalendar(){
       ? `<div class="note">${holidayText}</div>`
       : "";
 
+    let remarkText = (data.remark || "").replace(/\s+/g, "<br>");
+
+    let remarkHtml = data.remark
+      ? `<div class="note">📝 ${remarkText}</div>`
+      : "";
+
     div.innerHTML = `
       <b class="date-num">${i}</b>
       ${inT}
       ${outT}
       ${st}
       ${holidayHtml}
+      ${remarkHtml}
       ${birthdayHtml}
 
       <div class="quick-actions">
