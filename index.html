@@ -1759,6 +1759,7 @@ to{opacity:1;transform:translateY(0)}
 <div onclick="menuAction(()=>setWithNote('Half'))"><span class="dot orange"></span> Half Day</div>
 <div onclick="menuAction(()=>quickSet('Weekoff'))"> <span class="dot purple"></span> Weekly Off</div>
 <div onclick="menuAction(()=>setWithNote('Holiday'))"><span class="dot purple"></span> Holiday</div>
+<div onclick="menuAction(()=>addRemark())"><span class="dot gray"></span> Note / Remark</div>
 <div onclick="menuAction(()=>clearDay())"><span class="dot black"></span> Clear</div>
 
 </div>
@@ -4450,6 +4451,33 @@ function closeNoteModal(){
   document.getElementById("noteModal").style.display = "none";
 }
 
+
+// 🔥 Plain note/remark on any date (status/in/out untouched)
+function addRemark(){
+  let d = getData();
+
+  openNoteModal("Add Note / Remark", (note)=>{
+
+    let dd = getData();
+    dd.note = note;
+
+    save(dd);
+
+    loadCalendar();
+    loadSummary();
+    updateLiveStrip();
+  });
+
+  // agar pehle se note hai to usko custom box me pre-fill kar do (edit ke liye)
+  setTimeout(()=>{
+    if(d.note){
+      document.getElementById("noteInput").value = "custom";
+      let custom = document.getElementById("customNote");
+      custom.value = d.note;
+      custom.style.display = "block";
+    }
+  }, 0);
+}
 
 function setWithNote(type){
 
