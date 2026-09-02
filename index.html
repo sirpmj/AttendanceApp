@@ -415,6 +415,62 @@ padding:6px 0;
   animation:popup .2s ease;
 }
 
+/* TRIP/VISIT LIST MODAL */
+.modal-box.wide{
+  max-width:420px;
+  max-height:80vh;
+  display:flex;
+  flex-direction:column;
+}
+
+#tripSearch{
+  width:100%;
+  padding:10px 12px;
+  margin-bottom:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+  background:#f9fafb;
+  outline:none;
+}
+#tripSearch:focus{
+  border-color:#0d9488;
+}
+
+#tripListBody{
+  overflow-y:auto;
+  text-align:left;
+  flex:1;
+}
+
+.trip-item{
+  padding:10px 12px;
+  border-radius:10px;
+  background:#F0FDFA;
+  border:1px solid #99F6E4;
+  margin-bottom:8px;
+  cursor:pointer;
+}
+.trip-item:hover{
+  background:#CCFBF1;
+}
+.trip-item .trip-date{
+  font-weight:600;
+  font-size:13px;
+  color:#0f766e;
+}
+.trip-item .trip-text{
+  font-size:13px;
+  color:#111;
+  margin-top:2px;
+}
+.trip-empty{
+  text-align:center;
+  color:#888;
+  font-size:13px;
+  padding:20px 0;
+}
+
 /* TITLE */
 #noteTitle{
   font-size:16px;
@@ -1588,6 +1644,17 @@ to{opacity:1;transform:translateY(0)}
   📅 Tap for punch • Double tap on Date for menu
 </div>
 
+<div id="tripListModal" class="modal">
+  <div class="modal-box wide">
+    <h3 id="tripListTitle">Trip / Visit List</h3>
+    <input type="text" id="tripSearch" placeholder="🔍 Search date or text..." oninput="renderTripList()">
+    <div id="tripListBody"></div>
+    <div class="modal-actions">
+      <button onclick="closeTripList()">Close</button>
+    </div>
+  </div>
+</div>
+
 
 
 
@@ -1697,6 +1764,10 @@ to{opacity:1;transform:translateY(0)}
 
 <button onclick="showHoliday()">
 🎉 Upcoming Holidays
+</button>
+
+<button onclick="openTripList()">
+🧳 Trip / Visit List
 </button>
 
 <button onclick="showUpcomingBirthdays()">
@@ -4396,6 +4467,60 @@ function menuAction(fn){
 // storage
 function getAll(){
   return window.firebaseCache || {};
+}
+
+// 🧳 TRIP / VISIT LIST — search karke sab dekho
+function openTripList(){
+  closeSheet();
+  document.getElementById("tripSearch").value = "";
+  document.getElementById("tripListModal").style.display = "flex";
+  renderTripList();
+}
+
+function closeTripList(){
+  document.getElementById("tripListModal").style.display = "none";
+}
+
+function renderTripList(){
+  let q = document.getElementById("tripSearch").value.trim().toLowerCase();
+  let all = getAll();
+
+  let trips = Object.values(all)
+    .filter(d => d.remark)
+    .sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  if(q){
+    trips = trips.filter(d =>
+      d.date.toLowerCase().includes(q) ||
+      d.remark.toLowerCase().includes(q)
+    );
+  }
+
+  let body = document.getElementById("tripListBody");
+
+  if(!trips.length){
+    body.innerHTML = `<div class="trip-empty">No trip/visit found</div>`;
+    return;
+  }
+
+  body.innerHTML = trips.map(d => `
+    <div class="trip-item" onclick="jumpToTrip('${d.date}')">
+      <div class="trip-date">${d.date}${d.in || d.out ? " • " + (d.in||"--") + " → " + (d.out||"--") : ""}</div>
+      <div class="trip-text">${d.remark}</div>
+    </div>
+  `).join("");
+}
+
+function jumpToTrip(dateStr){
+  let dt = new Date(dateStr);
+  current = new Date(dt.getFullYear(), dt.getMonth(), 1);
+  selected = dateStr;
+
+  closeTripList();
+
+  loadCalendar();
+  loadSummary();
+  updateLiveStrip();
 }
 
 document.getElementById("noteInput").addEventListener("change", function(){
