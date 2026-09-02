@@ -169,6 +169,7 @@ font-size:11px;
 .holiday-icon{background:#8b5cf6;}
 .percent-icon{background:#D946EF;}
 .weekoff-icon{ background:#6366f1; }
+.trip-icon{background:#0d9488;}
 
 
 /* CALENDAR */
@@ -2975,6 +2976,7 @@ if(activeFilter){
   if(activeFilter === "Absent" && s.includes("absent")) match = true;
   if(activeFilter === "Holiday" && holidays[dateKey]) match = true;
   if(activeFilter === "Week Off" && new Date(year, m, i).getDay() === 0) match = true;
+  if(activeFilter === "Trip" && data.remark) match = true;
 
   if(match){
     d.style.outline = "2px solid #000";
@@ -3064,7 +3066,7 @@ function loadYearSummary(){
   let all = getAll();
   let year = current.getFullYear();
 
-  let p=0,l=0,e=0,hf=0,lv=0,a=0,w=0,hol=0;
+  let p=0,l=0,e=0,hf=0,lv=0,a=0,w=0,hol=0,trip=0;
 
   // 🔥 FULL YEAR LOOP (365 days)
   let start = new Date(year, 0, 1);
@@ -3078,6 +3080,8 @@ function loadYearSummary(){
 
     let data = all[key] || {};
     let s = (data.status || "").toLowerCase();
+
+    if(data.remark) trip++;
 
     let day = d.getDay();
 
@@ -3118,6 +3122,7 @@ document.getElementById("yearSummary").innerHTML = `
 <span class="chip absent-icon" onclick="applyYearFilter('Absent')">🔴 Absent: ${a}</span>
 <span class="chip weekoff-icon" onclick="applyYearFilter('Week Off')">⚫ Week Off: ${w}</span>
 <span class="chip holiday-icon" onclick="applyYearFilter('Holiday')">🟤 Holiday: ${hol}</span>
+<span class="chip trip-icon" onclick="applyYearFilter('Trip')">🧳 Trip/Visit: ${trip}</span>
     <span class="chip percent-icon">📊 ${percent}%</span>
 
   </div>
